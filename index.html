@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DBueFVyAjIMtYLhiXUAlEJjMe31t3dxb0EeG++9xmKg='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-D21KAzoIbJfUX1q1ppsRltJ7BIItaWdCl+Fa4IzFyx4='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 1.1 · Simulatore desktop</title>
+  <title>Laguna 1.2 · Simulatore desktop</title>
   <style>
 :root {
   color-scheme: light;
@@ -113,6 +113,13 @@ button, h1, h2, p { margin: 0; }
 .sidebar-item:hover { background: var(--hover); }
 .sidebar-item[aria-current="location"] { background: var(--selected); font-weight: 650; }
 .finder-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.finder-tabs { display: flex; flex: none; align-items: center; gap: 4px; overflow-x: auto; padding: 4px 7px; background: var(--sidebar); border-bottom: 1px solid var(--line); }
+.finder-tab { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; padding: 1px 2px; border-radius: 7px; }
+.finder-tab:has(.finder-tab-active) { background: var(--surface); box-shadow: 0 1px 3px #071c311c; }
+.finder-tab > button:first-child { max-width: 160px; height: 26px; padding: 0 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: none; border: 0; border-radius: 6px; font-size: 12px; }
+.finder-tab > button:first-child:hover { background: var(--hover); }
+.finder-tab-active { font-weight: 650; }
+.finder-tabs .icon-button { width: 25px; height: 25px; font-size: 13px; }
 .finder-path { display: flex; align-items: center; gap: 6px; min-height: 37px; padding: 5px 17px; overflow-x: auto; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .finder-path button { background: transparent; color: var(--accent); border: 0; border-radius: 4px; padding: 3px 5px; white-space: nowrap; }
 .finder-path button:hover { background: var(--hover); }
@@ -123,6 +130,9 @@ button, h1, h2, p { margin: 0; }
 .file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; touch-action: manipulation; }
 .file-tile:hover { background: var(--hover); }
 .file-tile.is-selected { background: var(--selected); border-color: var(--line); }
+.file-tile[draggable="true"] { user-select: none; }
+.file-tile.is-drop-target, .sidebar-item.is-drop-target, .space-tile.is-drop-target { background: var(--selected); outline: 2px solid #338cd3; outline-offset: -2px; }
+.dock-item.is-drop-target .app-icon { transform: translateY(-10px) scale(1.29); outline: 2px solid #8dd5ff; outline-offset: 2px; }
 .file-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
 .file-kind { display: none; color: var(--muted); font-size: 11px; }
 .file-icon { width: 62px; height: 50px; display: block; flex: none; overflow: visible; }
@@ -229,13 +239,41 @@ dialog::backdrop { background: #081f31a1; }
 .mission-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 10px; }
 .mission-header h2 { font-size: 15px; }
 .mission-header button { color: #e9f7ff; }
-#mission-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
+#mission-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+.mission-card { display: grid; align-content: start; gap: 3px; min-width: 0; }
+.mission-card select { margin-inline: 7px; padding: 4px 6px; border-radius: 5px; border: 1px solid #ffffff38; color: var(--ink); background: var(--surface); font: inherit; font-size: 11px; }
+#mission-spaces { display: flex; flex-wrap: wrap; align-items: start; gap: 8px; padding: 4px 5px 13px; margin-bottom: 11px; border-bottom: 1px solid #ffffff30; }
+.space-group { position: relative; }
+.space-tile, .space-add { display: grid; place-items: center; gap: 5px; width: 114px; min-height: 72px; padding: 5px; border: 1px solid transparent; border-radius: 8px; color: white; background: #ffffff0e; font-size: 11px; }
+.space-tile:hover, .space-add:hover:not(:disabled) { background: #ffffff20; }
+.space-tile[aria-pressed="true"] { border-color: #9cd7ff; background: #ffffff20; }
+.space-art { display: block; width: 89px; height: 40px; border-radius: 4px; background: radial-gradient(ellipse at 75% 11%, #b4dfcf, transparent 51%), linear-gradient(155deg, #5fa8a4 30%, #255e70 55%, #1a4059 56%, #153346 95%); }
+.space-group > .icon-button { position: absolute; right: 1px; top: 1px; width: 22px; height: 22px; border: 1px solid #ffffff4a; border-radius: 50%; color: white; background: #213c4d; font-size: 11px; }
+.space-add .glyph { font-size: 16px; }
 .mission-tile { display: grid; gap: 8px; padding: 7px; background: none; border: 1px solid transparent; border-radius: 10px; text-align: left; font-size: 12px; overflow-wrap: anywhere; }
 .mission-tile:hover, .mission-tile:focus-visible { background: #ffffff18; border-color: #ffffff45; }
 .mission-preview { display: grid; grid-template-rows: 25px 1fr; min-width: 0; height: 100px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; box-shadow: 0 7px 16px #041c3444; }
 .mission-titlebar { display: block; padding: 6px 5px 4px 30px; border-bottom: 1px solid var(--line); font-size: 9px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; background: radial-gradient(circle at 8px 11px, #f46d64 2px, transparent 2.5px), radial-gradient(circle at 15px 11px, #eac150 2px, transparent 2.5px), radial-gradient(circle at 22px 11px, #56c37c 2px, transparent 2.5px); }
 .mission-content { display: grid; place-items: center; background: var(--panel); }
 .mission-content .app-icon { width: 38px; height: 38px; }
+
+#quicklook { width: min(700px, calc(100% - 25px)); max-height: 82vh; border-radius: 14px; box-shadow: 0 20px 65px #05182772; }
+.quicklook-header, .control-header { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+.quicklook-header h2, .control-header h2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+#quicklook-content { display: grid; justify-items: center; align-items: center; min-height: 140px; max-height: 62vh; overflow: auto; padding: 16px; background: var(--panel); }
+#quicklook-content img { max-width: 100%; max-height: 54vh; object-fit: contain; }
+#quicklook-content pre { justify-self: stretch; align-self: start; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 "Cascadia Mono", Consolas, monospace; }
+#quicklook-content ul { align-self: start; justify-self: start; margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+#quicklook-detail { padding: 9px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+#control-center { width: min(315px, calc(100% - 16px)); margin: calc(var(--menu-height) + 7px) 8px auto auto; border-radius: 14px; background: color-mix(in srgb, var(--surface) 96%, transparent); box-shadow: 0 12px 36px #041b3150; }
+#control-center::backdrop { background: #071e2d28; }
+#control-options { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 9px; }
+.control-option { display: flex; align-items: center; gap: 8px; min-height: 55px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); font-size: 11.5px; text-align: left; }
+.control-option .glyph { font-size: 15px; color: var(--accent); }
+.control-option:hover { background: var(--hover); }
+.control-option[aria-pressed="true"] { background: var(--selected); border-color: var(--accent); }
+:root[data-motion="reduced"] .dock-item .app-icon { transition: none; }
+:root[data-motion="reduced"] .dock-item:not(.is-drop-target) .app-icon { transform: none; }
 
 @media (max-width: 620px) {
   :root { --dock-height: 72px; }
@@ -285,7 +323,7 @@ dialog::backdrop { background: #081f31a1; }
     </div>
     <div id="status-bar">
       <button id="search-button" class="menu-button status-button" type="button" aria-label="Apri Spotlight" title="Spotlight · Ctrl + Spazio"></button>
-      <button id="settings-button" class="menu-button status-button" type="button" aria-label="Impostazioni" title="Impostazioni"></button>
+      <button id="settings-button" class="menu-button status-button" type="button" aria-label="Centro di Controllo" title="Centro di Controllo"></button>
       <time id="clock"></time>
     </div>
   </header>
@@ -319,11 +357,28 @@ dialog::backdrop { background: #081f31a1; }
       </footer>
     </form>
   </dialog>
+  <dialog id="quicklook" aria-labelledby="quicklook-title">
+    <header class="quicklook-header">
+      <button class="icon-button" type="button" id="quicklook-close" aria-label="Chiudi Anteprima rapida"><span data-icon="close"></span></button>
+      <h2 id="quicklook-title"></h2>
+      <button class="choice" type="button" id="quicklook-open">Apri</button>
+    </header>
+    <div id="quicklook-content"></div>
+    <footer id="quicklook-detail"></footer>
+  </dialog>
+  <dialog id="control-center" aria-labelledby="control-title">
+    <header class="control-header">
+      <h2 id="control-title">Centro di Controllo</h2>
+      <button class="icon-button" type="button" id="control-close" aria-label="Chiudi Centro di Controllo"><span data-icon="close"></span></button>
+    </header>
+    <div id="control-options"></div>
+  </dialog>
   <dialog id="mission" aria-labelledby="mission-title">
     <header class="mission-header">
-      <h2 id="mission-title">Finestre aperte</h2>
+      <h2 id="mission-title">Mission Control</h2>
       <button class="icon-button" type="button" id="mission-close" aria-label="Chiudi Mission Control"><span data-icon="close"></span></button>
     </header>
+    <div id="mission-spaces"></div>
     <div id="mission-grid"></div>
   </dialog>
   <input id="file-picker" type="file" hidden>
@@ -341,6 +396,8 @@ let activeWindow = null;
 let zIndex = 0;
 let preview = null;
 let fileSelection = 0;
+let spaces = [1];
+let activeSpace = 1;
 
 const glyphs = {
   system: '<path d="M3 15.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0M3 10.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0"/>',
@@ -353,6 +410,9 @@ const glyphs = {
   left: '<path d="m14 6-6 6 6 6"/>',
   right: '<path d="m10 6 6 6-6 6"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  moon: '<path d="M20 15A8.4 8.4 0 0 1 9 4a8.5 8.5 0 1 0 11 11Z"/>',
+  full: '<path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/>',
   folder: '<path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   desktop: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 17v4m-4 0h8"/>',
   document: '<path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/>',
@@ -497,7 +557,7 @@ function activate(record) {
 }
 
 function focusNext(fallbackId) {
-  const remaining = [...windows.values()].filter((record) => !record.minimized);
+  const remaining = [...windows.values()].filter((record) => !record.element.hidden);
   const next = remaining.sort((first, second) => second.order - first.order)[0];
   activate(next ?? null);
   if (next) {
@@ -506,6 +566,23 @@ function focusNext(fallbackId) {
     const dockButton = byId('dock').querySelector('[data-app="' + fallbackId + '"]');
     (dockButton ?? byId('app-menu')).focus();
   }
+}
+
+function syncSpaces() {
+  for (const record of windows.values()) {
+    record.element.hidden = Boolean(record.minimized || record.space !== activeSpace);
+  }
+  desktop.setAttribute('aria-label', 'Scrivania ' + (spaces.indexOf(activeSpace) + 1));
+  desktop.dataset.space = String(spaces.indexOf(activeSpace) + 1);
+}
+
+function switchSpace(id) {
+  if (!spaces.includes(id) || activeSpace === id) return;
+  activeSpace = id;
+  syncSpaces();
+  const next = [...windows.values()].filter((record) => !record.element.hidden)
+    .sort((first, second) => second.order - first.order)[0];
+  activate(next ?? null);
 }
 
 function closeWindow(record) {
@@ -572,7 +649,7 @@ function openWindow(id, focus = true) {
   let record = windows.get(id);
   if (record) {
     record.minimized = false;
-    record.element.hidden = false;
+    switchSpace(record.space);
   } else {
     const { name, size, render } = apps[id];
     const element = document.createElement('section');
@@ -587,7 +664,7 @@ function openWindow(id, focus = true) {
     const offset = Math.min(windows.size, 5) * 21;
     const [width, height] = size;
     record = {
-      id, element, titlebar, title,
+      id, element, titlebar, title, space: activeSpace,
       content: element.querySelector('.window-content'),
       rect: {
         width, height,
@@ -630,6 +707,7 @@ function openWindow(id, focus = true) {
     position(record);
     render(record);
   }
+  syncSpaces();
   activate(record);
   refreshDock();
   if (focus) record.element.focus({ preventScroll: true });
@@ -652,7 +730,19 @@ const files = {
   memo: { name: 'Promemoria.txt', parent: 'personal', text: 'Per scrivere e conservare i tuoi appunti usa l’app Note nel Dock.' },
   sample: { name: 'Esempio.txt', parent: 'downloads', text: 'Questo file dimostrativo è incluso nel simulatore.' }
 };
-const finder = { history: ['documents'], index: 0, view: 'grid', selected: null };
+const finder = {
+  tabs: [{ history: ['documents'], index: 0 }],
+  activeTab: 0,
+  view: 'grid',
+  sort: 'default',
+  selection: new Set(),
+  anchor: null,
+  get tab() { return this.tabs[this.activeTab]; },
+  get selected() { return this.selection.size === 1 ? this.selection.values().next().value : null; }
+};
+const tabLimit = 12;
+const finderDragType = 'application/x-laguna-items';
+let finderDrag = [];
 const fixedFolders = ['desktop', 'documents', 'downloads', 'images', 'trash', 'local'];
 const limitBytes = 256 * 1024;
 const limitEntries = 240;
@@ -731,6 +821,29 @@ function folderItems(id) {
   ];
 }
 
+const finderCollator = new Intl.Collator('it', { numeric: true, sensitivity: 'base' });
+
+function displayItems() {
+  const items = folderItems(currentFolder());
+  if (finder.sort === 'default') return items;
+  return items.sort((first, second) => {
+    const firstItem = folderInfo(first);
+    const secondItem = folderInfo(second);
+    if (finder.sort === 'kind') {
+      const typeDifference = Number((firstItem.kind ?? 'folder') !== 'folder') - Number((secondItem.kind ?? 'folder') !== 'folder');
+      if (typeDifference) return typeDifference;
+    }
+    return finderCollator.compare(firstItem.name, secondItem.name);
+  });
+}
+
+function sortFinder(sort) {
+  openWindow('finder');
+  finder.sort = sort;
+  updateFinder(windows.get('finder'));
+  saveWorkspace();
+}
+
 function persistEntries(entries) {
   const serialized = JSON.stringify([...entries]);
   if (entries.size > limitEntries || serialized.length > limitStorage) return 'Il disco virtuale è pieno. Esporta o elimina alcuni elementi.';
@@ -776,10 +889,22 @@ function addEntry(entry) {
 }
 
 function moveEntry(id, destination) {
-  const entry = virtualEntries.get(id);
-  if (!entry || !canWriteFolder(destination) || insideFolder(destination, id)) return 'Scegli un’altra cartella.';
-  const error = nameError(entry.name, destination, id);
-  return error || updateEntry(id, { parent: destination, trashed: false });
+  return moveEntries([id], destination);
+}
+
+function moveEntries(ids, destination) {
+  if (!canWriteFolder(destination) || !ids.length) return 'Scegli un’altra cartella.';
+  const entries = new Map(virtualEntries);
+  const names = new Set(folderItems(destination).filter((id) => !ids.includes(id)).map((id) => normalize(folderInfo(id).name)));
+  for (const id of ids) {
+    const entry = entries.get(id);
+    if (!entry || insideFolder(destination, id)) return 'Scegli un’altra cartella.';
+    const name = normalize(entry.name);
+    if (names.has(name)) return 'In questa cartella esiste già un elemento con questo nome.';
+    names.add(name);
+    entries.set(id, { ...entry, parent: destination, trashed: false });
+  }
+  return persistEntries(entries);
 }
 
 function emptyTrash() {
@@ -789,16 +914,21 @@ function emptyTrash() {
 }
 
 function currentFolder() {
-  return finder.history[finder.index];
+  return finder.tab.history[finder.tab.index];
+}
+
+function resetFinderSelection() {
+  finder.selection.clear();
+  finder.anchor = null;
+  finderMessage = '';
 }
 
 function goToFolder(id) {
   if (!fixedFolders.includes(id) && !canWriteFolder(id)) return;
   if (id !== currentFolder()) {
-    finder.history = [...finder.history.slice(0, finder.index + 1), id];
-    finder.index += 1;
-    finder.selected = null;
-    finderMessage = '';
+    finder.tab.history = [...finder.tab.history.slice(0, finder.tab.index + 1), id];
+    finder.tab.index += 1;
+    resetFinderSelection();
   }
   updateFinder(windows.get('finder'));
   saveWorkspace();
@@ -811,18 +941,42 @@ function showFolder(id) {
 
 function changeHistory(direction) {
   const next = historyIndex(direction);
-  if (next === finder.index) return;
-  finder.index = next;
-  finder.selected = null;
+  if (next === finder.tab.index) return;
+  finder.tab.index = next;
+  resetFinderSelection();
   updateFinder(windows.get('finder'));
   saveWorkspace();
 }
 
 function historyIndex(direction) {
-  for (let index = finder.index + direction; index >= 0 && index < finder.history.length; index += direction) {
-    if (isVisibleEntry(finder.history[index])) return index;
+  const tab = finder.tab;
+  for (let index = tab.index + direction; index >= 0 && index < tab.history.length; index += direction) {
+    if (isVisibleEntry(tab.history[index])) return index;
   }
-  return finder.index;
+  return tab.index;
+}
+
+function switchFinderTab(index) {
+  finder.activeTab = index;
+  resetFinderSelection();
+  if (!isVisibleEntry(currentFolder())) goToFolder('documents');
+  else updateFinder(windows.get('finder'));
+  saveWorkspace();
+}
+
+function newFinderTab(folder = currentFolder()) {
+  if (finder.tabs.length >= tabLimit) return;
+  finder.tabs.push({ history: [folder], index: 0 });
+  switchFinderTab(finder.tabs.length - 1);
+  windows.get('finder').content.querySelector('.finder-tab-active')?.focus();
+}
+
+function closeFinderTab(index) {
+  if (finder.tabs.length < 2) return;
+  finder.tabs.splice(index, 1);
+  const next = finder.activeTab - (index < finder.activeTab ? 1 : 0);
+  switchFinderTab(Math.min(next, finder.tabs.length - 1));
+  windows.get('finder').content.querySelector('.finder-tab-active')?.focus();
 }
 
 function setFinderView(view) {
@@ -840,6 +994,11 @@ function openItem(id) {
     return;
   }
   fileSelection += 1;
+  showPreview(virtualPreview(id));
+}
+
+function virtualPreview(id) {
+  const item = virtualEntries.get(id);
   const data = { id, name: item.name, description: 'Documento virtuale · Finder' };
   if (item.kind === 'text') {
     data.text = item.text;
@@ -850,7 +1009,7 @@ function openItem(id) {
   } else {
     data.description += ' · Usa Esporta per scaricare una copia';
   }
-  showPreview(data);
+  return data;
 }
 
 function decodeBytes(base64) {
@@ -919,21 +1078,49 @@ function renderFinder(record) {
   record.actions.setAttribute('aria-controls', 'menu-popover');
   record.actions.setAttribute('aria-expanded', 'false');
   viewBar.after(record.actions);
-  record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
+  record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-tabs" aria-label="Schede Finder"></nav><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
   const sidebar = record.content.querySelector('.finder-sidebar');
   const grid = record.content.querySelector('.files');
+  grid.addEventListener('click', (event) => {
+    if (event.target === grid) selectFinderItem(null, grid);
+  });
   grid.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     const tile = event.target.closest('[data-item]');
-    selectFinderItem(tile?.dataset.item ?? null, grid);
+    if (!finder.selection.has(tile?.dataset.item)) selectFinderItem(tile?.dataset.item ?? null, grid);
     toggleMenu(record.actions, false, finderActions(), { left: event.clientX, top: event.clientY });
   });
   grid.addEventListener('keydown', (event) => {
     const id = event.target.closest('[data-item]')?.dataset.item;
-    if (!id || currentFolder() === 'trash' || !virtualEntries.has(id)) return;
-    if (event.key === 'F2') nameEntry(id);
-    else if (event.key === 'Delete') sendToTrash(id);
-    else return;
+    if (!id || event.isComposing) return;
+    const modifier = event.ctrlKey || event.metaKey;
+    const arrows = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    if (event.code === 'Space' && !modifier && currentFolder() !== 'trash') {
+      if (!finder.selection.has(id)) selectFinderItem(id, grid);
+      openQuickLook();
+    } else if (event.key.toLowerCase() === 'a' && modifier) {
+      finder.selection = new Set(folderItems(currentFolder()));
+      updateSelection(grid);
+    } else if (arrows.includes(event.key)) {
+      const columns = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length;
+      const offsets = [-1, 1, -columns, columns];
+      const tiles = [...grid.querySelectorAll('[data-item]')];
+      const position = tiles.findIndex((tile) => tile.dataset.item === id);
+      const target = tiles[position + offsets[arrows.indexOf(event.key)]];
+      if (target) {
+        if (event.shiftKey && !finder.anchor) finder.anchor = id;
+        selectFinderItem(target.dataset.item, grid, event);
+        target.focus();
+      }
+    } else if (event.key === 'Escape') {
+      selectFinderItem(null, grid);
+    } else if (currentFolder() !== 'trash' && event.key === 'Delete') {
+      if (!finder.selection.has(id)) selectFinderItem(id, grid);
+      sendToTrash([...finder.selection].filter((item) => virtualEntries.has(item)));
+      record.actions.focus();
+    } else if (currentFolder() !== 'trash' && event.key === 'F2' && virtualEntries.has(id)) {
+      nameEntry(id);
+    } else return;
     event.preventDefault();
   });
   const groups = [
@@ -949,29 +1136,116 @@ function renderFinder(record) {
       const folder = folders[id];
       const entry = button(folder.name, 'sidebar-item', icon(folder.icon) + '<span>' + folder.name + '</span>', () => goToFolder(id));
       entry.dataset.folder = id;
+      if (id !== 'local') bindFinderDrop(entry, id);
       sidebar.append(entry);
     }
   }
   updateFinder(record);
 }
 
-function selectFinderItem(id, grid) {
-  finder.selected = id;
+function updateSelection(grid) {
   for (const tile of grid.querySelectorAll('[data-item]')) {
-    tile.classList.toggle('is-selected', tile.dataset.item === id);
-    tile.setAttribute('aria-pressed', tile.dataset.item === id);
+    const selected = finder.selection.has(tile.dataset.item);
+    tile.classList.toggle('is-selected', selected);
+    tile.setAttribute('aria-pressed', selected);
   }
+  const status = windows.get('finder').content.querySelector('.finder-footer').children[0];
+  const count = folderItems(currentFolder()).length;
+  status.textContent = finder.selection.size
+    ? finder.selection.size + (finder.selection.size === 1 ? ' selezionato' : ' selezionati')
+    : count + (count === 1 ? ' elemento' : ' elementi');
+}
+
+function selectFinderItem(id, grid, event = {}) {
+  finderMessage = '';
+  const items = displayItems();
+  if (id && event.shiftKey && items.includes(finder.anchor)) {
+    const first = items.indexOf(finder.anchor);
+    const last = items.indexOf(id);
+    finder.selection = new Set(items.slice(Math.min(first, last), Math.max(first, last) + 1));
+  } else if (id && (event.ctrlKey || event.metaKey)) {
+    if (finder.selection.has(id)) finder.selection.delete(id);
+    else finder.selection.add(id);
+    finder.anchor = id;
+  } else {
+    finder.selection = new Set(id ? [id] : []);
+    finder.anchor = id;
+  }
+  updateSelection(grid);
+}
+
+function renderFinderTabs(container) {
+  container.replaceChildren();
+  for (const [index, tab] of finder.tabs.entries()) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'finder-tab';
+    const id = tab.history[tab.index];
+    const label = isVisibleEntry(id) ? folderInfo(id).name : 'Documenti';
+    const selected = index === finder.activeTab;
+    const tabButton = button(label, selected ? 'finder-tab-active' : '', '', () => {
+      switchFinderTab(index);
+      container.querySelector('.finder-tab-active')?.focus();
+    });
+    tabButton.textContent = label;
+    tabButton.setAttribute('aria-current', selected ? 'true' : 'false');
+    wrapper.append(tabButton);
+    if (finder.tabs.length > 1) wrapper.append(iconButton('Chiudi scheda ' + (index + 1), 'close', () => closeFinderTab(index)));
+    container.append(wrapper);
+  }
+  const add = iconButton('Nuova scheda', 'plus', () => newFinderTab());
+  add.disabled = finder.tabs.length >= tabLimit;
+  container.append(add);
+}
+
+function bindFinderDrop(element, destination) {
+  const isDrag = (event) => finderDrag.length && event.dataTransfer.types.includes(finderDragType);
+  element.addEventListener('dragover', (event) => {
+    if (!isDrag(event) || finderDrag.includes(destination)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    element.classList.toggle('is-drop-target', true);
+  });
+  element.addEventListener('dragleave', (event) => {
+    if (!event.relatedTarget || !element.contains(event.relatedTarget)) element.classList.toggle('is-drop-target', false);
+  });
+  element.addEventListener('drop', (event) => {
+    if (!isDrag(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    element.classList.toggle('is-drop-target', false);
+    const ids = finderDrag;
+    finderDrag = [];
+    if (destination === 'trash') sendToTrash(ids);
+    else if (destination !== currentFolder()) {
+      const error = moveEntries(ids, destination);
+      showFinderMessage(error || 'Elementi spostati in ' + folderInfo(destination).name + '.');
+    }
+  });
+}
+
+function bindFinderDrag(tile, id, grid) {
+  tile.draggable = true;
+  tile.addEventListener('dragstart', (event) => {
+    if (!finder.selection.has(id)) selectFinderItem(id, grid);
+    finderDrag = [...finder.selection].filter((item) => virtualEntries.has(item));
+    event.dataTransfer.setData(finderDragType, id);
+    event.dataTransfer.effectAllowed = 'move';
+  });
+  tile.addEventListener('dragend', () => {
+    finderDrag = [];
+    for (const target of document.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
+  });
 }
 
 function updateFinder(record) {
   const id = currentFolder();
   const folder = folderInfo(id);
-  const items = folderItems(id);
-  if (!items.includes(finder.selected)) finder.selected = null;
+  const items = displayItems();
+  finder.selection = new Set([...finder.selection].filter((item) => items.includes(item)));
   const surface = record.content;
   record.title.textContent = folder.name;
-  record.backButton.disabled = historyIndex(-1) === finder.index;
-  record.forwardButton.disabled = historyIndex(1) === finder.index;
+  record.backButton.disabled = historyIndex(-1) === finder.tab.index;
+  record.forwardButton.disabled = historyIndex(1) === finder.tab.index;
   record.gridButton.setAttribute('aria-pressed', finder.view === 'grid');
   record.listButton.setAttribute('aria-pressed', finder.view === 'list');
   const nearestFavorite = ['documents', 'downloads', 'images', 'local', 'trash', 'desktop'].find((candidate) => insideFolder(id, candidate));
@@ -980,6 +1254,7 @@ function updateFinder(record) {
     entry.setAttribute('aria-current', current ? 'location' : 'false');
   }
   const path = surface.querySelector('.finder-path');
+  renderFinderTabs(surface.querySelector('.finder-tabs'));
   const ancestors = [];
   for (let parent = folderParent(id); parent && !ancestors.includes(parent); parent = folderParent(parent)) ancestors.unshift(parent);
   path.replaceChildren();
@@ -1001,20 +1276,23 @@ function updateFinder(record) {
     const isFolder = item.kind === 'folder' || fixedFolders.includes(itemId);
     const kind = isFolder ? 'Cartella' : item.kind === 'import' ? 'File importato' : 'Documento';
     const tile = button(item.name + ' · ' + kind, 'file-tile', fileIcon(isFolder ? 'folder' : 'text') + '<span class="file-name"></span><span class="file-kind"></span>', (event) => {
-      if (event.detail === 0 && id !== 'trash') {
+      if (event.detail === 0 && id !== 'trash' && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
         openItem(itemId);
         return;
       }
-      selectFinderItem(itemId, grid);
-      if (event.detail === 0) toggleMenu(record.actions, true, finderActions());
+      selectFinderItem(itemId, grid, event);
+      if (event.detail === 0 && id === 'trash') toggleMenu(record.actions, true, finderActions());
     });
     tile.dataset.item = itemId;
-    tile.addEventListener('focus', () => selectFinderItem(itemId, grid));
     tile.querySelector('.file-name').textContent = item.name;
     tile.querySelector('.file-kind').textContent = kind;
-    tile.classList.toggle('is-selected', finder.selected === itemId);
-    tile.setAttribute('aria-pressed', finder.selected === itemId);
-    tile.addEventListener('dblclick', () => openItem(itemId));
+    tile.classList.toggle('is-selected', finder.selection.has(itemId));
+    tile.setAttribute('aria-pressed', finder.selection.has(itemId));
+    tile.addEventListener('dblclick', (event) => {
+      if (!event.ctrlKey && !event.metaKey && !event.shiftKey) openItem(itemId);
+    });
+    if (isFolder && canWriteFolder(itemId)) bindFinderDrop(tile, itemId);
+    if (id !== 'trash' && virtualEntries.has(itemId)) bindFinderDrag(tile, itemId, grid);
     grid.append(tile);
   }
   if (items.length === 0) {
@@ -1032,6 +1310,7 @@ function updateFinder(record) {
   }
   const [count, mode] = surface.querySelector('.finder-footer').children;
   count.textContent = finderMessage || (id === 'local' ? 'Selezione manuale' : items.length + (items.length === 1 ? ' elemento' : ' elementi'));
+  if (finder.selection.size && !finderMessage) updateSelection(grid);
   mode.textContent = id === 'local' ? 'Accesso locale in sola lettura' : finderNotice || 'Disco virtuale';
 }
 
@@ -1075,11 +1354,12 @@ function nameEntry(id, kind) {
 }
 
 function chooseDestination(id, restoring = false) {
-  const entry = virtualEntries.get(id);
+  const ids = Array.isArray(id) ? id : [id];
   const field = document.createElement('select');
   field.setAttribute('aria-label', 'Cartella di destinazione');
   const candidates = [...fixedFolders, ...virtualEntries.keys()].filter((candidate) =>
-    canWriteFolder(candidate) && !insideFolder(candidate, id) && (restoring || candidate !== entry.parent));
+    canWriteFolder(candidate) && ids.every((item) => !insideFolder(candidate, item))
+    && (restoring || ids.some((item) => candidate !== virtualEntries.get(item).parent)));
   for (const candidate of candidates) {
     const labels = [];
     for (let folder = candidate; folder; folder = folderParent(folder)) labels.unshift(folderInfo(folder).name);
@@ -1088,13 +1368,20 @@ function chooseDestination(id, restoring = false) {
     option.textContent = labels.join(' › ');
     field.append(option);
   }
-  finderDialog(restoring ? 'Ripristina in…' : 'Sposta in…', field, () => moveEntry(id, field.value), restoring ? 'Ripristina' : 'Sposta');
+  finderDialog(restoring ? 'Ripristina in…' : 'Sposta in…', field, () => moveEntries(ids, field.value), restoring ? 'Ripristina' : 'Sposta');
 }
 
 function sendToTrash(id) {
-  const error = updateEntry(id, { trashed: true });
-  if (!error && preview?.id === id) closeWindow(windows.get('preview'));
-  showFinderMessage(error || 'Elemento spostato nel Cestino.');
+  const ids = Array.isArray(id) ? id : [id];
+  if (!ids.length) return;
+  const entries = new Map(virtualEntries);
+  for (const item of ids) {
+    const entry = entries.get(item);
+    if (entry) entries.set(item, { ...entry, trashed: true });
+  }
+  const error = persistEntries(entries);
+  if (!error && preview?.id && !isVisibleEntry(preview.id)) closeWindow(windows.get('preview'));
+  showFinderMessage(error || (ids.length === 1 ? 'Elemento spostato nel Cestino.' : 'Elementi spostati nel Cestino.'));
 }
 
 function restoreEntry(id) {
@@ -1115,6 +1402,7 @@ function finderActions() {
   const id = finder.selected;
   const folder = currentFolder();
   const entry = virtualEntries.get(id);
+  const selected = [...finder.selection].filter((item) => virtualEntries.has(item));
   if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()]];
   if (folder === 'trash') return [
     ['Ripristina', () => restoreEntry(id), !entry],
@@ -1122,6 +1410,8 @@ function finderActions() {
   ];
   return [
     ['Apri', () => openItem(id), !id],
+    ['Anteprima rapida', openQuickLook, !finder.selection.size],
+    ['Apri in una nuova scheda', () => newFinderTab(id), !canWriteFolder(id) || finder.tabs.length >= tabLimit],
     ['Nuova cartella…', () => nameEntry(null, 'folder')],
     ['Nuovo documento di testo…', () => nameEntry(null, 'text')],
     ['Importa copia da Windows…', () => {
@@ -1129,9 +1419,9 @@ function finderActions() {
       byId('import-picker').click();
     }],
     ['Rinomina…', () => nameEntry(id), !entry],
-    ['Sposta in…', () => chooseDestination(id), !entry],
+    ['Sposta in…', () => chooseDestination(selected), !selected.length],
     ['Esporta copia…', () => exportEntry(id), !entry || entry.kind === 'folder'],
-    ['Sposta nel Cestino', () => sendToTrash(id), !entry]
+    ['Sposta nel Cestino', () => sendToTrash(selected), !selected.length]
   ];
 }
 
@@ -1140,10 +1430,75 @@ function clearPreview() {
   preview = null;
 }
 
+const quickLook = byId('quicklook');
+let quickLookUrl = null;
+let quickLookItem = null;
+
+function releaseQuickLook() {
+  if (quickLookUrl) URL.revokeObjectURL(quickLookUrl);
+  quickLookUrl = null;
+}
+
+function openQuickLook() {
+  const ids = [...finder.selection].filter(isVisibleEntry);
+  if (!ids.length) return;
+  closeMenu();
+  releaseQuickLook();
+  const title = byId('quicklook-title');
+  const content = byId('quicklook-content');
+  const detail = byId('quicklook-detail');
+  const open = byId('quicklook-open');
+  content.replaceChildren();
+  quickLookItem = ids.length === 1 ? ids[0] : null;
+  open.hidden = !quickLookItem;
+  if (!quickLookItem) {
+    title.textContent = ids.length + ' elementi';
+    detail.textContent = 'Selezione Finder';
+    const list = document.createElement('ul');
+    for (const id of ids) {
+      const name = document.createElement('li');
+      name.textContent = folderInfo(id).name;
+      list.append(name);
+    }
+    content.append(list);
+  } else {
+    const item = folderInfo(quickLookItem);
+    title.textContent = item.name;
+    if (item.kind === 'folder' || fixedFolders.includes(quickLookItem)) {
+      const names = folderItems(quickLookItem);
+      detail.textContent = 'Cartella · ' + names.length + (names.length === 1 ? ' elemento' : ' elementi');
+      content.innerHTML = fileIcon('folder');
+    } else {
+      const data = virtualPreview(quickLookItem);
+      detail.textContent = data.description;
+      if (data.url) {
+        quickLookUrl = data.url;
+        const image = document.createElement('img');
+        image.alt = data.name;
+        image.src = data.url;
+        image.addEventListener('error', () => {
+          image.remove();
+          detail.textContent = 'Immagine illeggibile.';
+        });
+        content.append(image);
+      } else if (data.text !== undefined) {
+        const body = document.createElement('pre');
+        body.textContent = data.text || 'Documento vuoto';
+        content.append(body);
+      } else {
+        content.innerHTML = fileIcon('text');
+      }
+    }
+  }
+  quickLook.showModal();
+  byId('quicklook-close').focus();
+}
+
 function showPreview(data) {
   clearPreview();
   preview = data;
-  const existing = windows.has('preview');
+  const existing = windows.get('preview');
+  if (existing) existing.space = activeSpace;
   const record = openWindow('preview');
   if (existing) renderPreview(record);
 }
@@ -1304,7 +1659,8 @@ function renderCalculator(record) {
 
 const preferences = {
   theme: { title: 'Aspetto', choices: { light: 'Chiaro', dark: 'Scuro' } },
-  wallpaper: { title: 'Sfondo', choices: { laguna: 'Laguna', aurora: 'Aurora', tramonto: 'Tramonto' } }
+  wallpaper: { title: 'Sfondo', choices: { laguna: 'Laguna', aurora: 'Aurora', tramonto: 'Tramonto' } },
+  motion: { title: 'Animazioni', choices: { system: 'Come il sistema', reduced: 'Ridotte' } }
 };
 
 function applyPreference(key, value) {
@@ -1339,11 +1695,11 @@ function renderSettings(record) {
     content.append(group);
   }
   content.append(status);
-  record.content.append(content);
+  record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.1</h2><p>Nel Finder, fai clic destro su un elemento o apri <strong>Azioni Finder</strong> per creare, organizzare e importare copie nel disco virtuale.</p><p><strong>File locali</strong> apre un file di Windows in sola lettura. <kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight.</p><p><kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.2</h2><p>Nel Finder premi <kbd>Spazio</kbd> per l’Anteprima rapida. Usa <kbd>Ctrl</kbd> + clic per selezionare più elementi e trascinali su una cartella o sul Cestino.</p><p>Apri più cartelle con <strong>Nuova scheda</strong>. In <strong>Mission Control</strong> organizzi le finestre su più scrivanie.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -1351,6 +1707,7 @@ const launchSearch = byId('launch-search');
 const spotlight = byId('spotlight');
 const spotlightSearch = byId('spotlight-search');
 const mission = byId('mission');
+const controlCenter = byId('control-center');
 let searchResults = [];
 let selectedResult = 0;
 
@@ -1464,19 +1821,153 @@ function toggleSpotlight() {
   closeMenu();
   if (launchpad.open) launchpad.close();
   if (mission.open) mission.close();
+  if (quickLook.open) quickLook.close();
+  if (controlCenter.open) controlCenter.close();
+  if (byId('finder-dialog').open) return;
   spotlightSearch.value = '';
   renderSpotlight();
   spotlight.showModal();
   spotlightSearch.focus();
 }
 
-function openMission() {
+function renderControlCenter(focus = null) {
+  const content = byId('control-options');
+  content.replaceChildren();
+  const dark = document.documentElement.dataset.theme === 'dark';
+  const reduced = document.documentElement.dataset.motion === 'reduced';
+  const full = Boolean(document.fullscreenElement);
+  const wallpapers = Object.keys(preferences.wallpaper.choices);
+  const wallpaper = document.documentElement.dataset.wallpaper;
+  const options = [
+    ['theme', 'moon', 'Modalità scura', dark, () => setControlPreference('theme', dark ? 'light' : 'dark')],
+    ['wallpaper', 'image', 'Sfondo · ' + preferences.wallpaper.choices[wallpaper], null, () => {
+      setControlPreference('wallpaper', wallpapers[(wallpapers.indexOf(wallpaper) + 1) % wallpapers.length]);
+    }],
+    ['motion', 'sliders', 'Riduci animazioni', reduced, () => setControlPreference('motion', reduced ? 'system' : 'reduced')],
+    ['fullscreen', 'full', full ? 'Esci da schermo intero' : 'Schermo intero', null, () => {
+      controlCenter.close();
+      toggleFullScreen();
+    }]
+  ];
+  for (const [key, symbol, label, state, action] of options) {
+    const option = button(label, 'control-option', icon(symbol), action);
+    const text = document.createElement('span');
+    text.textContent = label;
+    option.append(text);
+    option.dataset.control = key;
+    if (state !== null) option.setAttribute('aria-pressed', state);
+    content.append(option);
+  }
+  if (focus) content.querySelector('[data-control="' + focus + '"]')?.focus();
+}
+
+function setControlPreference(key, value) {
+  applyPreference(key, value);
+  writeValue(key, value);
+  const settings = windows.get('settings');
+  if (settings) renderSettings(settings);
+  renderControlCenter(key);
+}
+
+function toggleControlCenter() {
+  if (controlCenter.open) {
+    controlCenter.close();
+    return;
+  }
   closeMenu();
-  if (spotlight.open) spotlight.close();
-  if (launchpad.open) launchpad.close();
+  renderControlCenter();
+  controlCenter.showModal();
+  byId('settings-button').setAttribute('aria-expanded', 'true');
+  byId('control-options').querySelector('button')?.focus();
+}
+
+const spaceLimit = 8;
+const missionDragType = 'application/x-laguna-window';
+let missionDrag = null;
+
+function spaceName(id) {
+  return 'Scrivania ' + (spaces.indexOf(id) + 1);
+}
+
+function addSpace() {
+  if (spaces.length >= spaceLimit) return;
+  spaces.push(Math.max(...spaces) + 1);
+  saveWorkspace();
+  renderMission('[data-add-space]');
+}
+
+function removeSpace(id) {
+  if (spaces.length < 2 || !spaces.includes(id)) return;
+  const index = spaces.indexOf(id);
+  const destination = spaces[index === 0 ? 1 : index - 1];
+  for (const record of windows.values()) {
+    if (record.space === id) record.space = destination;
+  }
+  spaces = spaces.filter((space) => space !== id);
+  if (activeSpace === id) switchSpace(destination);
+  else syncSpaces();
+  saveWorkspace();
+  renderMission('[data-space="' + activeSpace + '"]');
+}
+
+function moveWindowToSpace(record, id) {
+  if (!spaces.includes(id) || record.space === id) return;
+  record.space = id;
+  syncSpaces();
+  if (activeWindow === record) {
+    const next = [...windows.values()].filter((item) => !item.element.hidden)
+      .sort((first, second) => second.order - first.order)[0];
+    activate(next ?? null);
+  } else saveWorkspace();
+  byId('announcement').textContent = record.title.textContent + ' spostata in ' + spaceName(id);
+  renderMission('[data-space="' + id + '"]');
+}
+
+function renderMission(focus = null) {
+  const spacesBar = byId('mission-spaces');
+  spacesBar.replaceChildren();
+  for (const id of spaces) {
+    const name = spaceName(id);
+    const group = document.createElement('div');
+    group.className = 'space-group';
+    const tile = button(name, 'space-tile', '<span class="space-art" aria-hidden="true"></span><span class="space-name"></span>', () => {
+      switchSpace(id);
+      renderMission('[data-space="' + id + '"]');
+    });
+    tile.dataset.space = String(id);
+    tile.querySelector('.space-name').textContent = name;
+    tile.setAttribute('aria-pressed', id === activeSpace);
+    tile.addEventListener('dragover', (event) => {
+      if (!missionDrag || missionDrag.space === id || !event.dataTransfer.types.includes(missionDragType)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      tile.classList.toggle('is-drop-target', true);
+    });
+    tile.addEventListener('dragleave', (event) => {
+      if (!event.relatedTarget || !tile.contains(event.relatedTarget)) tile.classList.toggle('is-drop-target', false);
+    });
+    tile.addEventListener('drop', (event) => {
+      if (!missionDrag || !event.dataTransfer.types.includes(missionDragType)) return;
+      event.preventDefault();
+      const record = missionDrag;
+      missionDrag = null;
+      moveWindowToSpace(record, id);
+    });
+    group.append(tile);
+    if (spaces.length > 1) {
+      group.append(iconButton('Rimuovi ' + name, 'close', () => removeSpace(id)));
+    }
+    spacesBar.append(group);
+  }
+  const add = button('Nuova scrivania', 'space-add', icon('plus') + '<span>Nuova scrivania</span>', addSpace);
+  add.dataset.addSpace = '';
+  add.disabled = spaces.length >= spaceLimit;
+  spacesBar.append(add);
+
   const grid = byId('mission-grid');
   grid.replaceChildren();
-  const ordered = [...windows.values()].sort((first, second) => second.order - first.order);
+  const ordered = [...windows.values()].filter((record) => record.space === activeSpace)
+    .sort((first, second) => second.order - first.order);
   for (const record of ordered) {
     const tile = button(record.title.textContent, 'mission-tile', '<span class="mission-preview"><span class="mission-titlebar"></span><span class="mission-content"></span></span>', () => {
       mission.close();
@@ -1488,11 +1979,48 @@ function openMission() {
     const label = document.createElement('span');
     label.textContent = record.title.textContent + (record.minimized ? ' · Minimizzata' : '');
     tile.append(label);
-    grid.append(tile);
+    tile.draggable = true;
+    tile.addEventListener('dragstart', (event) => {
+      missionDrag = record;
+      event.dataTransfer.setData(missionDragType, record.id);
+      event.dataTransfer.effectAllowed = 'move';
+    });
+    tile.addEventListener('dragend', () => {
+      missionDrag = null;
+      for (const target of spacesBar.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
+    });
+    const card = document.createElement('div');
+    card.className = 'mission-card';
+    card.append(tile);
+    if (spaces.length > 1) {
+      const destination = document.createElement('select');
+      destination.setAttribute('aria-label', 'Sposta ' + record.title.textContent + ' in');
+      const prompt = document.createElement('option');
+      prompt.textContent = 'Sposta in…';
+      prompt.value = '';
+      destination.append(prompt);
+      for (const id of spaces.filter((space) => space !== activeSpace)) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = spaceName(id);
+        destination.append(option);
+      }
+      destination.addEventListener('change', () => moveWindowToSpace(record, Number(destination.value)));
+      card.append(destination);
+    }
+    grid.append(card);
   }
   if (!ordered.length) grid.append(noResults('Nessuna finestra aperta'));
+  if (focus) spacesBar.querySelector(focus)?.focus();
+}
+
+function openMission() {
+  closeMenu();
+  if (spotlight.open) spotlight.close();
+  if (launchpad.open) launchpad.close();
+  renderMission();
   mission.showModal();
-  (grid.querySelector('button') ?? byId('mission-close')).focus();
+  byId('mission-spaces').querySelector('[data-space="' + activeSpace + '"]').focus();
 }
 
 const menuPopover = byId('menu-popover');
@@ -1526,9 +2054,17 @@ function menuItems(name) {
       ...(current?.id === 'finder' ? finderActions() : []),
       ['Apri un file da Windows…', () => byId('file-picker').click()]
     ],
-    Vista: [['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }], ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }], [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]],
+    Vista: [
+      ['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }],
+      ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }],
+      ['Ordina per nome', () => sortFinder('name')],
+      ['Ordina per tipo', () => sortFinder('kind')],
+      ['Ordine originale', () => sortFinder('default')],
+      [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]
+    ],
     Finestra: [
       ['Mission Control', openMission],
+      ['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit],
       ['Riduci a icona', () => minimize(current), !current],
       [current?.maximized ? 'Ripristina dimensioni' : 'Ingrandisci', () => toggleMaximize(current), !current],
       ...[...windows.values()].map((item) => [
@@ -1580,6 +2116,7 @@ function buildDesktop() {
     const name = appName(id);
     const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
     entry.dataset.app = id;
+    if (id === 'trash') bindFinderDrop(entry, 'trash');
     dock.append(entry);
   }
   const icons = byId('desktop-icons');
@@ -1604,7 +2141,26 @@ function buildDesktop() {
 
 function setupEvents() {
   byId('search-button').addEventListener('click', toggleSpotlight);
-  byId('settings-button').addEventListener('click', () => openWindow('settings'));
+  const controlButton = byId('settings-button');
+  controlButton.setAttribute('aria-expanded', 'false');
+  controlButton.setAttribute('aria-controls', 'control-center');
+  controlButton.addEventListener('click', toggleControlCenter);
+  byId('control-close').addEventListener('click', () => controlCenter.close());
+  controlCenter.addEventListener('close', () => controlButton.setAttribute('aria-expanded', 'false'));
+  byId('quicklook-close').addEventListener('click', () => quickLook.close());
+  byId('quicklook-open').addEventListener('click', () => {
+    const item = quickLookItem;
+    quickLook.close();
+    openItem(item);
+  });
+  quickLook.addEventListener('close', () => {
+    if (!quickLook.open) releaseQuickLook();
+  });
+  quickLook.addEventListener('keydown', (event) => {
+    if (event.code !== 'Space' || event.ctrlKey || event.metaKey || event.isComposing || event.target === byId('quicklook-open')) return;
+    event.preventDefault();
+    quickLook.close();
+  });
   byId('file-picker').addEventListener('change', openLocalFile);
   byId('import-picker').addEventListener('change', importVirtualFile);
   byId('finder-dialog-cancel').addEventListener('click', () => byId('finder-dialog').close());
@@ -1633,7 +2189,7 @@ function setupEvents() {
     }
     if (event.key === 'Enter') runResult(selectedResult);
   });
-  for (const dialog of [launchpad, spotlight, mission]) {
+  for (const dialog of [launchpad, spotlight, mission, quickLook, controlCenter]) {
     dialog.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || event.isComposing) return;
       event.preventDefault();
@@ -1670,7 +2226,10 @@ function setupEvents() {
     for (const record of windows.values()) position(record);
   });
   window.addEventListener('pagehide', (event) => {
-    if (!event.persisted) clearPreview();
+    if (!event.persisted) {
+      clearPreview();
+      releaseQuickLook();
+    }
   });
 }
 
@@ -1689,8 +2248,11 @@ function saveWorkspace() {
   if (restoringWorkspace) return;
   const state = [...windows.values()].filter(({ id }) => restorableApps.includes(id))
     .sort((first, second) => first.order - second.order)
-    .map(({ id, rect, minimized, maximized }) => ({ id, rect, minimized, maximized }));
-  writeValue('workspace.v1', JSON.stringify({ windows: state, folder: currentFolder(), view: finder.view }));
+    .map(({ id, rect, minimized, maximized, space }) => ({ id, rect, minimized, maximized, space }));
+  writeValue('workspace.v1', JSON.stringify({
+    windows: state, spaces, activeSpace, folder: currentFolder(), view: finder.view, sort: finder.sort,
+    tabs: finder.tabs.map((tab) => tab.history[tab.index]), activeTab: finder.activeTab
+  }));
 }
 
 function restoreWorkspace() {
@@ -1702,20 +2264,29 @@ function restoreWorkspace() {
   try {
     const state = JSON.parse(saved);
     if (!Array.isArray(state.windows)) throw new Error('Scrivania non valida');
-    if (fixedFolders.includes(state.folder) || canWriteFolder(state.folder)) finder.history = [state.folder];
+    const savedTabs = Array.isArray(state.tabs) && state.tabs.length ? state.tabs.slice(0, tabLimit) : [state.folder];
+    finder.tabs = savedTabs.map((id) => ({ history: [fixedFolders.includes(id) || canWriteFolder(id) ? id : 'documents'], index: 0 }));
+    if (Number.isInteger(state.activeTab) && state.activeTab >= 0 && state.activeTab < finder.tabs.length) finder.activeTab = state.activeTab;
     if (state.view === 'list') finder.view = 'list';
+    if (['name', 'kind'].includes(state.sort)) finder.sort = state.sort;
+    if (Array.isArray(state.spaces) && state.spaces.length) {
+      const savedSpaces = [...new Set(state.spaces)].filter((id) => Number.isSafeInteger(id) && id > 0);
+      if (savedSpaces.length) spaces = savedSpaces.slice(0, spaceLimit);
+    }
+    activeSpace = spaces.includes(state.activeSpace) ? state.activeSpace : spaces[0];
     for (const item of state.windows) {
       if (!restorableApps.includes(item?.id) || windows.has(item.id)) continue;
       const record = openWindow(item.id, false);
+      record.space = spaces.includes(item.space) ? item.space : spaces[0];
       if (['left', 'top', 'width', 'height'].every((key) => Number.isFinite(item.rect?.[key]))) record.rect = item.rect;
       if (item.maximized) toggleMaximize(record);
       else position(record);
       if (item.minimized) {
         record.minimized = true;
-        record.element.hidden = true;
       }
     }
-    const visible = [...windows.values()].filter((item) => !item.minimized);
+    syncSpaces();
+    const visible = [...windows.values()].filter((item) => !item.element.hidden);
     activate(visible.at(-1) ?? null);
   } catch {
     openWindow('finder', false);

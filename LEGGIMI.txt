@@ -1,4 +1,4 @@
-LAGUNA 1.1
+LAGUNA 1.2
 Simulatore desktop gratuito e offline per Windows 11
 
 NEL BROWSER
@@ -17,9 +17,16 @@ COMANDI
 - Finder: fai doppio clic per aprire un elemento. Con la tastiera usa Tab
   e Invio. Clic destro o Azioni Finder apre il menu per creare, rinominare,
   spostare, importare ed esportare. Apri un documento di testo per scriverci.
+- Anteprima rapida: seleziona un elemento e premi Spazio. Esc la chiude.
+- Schede Finder: usa il + per aprire una scheda. Il menu Vista permette
+  di ordinare gli elementi per nome o tipo.
+- Trascinamento: usa Ctrl + clic per selezionare più elementi o Maiusc +
+  clic per un intervallo. Trascinali su una cartella o sul Cestino.
 - Cestino: seleziona un elemento e scegli Ripristina da Azioni Finder.
-- Mission Control: clicca l'icona con due finestre nel Dock per passare
-  a una finestra aperta, incluse quelle minimizzate.
+- Mission Control: clicca l'icona con due finestre nel Dock. Puoi creare
+  scrivanie, poi trascinare le finestre sulle miniature o usare Sposta in.
+- Centro di Controllo: clicca i cursori in alto a destra per cambiare
+  tema, sfondo, animazioni e schermo intero.
 - Spotlight: premi Ctrl + Spazio per cercare app e file virtuali.
 - Schermo intero: premi F11 nel browser.
 
