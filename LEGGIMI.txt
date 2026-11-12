@@ -1,40 +1,38 @@
-LAGUNA 1.0
+LAGUNA 1.1
 Simulatore desktop gratuito e offline per Windows 11
 
-AVVIO SU HP ELITEBOOK 840 G5
-1. In Esplora file, fai clic destro su Laguna-1.0.zip e scegli Estrai tutto.
-2. Apri la cartella estratta e fai doppio clic su Laguna.html. In alternativa,
-   fai doppio clic su Avvia.cmd per aprirlo nel browser predefinito.
-3. Se Windows chiede quale app usare per Laguna.html, seleziona Edge o Chrome.
-   Puoi premere F11 nel browser per entrare o uscire dallo schermo intero.
+NEL BROWSER
+Apri https://tia-dero.github.io/Laguna_desktop/
 
-Tutto gira nel browser. Puoi usarlo offline, senza installazioni o account.
-Laguna.html funziona anche da solo. Tieni Avvia.cmd accanto al file HTML
-se vuoi avviare il simulatore dal collegamento a doppio clic.
+SU WINDOWS, ANCHE OFFLINE
+1. Dalla pagina del repository scegli Code > Download ZIP.
+2. In Esplora file, fai clic destro sullo ZIP e scegli Estrai tutto.
+3. Apri la cartella estratta e fai doppio clic su index.html con Edge o
+   Chrome. Puoi anche aprire Avvia.cmd per usare il browser predefinito.
 
 COMANDI
-- Dock: clicca un'icona per aprire l'app o richiamare una finestra minimizzata.
+- Dock: apri un'app o richiama una finestra minimizzata.
 - Finestre: trascina la barra del titolo. Ridimensiona dal bordo destro,
   dal bordo inferiore o dall'angolo in basso a destra.
-- Pulsanti rosso, giallo e verde: chiudi, minimizza, ingrandisci o ripristina.
-- Finder: doppio clic per aprire un elemento. Con la tastiera, Tab e Invio.
-  La barra superiore offre Indietro, Avanti, icone ed elenco.
-- Launchpad: cerca un'app, poi cliccala o premi Invio sul primo risultato.
-- Spotlight: Ctrl + Spazio o la lente nella barra menu. Cerca app e file
-  dimostrativi, usa le frecce e premi Invio. Esc chiude il pannello.
+- Finder: fai doppio clic per aprire un elemento. Con la tastiera usa Tab
+  e Invio. Clic destro o Azioni Finder apre il menu per creare, rinominare,
+  spostare, importare ed esportare. Apri un documento di testo per scriverci.
+- Cestino: seleziona un elemento e scegli Ripristina da Azioni Finder.
+- Mission Control: clicca l'icona con due finestre nel Dock per passare
+  a una finestra aperta, incluse quelle minimizzate.
+- Spotlight: premi Ctrl + Spazio per cercare app e file virtuali.
+- Schermo intero: premi F11 nel browser.
 
-SIMULAZIONE E FILE DI WINDOWS
-Laguna riproduce una scrivania ispirata a macOS nel browser. Cartelle, disco
-e cestino del Finder appartengono al simulatore. Le app disponibili sono
-quelle integrate in Laguna. Per avviare programmi di Windows usa il menu Start.
+DISCO VIRTUALE E FILE DI WINDOWS
+Da una cartella virtuale, Azioni Finder > Importa copia da Windows crea
+una copia del file nel simulatore. Il limite per file importato è 256 KiB.
+Esporta copia scarica il documento o il file importato.
 
-Finder > File locali > Scegli file apre il selettore di Windows. Laguna legge
-solo il file scelto, senza modificarlo o inviarlo in rete. Puoi vedere i
-primi 256 KiB di testo e le immagini PNG, JPEG, GIF, WebP, BMP e AVIF fino
-a 12 MiB. Per gli altri file vedi nome e dimensione. Spotlight cerca solo
-nel catalogo del simulatore.
+Finder > File locali > Scegli file apre il selettore del browser per
+visualizzare un file di Windows in sola lettura. Laguna mostra i primi
+256 KiB dei file di testo e le immagini supportate fino a 12 MiB.
 
-Note e preferenze vengono conservate dal browser quando la memoria locale è
-disponibile. Per ritrovarle, usa lo stesso browser, profilo e percorso di
-apertura. Se il browser blocca la memorizzazione, restano nella pagina
-finché rimane aperta.
+Disco virtuale, appunti, preferenze e disposizione delle finestre vengono
+conservati dal browser quando la memoria locale è disponibile. Per
+ritrovarli, usa lo stesso browser, profilo e indirizzo o percorso di
+apertura. Esporta i file che vuoi conservare anche fuori dal browser.

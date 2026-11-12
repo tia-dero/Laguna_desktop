@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-M7rFtd8weILAekRJYA4nJehWgt+zn16TkVLbLHdPVSE='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DBueFVyAjIMtYLhiXUAlEJjMe31t3dxb0EeG++9xmKg='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna · Simulatore desktop</title>
+  <title>Laguna 1.1 · Simulatore desktop</title>
   <style>
 :root {
   color-scheme: light;
@@ -57,7 +57,7 @@ button, h1, h2, p { margin: 0; }
 :root[data-wallpaper="aurora"] #wallpaper { filter: hue-rotate(62deg) saturate(.85); }
 :root[data-wallpaper="tramonto"] #wallpaper { filter: hue-rotate(190deg) saturate(.8); }
 
-#menubar { position: fixed; z-index: 30; inset: 0 0 auto; height: var(--menu-height); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; color: #f7fcff; background: #112d37cb; border-bottom: 1px solid #ffffff23; user-select: none; }
+#menubar { position: fixed; z-index: 30; inset: 0 0 auto; height: var(--menu-height); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; color: #f7fcff; background: #1538429c; border-bottom: 1px solid #ffffff2c; backdrop-filter: blur(20px) saturate(145%); user-select: none; }
 #menus, #status-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .menu-button { height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font-size: 12.5px; white-space: nowrap; }
 .menu-button:hover, .menu-button[aria-expanded="true"] { background: #ffffff24; }
@@ -65,7 +65,7 @@ button, h1, h2, p { margin: 0; }
 #app-menu { font-weight: 700; }
 .status-button { display: grid; place-items: center; font-size: 15px; }
 #clock { padding: 0 4px 0 9px; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-#menu-popover { position: fixed; z-index: 31; top: calc(var(--menu-height) + 4px); min-width: 218px; max-width: calc(100vw - 12px); padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 12px 34px #05172244; }
+#menu-popover { position: fixed; z-index: 31; top: calc(var(--menu-height) + 4px); min-width: 218px; max-width: calc(100vw - 12px); max-height: calc(100vh - 12px); overflow: auto; padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(20px) saturate(135%); box-shadow: 0 12px 34px #05172244; }
 #menu-popover button { display: block; width: 100%; padding: 7px 10px; text-align: left; border: 0; border-radius: 5px; background: transparent; font-size: 13px; }
 #menu-popover button:not(:disabled):hover { background: var(--selected); }
 
@@ -99,10 +99,13 @@ button, h1, h2, p { margin: 0; }
 .icon-button:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
 .icon-button[aria-pressed="true"] { background: var(--selected); color: var(--accent); }
 .finder-navigation, .view-buttons { display: flex; align-items: center; gap: 3px; }
+.window[data-window="finder"] { --finder-sidebar-width: 180px; }
+.window[data-window="finder"] .titlebar { gap: 11px; background: linear-gradient(to right, var(--sidebar) var(--finder-sidebar-width), var(--surface) var(--finder-sidebar-width)); }
+.window[data-window="finder"] .traffic { width: calc(var(--finder-sidebar-width) - 17px); }
 .view-buttons { padding: 2px; border: 1px solid var(--line); border-radius: 8px; }
 .view-buttons .icon-button { height: 26px; }
 .finder-body { display: flex; height: 100%; overflow: hidden; }
-.finder-sidebar { flex: 0 0 180px; padding: 18px 11px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--line); }
+.finder-sidebar { flex: 0 0 var(--finder-sidebar-width); padding: 18px 11px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--line); }
 .sidebar-heading { margin: 6px 9px 8px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .085em; }
 .sidebar-heading:not(:first-child) { margin-top: 22px; }
 .sidebar-item { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; border-radius: 7px; padding: 8px 9px; text-align: left; background: transparent; font-size: 12.5px; white-space: nowrap; }
@@ -110,14 +113,14 @@ button, h1, h2, p { margin: 0; }
 .sidebar-item:hover { background: var(--hover); }
 .sidebar-item[aria-current="location"] { background: var(--selected); font-weight: 650; }
 .finder-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.finder-path { display: flex; align-items: center; gap: 6px; min-height: 43px; padding: 7px 19px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.finder-path { display: flex; align-items: center; gap: 6px; min-height: 37px; padding: 5px 17px; overflow-x: auto; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .finder-path button { background: transparent; color: var(--accent); border: 0; border-radius: 4px; padding: 3px 5px; white-space: nowrap; }
 .finder-path button:hover { background: var(--hover); }
-.finder-path strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 650; }
+.finder-path strong { flex: none; white-space: nowrap; color: var(--ink); font-weight: 650; }
 .finder-path > .glyph { font-size: 11px; }
 .files { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
 .files.list-view { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-block: 10px; }
-.file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; }
+.file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; touch-action: manipulation; }
 .file-tile:hover { background: var(--hover); }
 .file-tile.is-selected { background: var(--selected); border-color: var(--line); }
 .file-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
@@ -139,7 +142,8 @@ button, h1, h2, p { margin: 0; }
 #dock { position: fixed; z-index: 25; inset: auto auto 10px 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 9px; height: 68px; max-width: calc(100vw - 14px); padding: 7px 10px 9px; border: 1px solid #d9f2f34f; border-radius: 19px; background: #c4dbe14a; box-shadow: 0 10px 35px #061e3566, inset 0 1px 0 #ffffff21; backdrop-filter: blur(13px); }
 .dock-item { position: relative; flex: none; display: grid; place-items: center; width: 47px; height: 48px; padding: 0; border: 0; border-radius: 11px; background: none; }
 .dock-item .app-icon { transition: transform .18s cubic-bezier(.2,.8,.3,1.35); transform-origin: center bottom; }
-.dock-item:hover .app-icon, .dock-item:focus-visible .app-icon { transform: translateY(-7px) scale(1.23); }
+.dock-item:hover .app-icon, .dock-item:focus-visible .app-icon { transform: translateY(-9px) scale(1.29); }
+.dock-item:has(+ .dock-item:hover) .app-icon, .dock-item:hover + .dock-item .app-icon { transform: translateY(-4px) scale(1.1); }
 .dock-item.is-open::after { content: ""; position: absolute; bottom: -7px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: #f6fdff; }
 .dock-item .dock-tooltip { position: absolute; bottom: calc(100% + 17px); left: 50%; transform: translateX(-50%); pointer-events: none; padding: 5px 9px; border: 1px solid #ffffff33; border-radius: 6px; background: #172d37ed; color: white; font-size: 11px; white-space: nowrap; opacity: 0; }
 .dock-item:hover .dock-tooltip, .dock-item:focus-visible .dock-tooltip { opacity: 1; }
@@ -149,11 +153,15 @@ button, h1, h2, p { margin: 0; }
 .app-icon.finder { background: linear-gradient(155deg, #78d8ff, #2b85f4); border: 0; }
 .app-icon.finder > svg { width: 100%; height: 100%; }
 .app-icon.launchpad { background: linear-gradient(145deg, #e6effc, #99a9c6 57%, #7687aa); color: #2b4169; }
+.app-icon.mission { background: linear-gradient(155deg, #79c9ed, #597dbb 55%, #34496e); }
 .app-icon.notes { background: linear-gradient(#ffd460 0 24%, #fff6d9 25%, #fffdf4 100%); color: #9a6a19; }
 .app-icon.calculator { background: linear-gradient(155deg, #566273, #222b39); color: #ffe0a4; }
 .app-icon.settings { background: linear-gradient(155deg, #e9eef3, #9eacbe 65%, #798b9f); color: #304050; }
 .app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
 .app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
+.app-icon.info { background: linear-gradient(155deg, #76cbbb, #33758a); }
+.dock-item.has-items .app-icon.trash { background: linear-gradient(155deg, #f9fbff, #9fbed4); color: #294d67; }
+.dock-item.has-items::before { content: ""; position: absolute; z-index: 1; bottom: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #3189bf; pointer-events: none; }
 
 dialog { color: var(--ink); padding: 0; border: 1px solid var(--line); background: var(--surface); }
 dialog::backdrop { background: #081f31a1; }
@@ -207,6 +215,27 @@ dialog::backdrop { background: #081f31a1; }
 .info-view h2 { font-size: 21px; }
 .info-view p { font-size: 13px; line-height: 1.55; }
 .info-view kbd { padding: 1px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.document-editor { flex: 1; min-height: 96px; resize: none; padding: 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--surface); line-height: 1.5; }
+.document-controls { display: flex; gap: 8px; }
+#finder-dialog { width: min(378px, calc(100% - 24px)); border-radius: 13px; box-shadow: 0 20px 66px #05182760; }
+#finder-form { display: grid; gap: 12px; padding: 19px; }
+#finder-form h2 { font-size: 16px; }
+#finder-form p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+#finder-form input, #finder-form select { width: 100%; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--panel); font: inherit; font-size: 13px; }
+#finder-dialog-error:empty { display: none; }
+#finder-dialog-error:not(:empty) { color: #ad4545; }
+#finder-form footer { display: flex; justify-content: flex-end; gap: 8px; }
+#mission { width: min(900px, calc(100% - 26px)); max-height: 82vh; padding: 15px; border-color: #ffffff45; border-radius: 16px; background: #183744e8; color: #fff; box-shadow: 0 22px 70px #03182587; }
+.mission-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 10px; }
+.mission-header h2 { font-size: 15px; }
+.mission-header button { color: #e9f7ff; }
+#mission-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
+.mission-tile { display: grid; gap: 8px; padding: 7px; background: none; border: 1px solid transparent; border-radius: 10px; text-align: left; font-size: 12px; overflow-wrap: anywhere; }
+.mission-tile:hover, .mission-tile:focus-visible { background: #ffffff18; border-color: #ffffff45; }
+.mission-preview { display: grid; grid-template-rows: 25px 1fr; min-width: 0; height: 100px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; box-shadow: 0 7px 16px #041c3444; }
+.mission-titlebar { display: block; padding: 6px 5px 4px 30px; border-bottom: 1px solid var(--line); font-size: 9px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; background: radial-gradient(circle at 8px 11px, #f46d64 2px, transparent 2.5px), radial-gradient(circle at 15px 11px, #eac150 2px, transparent 2.5px), radial-gradient(circle at 22px 11px, #56c37c 2px, transparent 2.5px); }
+.mission-content { display: grid; place-items: center; background: var(--panel); }
+.mission-content .app-icon { width: 38px; height: 38px; }
 
 @media (max-width: 620px) {
   :root { --dock-height: 72px; }
@@ -214,7 +243,10 @@ dialog::backdrop { background: #081f31a1; }
   .optional-menu { display: none; }
   #clock { font-size: 11px; }
   #desktop-icons { inset: 10px 8px auto auto; }
-  .finder-sidebar { flex-basis: 116px; padding-inline: 5px; }
+  .window[data-window="finder"] { --finder-sidebar-width: 116px; }
+  .window[data-window="finder"] .titlebar { gap: 6px; }
+  .window[data-window="finder"] .traffic { width: var(--finder-sidebar-width); }
+  .finder-sidebar { padding-inline: 5px; }
   .sidebar-item { padding-inline: 5px; gap: 5px; font-size: 11px; }
   .titlebar { gap: 7px; padding-inline: 9px; }
   .traffic { gap: 5px; }
@@ -227,10 +259,12 @@ dialog::backdrop { background: #081f31a1; }
 
 @media (max-width: 365px) {
   .view-buttons .icon-button, .finder-navigation .icon-button { width: 23px; }
-  .finder-sidebar { flex-basis: 96px; }
+  .window[data-window="finder"] { --finder-sidebar-width: 96px; }
+  .window[data-window="finder"] .traffic { width: calc(var(--finder-sidebar-width) - 7px); }
   .sidebar-item .glyph { font-size: 12px; }
   .list-view .file-kind { display: none; }
   .list-view .file-tile { grid-template-columns: 24px minmax(0, 1fr); }
+  .dock-item { width: clamp(25px, 11vw, 38px); height: clamp(25px, 11vw, 38px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -274,7 +308,26 @@ dialog::backdrop { background: #081f31a1; }
     <div id="spotlight-results" aria-label="Risultati di ricerca"></div>
     <footer class="spotlight-footer"><span>↑ ↓ per scegliere</span><span>Invio per aprire</span><span>Esc per chiudere</span></footer>
   </dialog>
+  <dialog id="finder-dialog" aria-labelledby="finder-dialog-title">
+    <form id="finder-form">
+      <h2 id="finder-dialog-title"></h2>
+      <div id="finder-dialog-field"></div>
+      <p id="finder-dialog-error" role="alert"></p>
+      <footer>
+        <button type="button" class="choice" id="finder-dialog-cancel">Annulla</button>
+        <button type="submit" class="primary-button" id="finder-dialog-submit">OK</button>
+      </footer>
+    </form>
+  </dialog>
+  <dialog id="mission" aria-labelledby="mission-title">
+    <header class="mission-header">
+      <h2 id="mission-title">Finestre aperte</h2>
+      <button class="icon-button" type="button" id="mission-close" aria-label="Chiudi Mission Control"><span data-icon="close"></span></button>
+    </header>
+    <div id="mission-grid"></div>
+  </dialog>
   <input id="file-picker" type="file" hidden>
+  <input id="import-picker" type="file" hidden>
   <div id="announcement" class="sr-only" role="status"></div>
   <script>
 'use strict';
@@ -293,7 +346,9 @@ const glyphs = {
   system: '<path d="M3 15.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0M3 10.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0"/>',
   search: '<circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.1 4.1"/>',
   sliders: '<path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/>',
+  more: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.1m3.9 0h.1m3.9 0h.1" stroke-width="2.5"/>',
   grid: '<rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/>',
+  mission: '<rect x="3" y="4" width="11" height="7" rx="1.3"/><rect x="10" y="14" width="11" height="6" rx="1.3"/><path d="M17 6h4v5M3 14v5h4"/>',
   list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h1m-1 6h1m-1 6h1"/>',
   left: '<path d="m14 6-6 6 6 6"/>',
   right: '<path d="m10 6 6 6-6 6"/>',
@@ -317,7 +372,7 @@ function icon(name) {
 
 function appIcon(id) {
   const face = '<svg aria-hidden="true" viewBox="0 0 48 48"><path fill="#d5edfb" d="M26 0h22v48H23c-3-8-4-14-3-21h-6c1-10 6-20 12-27Z"/><path d="M12 16v4m23-4v4m-7-12c-3 5-6 12-6 16h7c-1 7 0 12 1 15M12 29c7 7 16 8 24 1" fill="none" stroke="#174272" stroke-width="2.2" stroke-linecap="round"/></svg>';
-  const symbol = { launchpad: 'grid', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system' }[id];
+  const symbol = { launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system' }[id];
   return '<span class="app-icon ' + id + '">' + (id === 'finder' ? face : icon(symbol)) + '</span>';
 }
 
@@ -374,15 +429,17 @@ const apps = {
   info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
 };
 const launchApps = ['finder', 'notes', 'calculator', 'settings'];
-const dockApps = ['finder', 'launchpad', 'notes', 'calculator', 'settings', 'trash'];
+const dockApps = ['finder', 'launchpad', 'mission', 'notes', 'calculator', 'settings', 'trash'];
 
 function appName(id) {
-  return apps[id]?.name ?? { launchpad: 'Launchpad', trash: 'Cestino' }[id];
+  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino' }[id];
 }
 
 function launch(id) {
   if (id === 'launchpad') {
     openLaunchpad();
+  } else if (id === 'mission') {
+    openMission();
   } else if (id === 'trash') {
     showFolder('trash');
   } else {
@@ -416,6 +473,7 @@ function position(record) {
 function refreshDock() {
   for (const entry of byId('dock').querySelectorAll('[data-app]')) {
     entry.classList.toggle('is-open', windows.has(entry.dataset.app));
+    if (entry.dataset.app === 'trash') entry.classList.toggle('has-items', folderItems('trash').length > 0);
   }
 }
 
@@ -435,6 +493,7 @@ function activate(record) {
   }
   for (const item of windows.values()) item.element.classList.toggle('is-active', item === record);
   byId('app-menu').textContent = record ? appName(record.id) : 'Finder';
+  saveWorkspace();
 }
 
 function focusNext(fallbackId) {
@@ -473,6 +532,7 @@ function toggleMaximize(record) {
   record.maxButton.setAttribute('aria-label', label);
   record.maxButton.title = label;
   position(record);
+  saveWorkspace();
 }
 
 function beginGeometry(event, record, handle, edge) {
@@ -502,7 +562,10 @@ function beginGeometry(event, record, handle, edge) {
     position(record);
   }
   handle.addEventListener('pointermove', move);
-  handle.addEventListener('lostpointercapture', () => handle.removeEventListener('pointermove', move), { once: true });
+  handle.addEventListener('lostpointercapture', () => {
+    handle.removeEventListener('pointermove', move);
+    saveWorkspace();
+  }, { once: true });
 }
 
 function openWindow(id, focus = true) {
@@ -574,14 +637,12 @@ function openWindow(id, focus = true) {
 }
 
 const folders = {
-  desktop: { name: 'Scrivania', icon: 'desktop', items: ['documents', 'downloads', 'images'] },
-  documents: { name: 'Documenti', icon: 'document', items: ['projects', 'personal', 'welcome', 'shortcuts', 'todo'] },
-  downloads: { name: 'Download', icon: 'download', items: ['sample'] },
-  images: { name: 'Immagini', icon: 'image', items: [], empty: 'Usa File locali per aprire una foto scelta da Windows.' },
-  projects: { name: 'Progetti', parent: 'documents', items: ['project'] },
-  personal: { name: 'Personale', parent: 'documents', items: ['memo'] },
-  trash: { name: 'Cestino', icon: 'trash', items: [], empty: 'Il cestino del simulatore è vuoto.' },
-  local: { name: 'File locali', icon: 'drive', items: [] }
+  desktop: { name: 'Scrivania', icon: 'desktop' },
+  documents: { name: 'Documenti', icon: 'document' },
+  downloads: { name: 'Download', icon: 'download' },
+  images: { name: 'Immagini', icon: 'image' },
+  trash: { name: 'Cestino', icon: 'trash', empty: 'Il Cestino è vuoto.' },
+  local: { name: 'File locali', icon: 'drive' }
 };
 const files = {
   welcome: { name: 'Benvenuto.txt', parent: 'documents', text: 'Benvenuto in Laguna!\n\nApri una cartella o un documento con un doppio clic. Con la tastiera usa Tab e Invio.\n\nProva Spotlight con Ctrl + Spazio e cerca «Progetti» o «Note».' },
@@ -592,18 +653,155 @@ const files = {
   sample: { name: 'Esempio.txt', parent: 'downloads', text: 'Questo file dimostrativo è incluso nel simulatore.' }
 };
 const finder = { history: ['documents'], index: 0, view: 'grid', selected: null };
+const fixedFolders = ['desktop', 'documents', 'downloads', 'images', 'trash', 'local'];
+const limitBytes = 256 * 1024;
+const limitEntries = 240;
+const limitStorage = 2 * 1024 * 1024;
+const rasterType = /^image\/(png|jpeg|gif|webp|bmp|avif)$/;
+const textExtension = /\.(txt|md|log|csv|json)$/i;
+let finderNotice = '';
+let finderMessage = '';
+let importDestination = null;
+let nextEntry = 0;
+let virtualEntries = loadVirtualEntries();
+
+function loadVirtualEntries() {
+  const saved = readValue('finder.v1', '');
+  if (saved) {
+    try {
+      const entries = JSON.parse(saved);
+      if (Array.isArray(entries) && entries.every(([id, entry]) =>
+        typeof id === 'string' && !fixedFolders.includes(id) && entry && typeof entry.name === 'string'
+        && typeof entry.parent === 'string' && ['folder', 'text', 'import'].includes(entry.kind)
+        && (entry.kind !== 'text' || typeof entry.text === 'string')
+        && (entry.kind !== 'import' || typeof entry.type === 'string' && typeof entry.base64 === 'string'))) {
+        return new Map(entries);
+      }
+    } catch {}
+  }
+  return new Map([
+    ['projects', { name: 'Progetti', parent: 'documents', kind: 'folder' }],
+    ['personal', { name: 'Personale', parent: 'documents', kind: 'folder' }],
+    ...Object.entries(files).map(([id, entry]) => [id, { ...entry, kind: 'text' }])
+  ]);
+}
+
+function folderInfo(id) {
+  return fixedFolders.includes(id) ? folders[id] : virtualEntries.get(id);
+}
+
+function folderParent(id) {
+  if (['documents', 'downloads', 'images'].includes(id)) return 'desktop';
+  return virtualEntries.get(id)?.parent;
+}
+
+function insideFolder(id, ancestor) {
+  const seen = new Set();
+  while (id && !seen.has(id)) {
+    if (id === ancestor) return true;
+    seen.add(id);
+    id = folderParent(id);
+  }
+  return false;
+}
+
+function isVisibleEntry(id) {
+  const seen = new Set();
+  while (id && !seen.has(id)) {
+    if (fixedFolders.includes(id)) return true;
+    seen.add(id);
+    const entry = virtualEntries.get(id);
+    if (!entry || entry.trashed) return false;
+    id = entry.parent;
+  }
+  return false;
+}
+
+function canWriteFolder(id) {
+  return id !== 'local' && id !== 'trash' && isVisibleEntry(id)
+    && (fixedFolders.includes(id) || virtualEntries.get(id)?.kind === 'folder');
+}
+
+function folderItems(id) {
+  if (id === 'local') return [];
+  const entries = [...virtualEntries].filter(([, entry]) => id === 'trash' ? entry.trashed : entry.parent === id && !entry.trashed);
+  return [
+    ...(id === 'desktop' ? ['documents', 'downloads', 'images'] : []),
+    ...entries.map(([itemId]) => itemId)
+  ];
+}
+
+function persistEntries(entries) {
+  const serialized = JSON.stringify([...entries]);
+  if (entries.size > limitEntries || serialized.length > limitStorage) return 'Il disco virtuale è pieno. Esporta o elimina alcuni elementi.';
+  virtualEntries = entries;
+  finderNotice = writeValue('finder.v1', serialized) ? '' : 'Modifiche disponibili fino alla chiusura della pagina';
+  const record = windows.get('finder');
+  if (record) {
+    if (!isVisibleEntry(currentFolder())) goToFolder('documents');
+    else updateFinder(record);
+  }
+  refreshDock();
+  return '';
+}
+
+function updateEntry(id, changes) {
+  const entry = virtualEntries.get(id);
+  if (!entry) return 'L’elemento non è più disponibile.';
+  const entries = new Map(virtualEntries);
+  entries.set(id, { ...entry, ...changes });
+  return persistEntries(entries);
+}
+
+function nameError(name, parent, except) {
+  if (!name || name.length > 120 || /[\/\\\u0000-\u001f]/.test(name) || ['.', '..'].includes(name)) {
+    return 'Usa un nome da 1 a 120 caratteri, senza barre.';
+  }
+  const taken = folderItems(parent).some((id) =>
+    id !== except && normalize((virtualEntries.get(id) ?? folders[id]).name) === normalize(name));
+  return taken ? 'In questa cartella esiste già un elemento con questo nome.' : '';
+}
+
+function addEntry(entry) {
+  if (!canWriteFolder(entry.parent)) return 'Questa posizione non è più disponibile.';
+  const error = nameError(entry.name, entry.parent);
+  if (error) return error;
+  const entries = new Map(virtualEntries);
+  let id;
+  do {
+    id = 'elemento-' + Date.now().toString(36) + '-' + (++nextEntry).toString(36);
+  } while (entries.has(id));
+  entries.set(id, entry);
+  return persistEntries(entries);
+}
+
+function moveEntry(id, destination) {
+  const entry = virtualEntries.get(id);
+  if (!entry || !canWriteFolder(destination) || insideFolder(destination, id)) return 'Scegli un’altra cartella.';
+  const error = nameError(entry.name, destination, id);
+  return error || updateEntry(id, { parent: destination, trashed: false });
+}
+
+function emptyTrash() {
+  const trashed = [...virtualEntries].filter(([, entry]) => entry.trashed).map(([id]) => id);
+  const entries = new Map([...virtualEntries].filter(([id]) => !trashed.some((root) => insideFolder(id, root))));
+  return persistEntries(entries);
+}
 
 function currentFolder() {
   return finder.history[finder.index];
 }
 
 function goToFolder(id) {
+  if (!fixedFolders.includes(id) && !canWriteFolder(id)) return;
   if (id !== currentFolder()) {
     finder.history = [...finder.history.slice(0, finder.index + 1), id];
     finder.index += 1;
     finder.selected = null;
+    finderMessage = '';
   }
   updateFinder(windows.get('finder'));
+  saveWorkspace();
 }
 
 function showFolder(id) {
@@ -612,25 +810,92 @@ function showFolder(id) {
 }
 
 function changeHistory(direction) {
-  const next = finder.index + direction;
-  if (next < 0 || next >= finder.history.length) return;
+  const next = historyIndex(direction);
+  if (next === finder.index) return;
   finder.index = next;
   finder.selected = null;
   updateFinder(windows.get('finder'));
+  saveWorkspace();
+}
+
+function historyIndex(direction) {
+  for (let index = finder.index + direction; index >= 0 && index < finder.history.length; index += direction) {
+    if (isVisibleEntry(finder.history[index])) return index;
+  }
+  return finder.index;
 }
 
 function setFinderView(view) {
   if (!windows.has('finder')) openWindow('finder');
   finder.view = view;
   updateFinder(windows.get('finder'));
+  saveWorkspace();
 }
 
 function openItem(id) {
-  if (folders[id]) {
+  const item = virtualEntries.get(id);
+  if (!isVisibleEntry(id)) return;
+  if (fixedFolders.includes(id) || item?.kind === 'folder') {
     showFolder(id);
+    return;
+  }
+  fileSelection += 1;
+  const data = { id, name: item.name, description: 'Documento virtuale · Finder' };
+  if (item.kind === 'text') {
+    data.text = item.text;
+  } else if (rasterType.test(item.type)) {
+    data.url = URL.createObjectURL(entryBlob(item));
+  } else if (item.type.startsWith('text/') || textExtension.test(item.name)) {
+    data.text = new TextDecoder().decode(decodeBytes(item.base64));
   } else {
-    fileSelection += 1;
-    showPreview({ name: files[id].name, text: files[id].text, description: 'Documento dimostrativo · Finder' });
+    data.description += ' · Usa Esporta per scaricare una copia';
+  }
+  showPreview(data);
+}
+
+function decodeBytes(base64) {
+  return Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+}
+
+function entryBlob(entry) {
+  return entry.kind === 'text'
+    ? new Blob([entry.text], { type: 'text/plain;charset=utf-8' })
+    : new Blob([decodeBytes(entry.base64)], { type: entry.type });
+}
+
+function exportEntry(id) {
+  const entry = virtualEntries.get(id);
+  if (!entry || entry.kind === 'folder') return;
+  const url = URL.createObjectURL(entryBlob(entry));
+  const download = document.createElement('a');
+  download.download = entry.name;
+  download.href = url;
+  document.body.append(download);
+  download.click();
+  download.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+async function importVirtualFile(event) {
+  const file = event.target.files[0];
+  const parent = importDestination;
+  event.target.value = '';
+  importDestination = null;
+  if (!file) return;
+  try {
+    if (file.size > limitBytes) {
+      showFinderMessage('Il limite per ogni file importato è 256 KiB.');
+      return;
+    }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = '';
+    for (let offset = 0; offset < bytes.length; offset += 8192) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+    }
+    const error = addEntry({ name: file.name, parent, kind: 'import', type: file.type, base64: btoa(binary) });
+    showFinderMessage(error || 'Copia importata in ' + folderInfo(parent).name + '.');
+  } catch {
+    showFinderMessage('Impossibile leggere il file scelto.');
   }
 }
 
@@ -647,8 +912,30 @@ function renderFinder(record) {
   record.listButton = iconButton('Vista a elenco', 'list', () => setFinderView('list'));
   viewBar.append(record.gridButton, record.listButton);
   record.title.after(viewBar);
+  record.actions = iconButton('Azioni Finder', 'more', (event) => {
+    toggleMenu(record.actions, event.detail === 0, finderActions());
+  });
+  record.actions.dataset.finderMenu = '';
+  record.actions.setAttribute('aria-controls', 'menu-popover');
+  record.actions.setAttribute('aria-expanded', 'false');
+  viewBar.after(record.actions);
   record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
   const sidebar = record.content.querySelector('.finder-sidebar');
+  const grid = record.content.querySelector('.files');
+  grid.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    const tile = event.target.closest('[data-item]');
+    selectFinderItem(tile?.dataset.item ?? null, grid);
+    toggleMenu(record.actions, false, finderActions(), { left: event.clientX, top: event.clientY });
+  });
+  grid.addEventListener('keydown', (event) => {
+    const id = event.target.closest('[data-item]')?.dataset.item;
+    if (!id || currentFolder() === 'trash' || !virtualEntries.has(id)) return;
+    if (event.key === 'F2') nameEntry(id);
+    else if (event.key === 'Delete') sendToTrash(id);
+    else return;
+    event.preventDefault();
+  });
   const groups = [
     ['Preferiti', ['desktop', 'documents', 'downloads', 'images']],
     ['Posizioni', ['local', 'trash']]
@@ -668,50 +955,61 @@ function renderFinder(record) {
   updateFinder(record);
 }
 
+function selectFinderItem(id, grid) {
+  finder.selected = id;
+  for (const tile of grid.querySelectorAll('[data-item]')) {
+    tile.classList.toggle('is-selected', tile.dataset.item === id);
+    tile.setAttribute('aria-pressed', tile.dataset.item === id);
+  }
+}
+
 function updateFinder(record) {
   const id = currentFolder();
-  const folder = folders[id];
+  const folder = folderInfo(id);
+  const items = folderItems(id);
+  if (!items.includes(finder.selected)) finder.selected = null;
   const surface = record.content;
   record.title.textContent = folder.name;
-  record.backButton.disabled = finder.index === 0;
-  record.forwardButton.disabled = finder.index === finder.history.length - 1;
+  record.backButton.disabled = historyIndex(-1) === finder.index;
+  record.forwardButton.disabled = historyIndex(1) === finder.index;
   record.gridButton.setAttribute('aria-pressed', finder.view === 'grid');
   record.listButton.setAttribute('aria-pressed', finder.view === 'list');
+  const nearestFavorite = ['documents', 'downloads', 'images', 'local', 'trash', 'desktop'].find((candidate) => insideFolder(id, candidate));
   for (const entry of surface.querySelectorAll('[data-folder]')) {
-    const current = entry.dataset.folder === (folder.parent ?? id);
+    const current = entry.dataset.folder === nearestFavorite;
     entry.setAttribute('aria-current', current ? 'location' : 'false');
   }
   const path = surface.querySelector('.finder-path');
-  path.replaceChildren(button('Scrivania', '', 'Scrivania', () => goToFolder('desktop')));
-  if (folder.parent) {
+  const ancestors = [];
+  for (let parent = folderParent(id); parent && !ancestors.includes(parent); parent = folderParent(parent)) ancestors.unshift(parent);
+  path.replaceChildren();
+  for (const parent of ancestors) {
+    const label = folderInfo(parent).name;
+    const part = button(label, '', '', () => goToFolder(parent));
+    part.textContent = label;
+    path.append(part);
     path.insertAdjacentHTML('beforeend', icon('right'));
-    path.append(button(folders[folder.parent].name, '', folders[folder.parent].name, () => goToFolder(folder.parent)));
   }
   const current = document.createElement('strong');
   current.textContent = folder.name;
-  if (id === 'desktop') path.replaceChildren(current);
-  else {
-    path.insertAdjacentHTML('beforeend', icon('right'));
-    path.append(current);
-  }
+  path.append(current);
   const grid = surface.querySelector('.files');
   grid.classList.toggle('list-view', finder.view === 'list');
   grid.replaceChildren();
-  for (const itemId of folder.items) {
-    const isFolder = Boolean(folders[itemId]);
-    const item = folders[itemId] ?? files[itemId];
-    const kind = isFolder ? 'Cartella' : 'Documento';
+  for (const itemId of items) {
+    const item = virtualEntries.get(itemId) ?? folders[itemId];
+    const isFolder = item.kind === 'folder' || fixedFolders.includes(itemId);
+    const kind = isFolder ? 'Cartella' : item.kind === 'import' ? 'File importato' : 'Documento';
     const tile = button(item.name + ' · ' + kind, 'file-tile', fileIcon(isFolder ? 'folder' : 'text') + '<span class="file-name"></span><span class="file-kind"></span>', (event) => {
-      if (event.detail === 0) {
+      if (event.detail === 0 && id !== 'trash') {
         openItem(itemId);
         return;
       }
-      finder.selected = itemId;
-      for (const entry of grid.children) {
-        entry.classList.toggle('is-selected', entry === tile);
-        entry.setAttribute('aria-pressed', entry === tile);
-      }
+      selectFinderItem(itemId, grid);
+      if (event.detail === 0) toggleMenu(record.actions, true, finderActions());
     });
+    tile.dataset.item = itemId;
+    tile.addEventListener('focus', () => selectFinderItem(itemId, grid));
     tile.querySelector('.file-name').textContent = item.name;
     tile.querySelector('.file-kind').textContent = kind;
     tile.classList.toggle('is-selected', finder.selected === itemId);
@@ -719,22 +1017,122 @@ function updateFinder(record) {
     tile.addEventListener('dblclick', () => openItem(itemId));
     grid.append(tile);
   }
-  if (folder.items.length === 0) {
+  if (items.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.innerHTML = icon(folder.icon ?? 'folder') + '<h2></h2><p></p>';
     empty.querySelector('h2').textContent = id === 'local' ? 'Apri un file da Windows' : 'Nessun elemento';
     empty.querySelector('p').textContent = id === 'local'
       ? 'Scegli un singolo file per visualizzarne un’anteprima in sola lettura. Il file resta sul dispositivo.'
-      : folder.empty ?? 'Questa cartella dimostrativa è vuota.';
+      : folder.empty ?? 'Usa il menu Azioni Finder per aggiungere un elemento.';
     if (id === 'local') {
       empty.append(button('Scegli file', 'primary-button', 'Scegli file…', () => byId('file-picker').click()));
     }
     grid.append(empty);
   }
   const [count, mode] = surface.querySelector('.finder-footer').children;
-  count.textContent = id === 'local' ? 'Selezione manuale' : folder.items.length + (folder.items.length === 1 ? ' elemento' : ' elementi');
-  mode.textContent = id === 'local' ? 'Accesso locale in sola lettura' : 'Spazio simulato';
+  count.textContent = finderMessage || (id === 'local' ? 'Selezione manuale' : items.length + (items.length === 1 ? ' elemento' : ' elementi'));
+  mode.textContent = id === 'local' ? 'Accesso locale in sola lettura' : finderNotice || 'Disco virtuale';
+}
+
+function showFinderMessage(message) {
+  finderMessage = message;
+  byId('announcement').textContent = message;
+  const record = windows.get('finder');
+  if (record) updateFinder(record);
+}
+
+let finderSubmit = null;
+
+function finderDialog(title, field, action, label = 'OK') {
+  closeMenu();
+  const dialog = byId('finder-dialog');
+  byId('finder-dialog-title').textContent = title;
+  byId('finder-dialog-field').replaceChildren(field);
+  byId('finder-dialog-error').textContent = '';
+  byId('finder-dialog-submit').textContent = label;
+  finderSubmit = action;
+  dialog.showModal();
+  field.focus();
+}
+
+function nameEntry(id, kind) {
+  const entry = virtualEntries.get(id);
+  const parent = entry?.parent ?? currentFolder();
+  const label = entry ? 'Rinomina elemento' : kind === 'folder' ? 'Nuova cartella' : 'Nuovo documento di testo';
+  const field = document.createElement('input');
+  field.type = 'text';
+  field.maxLength = 120;
+  field.setAttribute('aria-label', 'Nome');
+  field.value = entry?.name ?? (kind === 'folder' ? 'Nuova cartella' : 'Senza titolo.txt');
+  finderDialog(label, field, () => {
+    const name = field.value.trim();
+    const error = nameError(name, parent, id);
+    if (error) return error;
+    return entry ? updateEntry(id, { name }) : addEntry({ name, parent, kind, ...(kind === 'text' && { text: '' }) });
+  }, entry ? 'Rinomina' : 'Crea');
+  field.select();
+}
+
+function chooseDestination(id, restoring = false) {
+  const entry = virtualEntries.get(id);
+  const field = document.createElement('select');
+  field.setAttribute('aria-label', 'Cartella di destinazione');
+  const candidates = [...fixedFolders, ...virtualEntries.keys()].filter((candidate) =>
+    canWriteFolder(candidate) && !insideFolder(candidate, id) && (restoring || candidate !== entry.parent));
+  for (const candidate of candidates) {
+    const labels = [];
+    for (let folder = candidate; folder; folder = folderParent(folder)) labels.unshift(folderInfo(folder).name);
+    const option = document.createElement('option');
+    option.value = candidate;
+    option.textContent = labels.join(' › ');
+    field.append(option);
+  }
+  finderDialog(restoring ? 'Ripristina in…' : 'Sposta in…', field, () => moveEntry(id, field.value), restoring ? 'Ripristina' : 'Sposta');
+}
+
+function sendToTrash(id) {
+  const error = updateEntry(id, { trashed: true });
+  if (!error && preview?.id === id) closeWindow(windows.get('preview'));
+  showFinderMessage(error || 'Elemento spostato nel Cestino.');
+}
+
+function restoreEntry(id) {
+  const entry = virtualEntries.get(id);
+  if (!entry) return;
+  const error = moveEntry(id, entry.parent);
+  if (error) chooseDestination(id, true);
+  else showFinderMessage('Elemento ripristinato.');
+}
+
+function confirmEmptyTrash() {
+  const message = document.createElement('p');
+  message.textContent = 'Gli elementi virtuali nel Cestino verranno eliminati definitivamente.';
+  finderDialog('Svuotare il Cestino?', message, emptyTrash, 'Svuota');
+}
+
+function finderActions() {
+  const id = finder.selected;
+  const folder = currentFolder();
+  const entry = virtualEntries.get(id);
+  if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()]];
+  if (folder === 'trash') return [
+    ['Ripristina', () => restoreEntry(id), !entry],
+    ['Svuota il Cestino…', confirmEmptyTrash, !folderItems('trash').length]
+  ];
+  return [
+    ['Apri', () => openItem(id), !id],
+    ['Nuova cartella…', () => nameEntry(null, 'folder')],
+    ['Nuovo documento di testo…', () => nameEntry(null, 'text')],
+    ['Importa copia da Windows…', () => {
+      importDestination = folder;
+      byId('import-picker').click();
+    }],
+    ['Rinomina…', () => nameEntry(id), !entry],
+    ['Sposta in…', () => chooseDestination(id), !entry],
+    ['Esporta copia…', () => exportEntry(id), !entry || entry.kind === 'folder'],
+    ['Sposta nel Cestino', () => sendToTrash(id), !entry]
+  ];
 }
 
 function clearPreview() {
@@ -759,7 +1157,35 @@ function renderPreview(record) {
   description.className = 'app-hint';
   description.textContent = preview.description;
   content.append(description);
-  if (preview.url) {
+  const id = preview.id;
+  if (isVisibleEntry(id) && virtualEntries.get(id)?.kind === 'text') {
+    const editor = document.createElement('textarea');
+    editor.className = 'document-editor';
+    editor.setAttribute('aria-label', 'Testo del documento');
+    editor.value = preview.text;
+    editor.maxLength = limitBytes;
+    editor.addEventListener('input', () => { description.textContent = 'Modifiche da salvare.'; });
+    const controls = document.createElement('div');
+    controls.className = 'document-controls';
+    controls.append(button('Salva', 'primary-button', 'Salva', () => {
+      const text = editor.value;
+      if (new TextEncoder().encode(text).byteLength > limitBytes) {
+        description.textContent = 'Il documento supera 256 KiB.';
+        return;
+      }
+      if (!isVisibleEntry(id)) {
+        description.textContent = 'Ripristina il documento dal Cestino prima di salvarlo.';
+        return;
+      }
+      const error = updateEntry(id, { text });
+      if (!error) {
+        preview.text = text;
+        record.title.textContent = virtualEntries.get(id).name;
+      }
+      description.textContent = error || finderNotice || 'Documento salvato nel disco virtuale.';
+    }), button('Esporta copia', 'choice', 'Esporta', () => exportEntry(id)));
+    content.append(editor, controls);
+  } else if (preview.url) {
     const image = document.createElement('img');
     image.alt = preview.name;
     image.addEventListener('error', () => {
@@ -783,10 +1209,10 @@ async function openLocalFile(event) {
   const selection = ++fileSelection;
   const size = new Intl.NumberFormat('it-IT').format(file.size);
   const data = { name: file.name, description: 'File locale · Sola lettura · ' + size + ' byte' };
-  if (/^image\/(png|jpeg|gif|webp|bmp|avif)$/.test(file.type) && file.size <= 12 * 1024 * 1024) {
+  if (rasterType.test(file.type) && file.size <= 12 * 1024 * 1024) {
     data.url = URL.createObjectURL(file);
-  } else if (file.type.startsWith('text/') || /\.(txt|md|log|csv|json)$/i.test(file.name)) {
-    const limit = 256 * 1024;
+  } else if (file.type.startsWith('text/') || textExtension.test(file.name)) {
+    const limit = limitBytes;
     try {
       data.text = await file.slice(0, limit).text();
       if (file.size > limit) data.description += ' · Primi 256 KiB';
@@ -891,7 +1317,7 @@ function renderSettings(record) {
   content.className = 'settings-view';
   const status = document.createElement('p');
   status.className = 'app-hint';
-  status.textContent = 'Queste opzioni cambiano l’aspetto della scrivania simulata.';
+  status.textContent = 'Aspetto della scrivania';
   for (const [key, preference] of Object.entries(preferences)) {
     const group = document.createElement('fieldset');
     const legend = document.createElement('legend');
@@ -917,13 +1343,14 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.0</h2><p>Simulatore offline di un desktop ispirato a macOS. Il Finder contiene cartelle dimostrative. Da <strong>File locali</strong> puoi scegliere un file di Windows e visualizzarlo in sola lettura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. Trascina una finestra dalla barra del titolo e ridimensionala dall’angolo in basso a destra.</p><p><kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.1</h2><p>Nel Finder, fai clic destro su un elemento o apri <strong>Azioni Finder</strong> per creare, organizzare e importare copie nel disco virtuale.</p><p><strong>File locali</strong> apre un file di Windows in sola lettura. <kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight.</p><p><kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
 const launchSearch = byId('launch-search');
 const spotlight = byId('spotlight');
 const spotlightSearch = byId('spotlight-search');
+const mission = byId('mission');
 let searchResults = [];
 let selectedResult = 0;
 
@@ -961,17 +1388,24 @@ function noResults(message) {
   return empty;
 }
 
-const searchIndex = [
-  ...[...launchApps, 'launchpad'].map((id) => ({
+const appSearch = [...launchApps, 'launchpad', 'mission'].map((id) => ({
     name: appName(id), detail: 'App', art: appIcon(id), open: () => launch(id)
-  })),
-  ...Object.entries(folders).filter(([id]) => id !== 'local').map(([id, folder]) => ({
-    name: folder.name, detail: 'Cartella simulata', art: fileIcon('folder'), open: () => showFolder(id)
-  })),
-  ...Object.entries(files).map(([id, file]) => ({
-    name: file.name, detail: 'Documento · ' + folders[file.parent].name, art: fileIcon('text'), open: () => openItem(id)
-  }))
-];
+}));
+
+function searchableEntries() {
+  return [
+    ...appSearch,
+    ...fixedFolders.filter((id) => id !== 'local').map((id) => ({
+      name: folders[id].name, detail: 'Cartella virtuale', art: fileIcon('folder'), open: () => showFolder(id)
+    })),
+    ...[...virtualEntries].filter(([id]) => isVisibleEntry(id)).map(([id, entry]) => ({
+      name: entry.name,
+      detail: (entry.kind === 'folder' ? 'Cartella' : 'Documento') + ' · ' + folderInfo(entry.parent).name,
+      art: fileIcon(entry.kind === 'folder' ? 'folder' : 'text'),
+      open: () => openItem(id)
+    }))
+  ];
+}
 
 function chooseResult(index, scroll = false) {
   const items = [...byId('spotlight-results').querySelectorAll('button')];
@@ -1000,12 +1434,18 @@ function runResult(index) {
 function renderSpotlight() {
   const query = normalize(spotlightSearch.value);
   searchResults = query
-    ? searchIndex.filter((entry) => normalize(entry.name + ' ' + entry.detail).includes(query)).slice(0, 9)
-    : searchIndex.slice(0, 5);
+    ? searchableEntries().filter((entry) => normalize(entry.name + ' ' + entry.detail).includes(query)).slice(0, 9)
+    : appSearch.slice(0, 5);
   const list = byId('spotlight-results');
   list.replaceChildren();
   searchResults.forEach((result, index) => {
-    const item = button(result.name + ' · ' + result.detail, 'spotlight-item', result.art + '<span>' + result.name + '<small>' + result.detail + '</small></span>', () => runResult(index));
+    const item = button(result.name + ' · ' + result.detail, 'spotlight-item', result.art, () => runResult(index));
+    const label = document.createElement('span');
+    label.textContent = result.name;
+    const detail = document.createElement('small');
+    detail.textContent = result.detail;
+    label.append(detail);
+    item.append(label);
     item.id = 'result-' + index;
     item.tabIndex = -1;
     item.setAttribute('role', 'option');
@@ -1023,10 +1463,36 @@ function toggleSpotlight() {
   }
   closeMenu();
   if (launchpad.open) launchpad.close();
+  if (mission.open) mission.close();
   spotlightSearch.value = '';
   renderSpotlight();
   spotlight.showModal();
   spotlightSearch.focus();
+}
+
+function openMission() {
+  closeMenu();
+  if (spotlight.open) spotlight.close();
+  if (launchpad.open) launchpad.close();
+  const grid = byId('mission-grid');
+  grid.replaceChildren();
+  const ordered = [...windows.values()].sort((first, second) => second.order - first.order);
+  for (const record of ordered) {
+    const tile = button(record.title.textContent, 'mission-tile', '<span class="mission-preview"><span class="mission-titlebar"></span><span class="mission-content"></span></span>', () => {
+      mission.close();
+      openWindow(record.id);
+    });
+    tile.dataset.app = record.id;
+    tile.querySelector('.mission-titlebar').textContent = record.title.textContent;
+    tile.querySelector('.mission-content').innerHTML = appIcon(record.id);
+    const label = document.createElement('span');
+    label.textContent = record.title.textContent + (record.minimized ? ' · Minimizzata' : '');
+    tile.append(label);
+    grid.append(tile);
+  }
+  if (!ordered.length) grid.append(noResults('Nessuna finestra aperta'));
+  mission.showModal();
+  (grid.querySelector('button') ?? byId('mission-close')).focus();
 }
 
 const menuPopover = byId('menu-popover');
@@ -1053,17 +1519,20 @@ function toggleFullScreen() {
 function menuItems(name) {
   const current = activeWindow;
   const record = windows.get('finder');
-  const canOpen = current?.id === 'finder' && finder.selected;
   const items = {
     Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Launchpad', openLaunchpad]],
     App: [['Apri Finder', () => openWindow('finder')], ['Apri Launchpad', openLaunchpad], ['Chiudi finestra attiva', () => closeWindow(current), !current]],
-    File: [['Apri elemento selezionato', () => openItem(finder.selected), !canOpen], ['Apri un file da Windows…', () => byId('file-picker').click()]],
+    File: [
+      ...(current?.id === 'finder' ? finderActions() : []),
+      ['Apri un file da Windows…', () => byId('file-picker').click()]
+    ],
     Vista: [['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }], ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }], [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]],
     Finestra: [
+      ['Mission Control', openMission],
       ['Riduci a icona', () => minimize(current), !current],
       [current?.maximized ? 'Ripristina dimensioni' : 'Ingrandisci', () => toggleMaximize(current), !current],
       ...[...windows.values()].map((item) => [
-        item === record ? 'Finder · ' + folders[currentFolder()].name : item.title.textContent,
+        item === record ? 'Finder · ' + folderInfo(currentFolder()).name : item.title.textContent,
         () => openWindow(item.id)
       ])
     ],
@@ -1072,14 +1541,14 @@ function menuItems(name) {
   return items[name];
 }
 
-function toggleMenu(anchor, keyboard = false) {
+function toggleMenu(anchor, keyboard = false, options = menuItems(anchor.dataset.menu), point = null) {
   const previous = menuAnchor;
   closeMenu();
-  if (previous === anchor) return;
+  if (previous === anchor && !point) return;
   menuAnchor = anchor;
   anchor.setAttribute('aria-expanded', 'true');
   menuPopover.replaceChildren();
-  for (const [label, action, disabled] of menuItems(anchor.dataset.menu)) {
+  for (const [label, action, disabled] of options) {
     const item = button(label, '', '', () => {
       closeMenu(true);
       action();
@@ -1089,7 +1558,9 @@ function toggleMenu(anchor, keyboard = false) {
     menuPopover.append(item);
   }
   menuPopover.hidden = false;
-  menuPopover.style.left = Math.max(6, Math.min(anchor.getBoundingClientRect().left, innerWidth - menuPopover.offsetWidth - 6)) + 'px';
+  const rect = anchor.getBoundingClientRect();
+  menuPopover.style.left = Math.max(6, Math.min(point?.left ?? rect.left, innerWidth - menuPopover.offsetWidth - 6)) + 'px';
+  menuPopover.style.top = Math.max(6, Math.min(point?.top ?? (anchor.dataset.menu ? 38 : rect.bottom + 5), innerHeight - menuPopover.offsetHeight - 6)) + 'px';
   if (keyboard) menuPopover.querySelector('button:not(:disabled)')?.focus();
 }
 
@@ -1135,6 +1606,15 @@ function setupEvents() {
   byId('search-button').addEventListener('click', toggleSpotlight);
   byId('settings-button').addEventListener('click', () => openWindow('settings'));
   byId('file-picker').addEventListener('change', openLocalFile);
+  byId('import-picker').addEventListener('change', importVirtualFile);
+  byId('finder-dialog-cancel').addEventListener('click', () => byId('finder-dialog').close());
+  byId('mission-close').addEventListener('click', () => mission.close());
+  byId('finder-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const error = finderSubmit?.();
+    if (error) byId('finder-dialog-error').textContent = error;
+    else byId('finder-dialog').close();
+  });
   launchSearch.addEventListener('input', renderLaunchpad);
   launchSearch.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && !event.isComposing) byId('launch-grid').querySelector('button')?.click();
@@ -1153,7 +1633,7 @@ function setupEvents() {
     }
     if (event.key === 'Enter') runResult(selectedResult);
   });
-  for (const dialog of [launchpad, spotlight]) {
+  for (const dialog of [launchpad, spotlight, mission]) {
     dialog.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || event.isComposing) return;
       event.preventDefault();
@@ -1167,7 +1647,7 @@ function setupEvents() {
   }
   launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
   document.addEventListener('pointerdown', (event) => {
-    if (!event.target.closest('#menu-popover, [data-menu]')) closeMenu();
+    if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu]')) closeMenu();
   });
   document.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
@@ -1202,6 +1682,46 @@ function updateClock() {
   clock.textContent = clockFormat.format(now);
 }
 
+let restoringWorkspace = true;
+const restorableApps = ['finder', 'notes', 'calculator', 'settings'];
+
+function saveWorkspace() {
+  if (restoringWorkspace) return;
+  const state = [...windows.values()].filter(({ id }) => restorableApps.includes(id))
+    .sort((first, second) => first.order - second.order)
+    .map(({ id, rect, minimized, maximized }) => ({ id, rect, minimized, maximized }));
+  writeValue('workspace.v1', JSON.stringify({ windows: state, folder: currentFolder(), view: finder.view }));
+}
+
+function restoreWorkspace() {
+  const saved = readValue('workspace.v1', '');
+  if (!saved) {
+    openWindow('finder', false);
+    return;
+  }
+  try {
+    const state = JSON.parse(saved);
+    if (!Array.isArray(state.windows)) throw new Error('Scrivania non valida');
+    if (fixedFolders.includes(state.folder) || canWriteFolder(state.folder)) finder.history = [state.folder];
+    if (state.view === 'list') finder.view = 'list';
+    for (const item of state.windows) {
+      if (!restorableApps.includes(item?.id) || windows.has(item.id)) continue;
+      const record = openWindow(item.id, false);
+      if (['left', 'top', 'width', 'height'].every((key) => Number.isFinite(item.rect?.[key]))) record.rect = item.rect;
+      if (item.maximized) toggleMaximize(record);
+      else position(record);
+      if (item.minimized) {
+        record.minimized = true;
+        record.element.hidden = true;
+      }
+    }
+    const visible = [...windows.values()].filter((item) => !item.minimized);
+    activate(visible.at(-1) ?? null);
+  } catch {
+    openWindow('finder', false);
+  }
+}
+
 buildDesktop();
 setupEvents();
 for (const [key, preference] of Object.entries(preferences)) {
@@ -1211,7 +1731,9 @@ for (const [key, preference] of Object.entries(preferences)) {
 }
 updateClock();
 setInterval(updateClock, 1000);
-openWindow('finder', false);
+restoreWorkspace();
+restoringWorkspace = false;
+refreshDock();
 </script>
 </body>
 </html>
