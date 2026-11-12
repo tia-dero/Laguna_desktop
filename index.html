@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vbfbCZb7iXs7/2PLJgAIiF+BlWa5//zL+f0Y/aX5cKo='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/haNVY85J1lDIyfZNXUfvU5JHRsbbDKH1+iZjOn1uig='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 1.4 · Simulatore desktop</title>
+  <title>Laguna 1.5 · Simulatore desktop</title>
   <style>
 :root {
   color-scheme: light;
@@ -335,6 +335,46 @@ dialog::backdrop { background: #081f31a1; }
 :root[data-motion="reduced"] #dock-area #dock { transition: none; }
 :root[data-motion="reduced"] .dock-item:not(.is-drop-target) .app-icon { transform: none; }
 
+#widgets { position: absolute; inset: 0; pointer-events: none; }
+.desktop-widget { position: absolute; width: min(210px, calc(100% - 12px)); max-height: calc(100% - 12px); overflow: auto; pointer-events: auto; border: 1px solid #ffffff55; border-radius: 16px; color: #fff; box-shadow: 0 8px 26px #09213555; }
+.desktop-widget:focus-within { z-index: 1; }
+.widget-blue { background: linear-gradient(145deg, #253f68f5, #142740f5); }
+.widget-rose { background: linear-gradient(145deg, #733c5af5, #44253df5); }
+.widget-mint { background: linear-gradient(145deg, #245d59f5, #163b42f5); }
+.desktop-widget header { display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 5px 6px 0 10px; }
+.widget-handle { flex: 1; min-height: 27px; touch-action: none; user-select: none; border: 0; background: transparent; text-align: left; cursor: grab; font-size: 12px; font-weight: 650; }
+.widget-handle:active { cursor: grabbing; }
+.desktop-widget .icon-button { width: 24px; height: 24px; color: #fff; font-size: 12px; }
+.desktop-widget .icon-button:hover { color: #fff; background: #ffffff24; }
+.widget-body { padding: 5px 11px 11px; }
+.widget-time { display: block; font-size: 40px; font-weight: 650; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.widget-date { margin: 3px 0 5px; font-size: 12px; }
+.widget-calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 2px; }
+.widget-calendar-label { flex: 1; padding: 3px 0; border: 0; border-radius: 4px; background: none; text-align: left; font-size: 12px; }
+.widget-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(7, 19px); gap: 1px; margin-top: 3px; text-align: center; font-size: 10px; }
+.widget-calendar-grid span { align-self: center; opacity: .75; }
+.widget-calendar-grid button { padding: 0; border: 1px solid transparent; border-radius: 5px; background: transparent; }
+.widget-calendar-grid button[aria-current="date"] { border-color: #ffd5e5; }
+.widget-calendar-grid button:hover, .widget-calendar-grid button[aria-pressed="true"] { background: #ffffff38; }
+.widget-calendar-selected { margin-top: 4px; font-size: 10px; }
+.widget-reminder-list { max-height: 110px; overflow-y: auto; margin: 0 0 4px; padding: 0; list-style: none; }
+.widget-reminder-list li { display: flex; align-items: center; gap: 2px; }
+.widget-reminder-toggle { flex: 1; min-width: 0; padding: 4px 1px; border: 0; border-radius: 4px; background: transparent; text-align: left; overflow-wrap: anywhere; font-size: 11px; }
+.widget-reminder-toggle::before { content: "○"; margin-right: 5px; }
+.widget-reminder-toggle[aria-pressed="true"] { text-decoration: line-through; opacity: .76; }
+.widget-reminder-toggle[aria-pressed="true"]::before { content: "✓"; }
+.widget-reminder-add { display: flex; align-items: center; gap: 3px; }
+.widget-reminder-add input { width: 100%; min-width: 0; padding: 4px; border: 1px solid #ffffff45; border-radius: 6px; color: #fff; background: #0c343b73; font-size: 11px; }
+.widget-reminder-add input::placeholder { color: #e7f5f6; }
+#widget-gallery { width: min(520px, calc(100% - 20px)); max-height: 82vh; border-radius: 15px; box-shadow: 0 20px 65px #05182772; }
+#widget-gallery-space { margin: 9px 13px 0; color: var(--muted); font-size: 12px; }
+#widget-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; padding: 12px; }
+.widget-option { display: grid; justify-items: start; gap: 6px; padding: 12px; border: 2px solid transparent; border-radius: 10px; color: #fff; text-align: left; }
+.widget-option[aria-pressed="true"] { border-color: #6dd5ff; }
+.widget-option-name { font-weight: 700; }
+.widget-option-detail { font-size: 11px; line-height: 1.4; }
+.widget-option-state { padding: 2px 6px; border-radius: 6px; background: #ffffff25; font-size: 11px; }
+
 @media (max-width: 620px) {
   :root { --dock-height: 72px; }
   #menubar { padding-inline: 4px; }
@@ -390,9 +430,18 @@ dialog::backdrop { background: #081f31a1; }
   </header>
   <div id="menu-popover" hidden></div>
   <main id="desktop" aria-label="Scrivania del simulatore">
+    <div id="widgets" aria-label="Widget della scrivania"></div>
     <div id="desktop-icons"></div>
     <div id="windows"></div>
   </main>
+  <dialog id="widget-gallery" aria-labelledby="widget-gallery-title">
+    <header class="control-header">
+      <h2 id="widget-gallery-title">Widget</h2>
+      <button class="icon-button" id="widgets-close" type="button" aria-label="Chiudi galleria widget"><span data-icon="close"></span></button>
+    </header>
+    <p id="widget-gallery-space"></p>
+    <div id="widget-options"></div>
+  </dialog>
   <div id="dock-area">
     <nav id="dock" aria-label="Dock"></nav>
     <button id="dock-reveal" type="button" aria-label="Mostra Dock" aria-controls="dock" aria-expanded="false" hidden></button>
@@ -450,6 +499,299 @@ dialog::backdrop { background: #081f31a1; }
   <input id="wallpaper-picker" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif" hidden>
   <div id="announcement" class="sr-only" role="status"></div>
   <script>
+'use strict';
+
+const widgetTypes = {
+  clock: { name: 'Orologio', detail: 'Ora locale e data', color: 'blue', render: renderWidgetClock },
+  calendar: { name: 'Calendario', detail: 'Sfoglia il mese e scegli un giorno', color: 'rose', render: renderWidgetCalendar },
+  reminders: { name: 'Promemoria', detail: 'Aggiungi e spunta le tue attività', color: 'mint', render: renderWidgetReminders }
+};
+const widgetTimeFormat = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
+const widgetDateFormat = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+const widgetMonthFormat = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
+let widgetEntries = [];
+let widgetReminders = [];
+let widgetCalendarDate = new Date();
+let widgetTimeKey = '';
+
+function readWidgetArray(key) {
+  try {
+    const data = JSON.parse(readValue(key, '[]'));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function widgetOnSpace(kind, space = activeSpace) {
+  return widgetEntries.find((entry) => entry.kind === kind && entry.space === space);
+}
+
+function saveWidgets() {
+  writeValue('widgets.v1', JSON.stringify(widgetEntries));
+}
+
+function relocateWidgets(from, to) {
+  const moved = widgetEntries.filter((entry) => entry.space === from && !widgetOnSpace(entry.kind, to));
+  widgetEntries = widgetEntries.filter((entry) => entry.space !== from);
+  for (const entry of moved) widgetEntries.push({ ...entry, space: to });
+  saveWidgets();
+  renderWidgets();
+}
+
+function setWidget(kind, enabled) {
+  const existing = widgetOnSpace(kind);
+  if (enabled === Boolean(existing)) return;
+  if (enabled) {
+    const index = Object.keys(widgetTypes).indexOf(kind);
+    const columns = Math.max(1, Math.min(3, Math.floor((desktop.clientWidth - 28) / 224)));
+    const left = 16 + (index % columns) * 224;
+    const top = 16 + Math.floor(index / columns) * 240;
+    widgetEntries.push({ kind, space: activeSpace, left, top });
+  } else {
+    widgetEntries = widgetEntries.filter((entry) => entry !== existing);
+  }
+  saveWidgets();
+  renderWidgets();
+}
+
+function openWidgetGallery() {
+  closeMenu();
+  byId('widget-gallery-space').textContent = spaceName(activeSpace);
+  const options = byId('widget-options');
+  options.replaceChildren();
+  for (const [kind, widget] of Object.entries(widgetTypes)) {
+    const option = button(widget.name, 'widget-option widget-' + widget.color,
+      '<span class="widget-option-name"></span><span class="widget-option-detail"></span><span class="widget-option-state"></span>', () => {
+        setWidget(kind, !widgetOnSpace(kind));
+        update();
+      });
+    const update = () => {
+      const enabled = Boolean(widgetOnSpace(kind));
+      option.setAttribute('aria-pressed', enabled);
+      option.querySelector('.widget-option-state').textContent = enabled ? 'Sulla scrivania' : 'Aggiungi';
+    };
+    option.querySelector('.widget-option-name').textContent = widget.name;
+    option.querySelector('.widget-option-detail').textContent = widget.detail;
+    update();
+    options.append(option);
+  }
+  const gallery = byId('widget-gallery');
+  gallery.showModal();
+  options.querySelector('button')?.focus();
+}
+
+function updateWidgetPosition(card, entry, left = entry.left, top = entry.top) {
+  const maxLeft = Math.max(6, desktop.clientWidth - (card.offsetWidth || 214) - 6);
+  const maxTop = Math.max(6, desktop.clientHeight - (card.offsetHeight || 155) - 6);
+  const position = { left: Math.round(Math.max(6, Math.min(left, maxLeft))), top: Math.round(Math.max(6, Math.min(top, maxTop))) };
+  card.style.left = position.left + 'px';
+  card.style.top = position.top + 'px';
+  return position;
+}
+
+function positionWidgets() {
+  for (const card of byId('widgets').querySelectorAll('[data-widget]')) {
+    const entry = widgetOnSpace(card.dataset.widget);
+    if (entry) updateWidgetPosition(card, entry);
+  }
+}
+
+function bindWidgetMove(handle, card, entry) {
+  let drag = null;
+  handle.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || drag) return;
+    drag = { ...updateWidgetPosition(card, entry), pointer: event.pointerId, startX: event.clientX, startY: event.clientY };
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener('pointermove', (event) => {
+    if (drag?.pointer !== event.pointerId) return;
+    Object.assign(entry, updateWidgetPosition(card, entry, drag.left + event.clientX - drag.startX, drag.top + event.clientY - drag.startY));
+  });
+  handle.addEventListener('lostpointercapture', (event) => {
+    if (drag?.pointer !== event.pointerId) return;
+    drag = null;
+    saveWidgets();
+  });
+  handle.addEventListener('keydown', (event) => {
+    const offsets = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const offset = offsets[event.key];
+    if (!offset) return;
+    event.preventDefault();
+    const start = updateWidgetPosition(card, entry);
+    const step = event.shiftKey ? 32 : 8;
+    Object.assign(entry, updateWidgetPosition(card, entry, start.left + offset[0] * step, start.top + offset[1] * step));
+    saveWidgets();
+  });
+}
+
+function renderWidgets() {
+  const layer = byId('widgets');
+  layer.replaceChildren();
+  for (const entry of widgetEntries.filter((item) => item.space === activeSpace)) {
+    const widget = widgetTypes[entry.kind];
+    const card = document.createElement('section');
+    card.className = 'desktop-widget widget-' + widget.color;
+    card.dataset.widget = entry.kind;
+    card.setAttribute('aria-label', widget.name);
+    const header = document.createElement('header');
+    const handle = button('Sposta ' + widget.name + ' con le frecce', 'widget-handle', '', () => {});
+    handle.textContent = widget.name;
+    handle.title = 'Trascina oppure usa le frecce';
+    bindWidgetMove(handle, card, entry);
+    const remove = iconButton('Rimuovi widget ' + widget.name, 'close', () => {
+      setWidget(entry.kind, false);
+      byId('system-menu').focus();
+    });
+    header.append(handle, remove);
+    const content = document.createElement('div');
+    content.className = 'widget-body';
+    card.append(header, content);
+    widget.render(content);
+    layer.append(card);
+  }
+  positionWidgets();
+  widgetTimeKey = '';
+  updateWidgetTime(new Date());
+}
+
+function renderWidgetClock(content) {
+  content.innerHTML = '<time class="widget-time"></time><p class="widget-date"></p>';
+}
+
+function updateWidgetTime(now) {
+  const time = byId('widgets').querySelector('.widget-time');
+  if (!time) return;
+  const key = Math.floor(now.getTime() / 60000);
+  if (widgetTimeKey === key) return;
+  widgetTimeKey = key;
+  time.dateTime = now.toISOString();
+  time.textContent = widgetTimeFormat.format(now);
+  byId('widgets').querySelector('.widget-date').textContent = widgetDateFormat.format(now);
+}
+
+function renderWidgetCalendar(content, focus = null) {
+  const year = widgetCalendarDate.getFullYear();
+  const month = widgetCalendarDate.getMonth();
+  const today = new Date();
+  const monthHead = document.createElement('div');
+  monthHead.className = 'widget-calendar-head';
+  const label = button('Torna a oggi', 'widget-calendar-label', '', () => {
+    widgetCalendarDate = new Date();
+    renderWidgetCalendar(content, '.widget-calendar-label');
+  });
+  label.textContent = widgetMonthFormat.format(widgetCalendarDate);
+  const changeMonth = (offset, selector) => {
+    widgetCalendarDate = new Date(year, month + offset, 1);
+    renderWidgetCalendar(content, selector);
+  };
+  const previous = iconButton('Mese precedente', 'left', () => changeMonth(-1, '.widget-month-previous'));
+  previous.classList.toggle('widget-month-previous', true);
+  const next = iconButton('Mese successivo', 'right', () => changeMonth(1, '.widget-month-next'));
+  next.classList.toggle('widget-month-next', true);
+  monthHead.append(label, previous, next);
+  const grid = document.createElement('div');
+  grid.className = 'widget-calendar-grid';
+  for (const weekday of ['L', 'M', 'M', 'G', 'V', 'S', 'D']) {
+    const cell = document.createElement('span');
+    cell.textContent = weekday;
+    cell.setAttribute('aria-hidden', 'true');
+    grid.append(cell);
+  }
+  const padding = (new Date(year, month, 1).getDay() + 6) % 7;
+  for (let index = 0; index < padding; index += 1) grid.append(document.createElement('span'));
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  for (let day = 1; day <= lastDay; day += 1) {
+    const date = new Date(year, month, day);
+    const dateButton = button(widgetDateFormat.format(date), '', String(day), () => {
+      widgetCalendarDate = date;
+      renderWidgetCalendar(content, '[data-day="' + day + '"]');
+    });
+    dateButton.dataset.day = String(day);
+    dateButton.setAttribute('aria-pressed', day === widgetCalendarDate.getDate());
+    if (date.toDateString() === today.toDateString()) dateButton.setAttribute('aria-current', 'date');
+    grid.append(dateButton);
+  }
+  const selected = document.createElement('p');
+  selected.className = 'widget-calendar-selected';
+  selected.textContent = widgetDateFormat.format(widgetCalendarDate);
+  content.replaceChildren(monthHead, grid, selected);
+  positionWidgets();
+  if (focus) content.querySelector(focus)?.focus();
+}
+
+function saveWidgetReminders() {
+  const stored = writeValue('reminders.v1', JSON.stringify(widgetReminders));
+  if (!stored) byId('announcement').textContent = 'Promemoria disponibili in questa sessione.';
+}
+
+function renderWidgetReminders(content, focusIndex = null) {
+  const list = document.createElement('ul');
+  list.className = 'widget-reminder-list';
+  for (const [index, reminder] of widgetReminders.entries()) {
+    const row = document.createElement('li');
+    const toggle = button(reminder.text, 'widget-reminder-toggle', '', () => {
+      reminder.done = !reminder.done;
+      toggle.setAttribute('aria-pressed', reminder.done);
+      saveWidgetReminders();
+    });
+    toggle.textContent = reminder.text;
+    toggle.dataset.reminder = String(index);
+    toggle.setAttribute('aria-pressed', reminder.done);
+    row.append(toggle, iconButton('Rimuovi ' + reminder.text, 'close', () => {
+      widgetReminders.splice(index, 1);
+      saveWidgetReminders();
+      renderWidgetReminders(content, Math.min(index, widgetReminders.length - 1));
+    }));
+    list.append(row);
+  }
+  const field = document.createElement('input');
+  field.type = 'text';
+  field.maxLength = 120;
+  field.placeholder = 'Nuovo promemoria';
+  field.setAttribute('aria-label', 'Nuovo promemoria');
+  const addReminder = () => {
+    const text = field.value.trim();
+    if (!text || widgetReminders.length >= 40) return;
+    widgetReminders.push({ text, done: false });
+    saveWidgetReminders();
+    renderWidgetReminders(content, -1);
+    const updatedList = content.querySelector('.widget-reminder-list');
+    updatedList.scrollTop = updatedList.scrollHeight;
+  };
+  const add = iconButton('Aggiungi promemoria', 'plus', addReminder);
+  field.disabled = add.disabled = widgetReminders.length >= 40;
+  if (field.disabled) field.placeholder = 'Limite di 40 promemoria';
+  field.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.isComposing) addReminder();
+  });
+  const actions = document.createElement('div');
+  actions.className = 'widget-reminder-add';
+  actions.append(field, add);
+  content.replaceChildren(list, actions);
+  if (Number.isInteger(focusIndex) && focusIndex >= 0) content.querySelector('[data-reminder="' + focusIndex + '"]')?.focus();
+  if (focusIndex === -1) {
+    if (!field.disabled) field.focus();
+    else list.querySelector('[data-reminder="39"]')?.focus();
+  }
+}
+
+function setupWidgets() {
+  widgetEntries = readWidgetArray('widgets.v1').filter((entry) =>
+    entry && Object.hasOwn(widgetTypes, entry.kind) && spaces.includes(entry.space)
+    && Number.isFinite(entry.left) && Number.isFinite(entry.top));
+  widgetReminders = readWidgetArray('reminders.v1').filter((item) =>
+    item && typeof item.text === 'string' && item.text.length <= 120 && typeof item.done === 'boolean').slice(0, 40);
+  const gallery = byId('widget-gallery');
+  byId('widgets-close').addEventListener('click', () => gallery.close());
+  desktop.addEventListener('contextmenu', (event) => {
+    if (event.target.closest('.window, .desktop-widget')) return;
+    event.preventDefault();
+    toggleMenu(byId('system-menu'), false, [['Modifica widget…', openWidgetGallery]], { left: event.clientX, top: event.clientY });
+  });
+  renderWidgets();
+}
+
 'use strict';
 
 const byId = (id) => document.getElementById(id);
@@ -707,6 +1049,7 @@ function switchSpace(id) {
   activeSpace = id;
   syncSpaces();
   syncWallpaper();
+  renderWidgets();
   const next = [...windows.values()].filter((record) => !record.element.hidden)
     .sort((first, second) => second.order - first.order)[0];
   activate(next ?? null);
@@ -1990,7 +2333,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.4</h2><p>Ogni scrivania ha il suo sfondo. Passa a un’altra scrivania in <strong>Mission Control</strong>, poi scegli lo sfondo in <strong>Impostazioni</strong>.</p><p>Trascina le icone del <strong>Dock</strong> per riordinarle. Con il clic destro puoi tenerle nel Dock o rimuoverle dai preferiti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.5</h2><p>Dal menu di sistema, scegli <strong>Modifica widget</strong> per aggiungere Orologio, Calendario o Promemoria. Trascina il titolo di un widget per spostarlo.</p><p>In <strong>Mission Control</strong> puoi passare tra le scrivanie. Ciascuna ha il suo sfondo e i suoi widget.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -2203,6 +2546,7 @@ function removeSpace(id) {
     if (record.space === id) record.space = destination;
   }
   spaces = spaces.filter((space) => space !== id);
+  relocateWidgets(id, destination);
   wallpaperSelection += 1;
   writeValue('wallpaper.image.' + id, '');
   if (activeSpace === id) switchSpace(destination);
@@ -2354,7 +2698,7 @@ function menuItems(name) {
   const current = activeWindow;
   const record = windows.get('finder');
   const items = {
-    Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Launchpad', openLaunchpad]],
+    Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Launchpad', openLaunchpad]],
     App: [['Apri Finder', () => openWindow('finder')], ['Apri Launchpad', openLaunchpad], ['Chiudi finestra attiva', () => closeWindow(current), !current]],
     File: [
       ...(current?.id === 'finder' ? finderActions() : []),
@@ -2653,6 +2997,7 @@ function setupEvents() {
   window.addEventListener('resize', () => {
     closeMenu();
     for (const record of windows.values()) position(record);
+    positionWidgets();
   });
   window.addEventListener('pagehide', (event) => {
     if (!event.persisted) {
@@ -2668,6 +3013,7 @@ function updateClock() {
   const clock = byId('clock');
   clock.dateTime = now.toISOString();
   clock.textContent = clockFormat.format(now);
+  updateWidgetTime(now);
 }
 
 let restoringWorkspace = true;
@@ -2736,6 +3082,7 @@ restoreWorkspace();
 restoringWorkspace = false;
 syncWallpaper();
 refreshDock();
+setupWidgets();
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-LAGUNA 1.4
+LAGUNA 1.5
 Simulatore desktop gratuito e offline per Windows 11
 
 NEL BROWSER
@@ -11,6 +11,10 @@ SU WINDOWS, ANCHE OFFLINE
    Chrome. Puoi anche aprire Avvia.cmd per usare il browser predefinito.
 
 COMANDI
+- Widget: dal menu di sistema scegli Modifica widget per aggiungere
+  Orologio, Calendario o Promemoria. Trascina il titolo o usa le frecce
+  dopo averlo selezionato con Tab. Ogni scrivania ha i suoi widget e la
+  lista dei promemoria è condivisa. I dati restano in questo browser.
 - Dock: apri un'app o richiama una finestra minimizzata.
   Trascina le icone fissate per riordinarle e usa il clic destro per
   fissarle o rimuoverle. In Impostazioni > Dock trovi le frecce e
