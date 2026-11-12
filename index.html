@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-D21KAzoIbJfUX1q1ppsRltJ7BIItaWdCl+Fa4IzFyx4='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3aLfRs9Eot+L4OozSy7zFrdG+w0+hbX3o8m25Ghlav4='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 1.2 · Simulatore desktop</title>
+  <title>Laguna 1.3 · Simulatore desktop</title>
   <style>
 :root {
   color-scheme: light;
@@ -56,6 +56,40 @@ button, h1, h2, p { margin: 0; }
 #wallpaper i:nth-child(5) { inset: 0; background: radial-gradient(ellipse at 57% 38%, transparent 20%, #061f3b42 100%); }
 :root[data-wallpaper="aurora"] #wallpaper { filter: hue-rotate(62deg) saturate(.85); }
 :root[data-wallpaper="tramonto"] #wallpaper { filter: hue-rotate(190deg) saturate(.8); }
+#wallpaper-image { position: absolute; inset: 0; }
+#wallpaper-image, .wallpaper-sample { background-position: center; background-size: cover; background-repeat: no-repeat; background-color: #101a2c; overflow: hidden; isolation: isolate; }
+[data-art="pro-m6"] {
+  background-image:
+    radial-gradient(ellipse at 67% 30%, #7f96b24d 0%, transparent 28%),
+    radial-gradient(ellipse at 49% 60%, #000 0 23%, #152034 24%, #6e839c 26%, #b8c9d8 27%, #43556b 29%, #111a2a 34%, transparent 48%),
+    radial-gradient(ellipse at 64% 55%, #010207 0 35%, #6a7d93 37%, #25334c 39%, transparent 59%),
+    linear-gradient(140deg, #060810 13%, #202f48 53%, #05070e 82%);
+}
+[data-art="imac-m6"] {
+  background-image:
+    radial-gradient(ellipse at 11% 14%, #a9edff94, transparent 43%),
+    radial-gradient(ellipse at 71% 76%, transparent 0 27%, #bdc5fc 28%, #8e8bea 34%, #4366ce 38%, #233d93 40%, transparent 43%),
+    radial-gradient(ellipse at 91% 27%, #edddff 0 13%, #9d8be6 19%, #4f67cc 26%, #3e73c6 29%, transparent 43%),
+    radial-gradient(ellipse at 21% 87%, #224899 0%, #3e75cb 26%, #5ea8e6 32%, #9fd6ed 38%, transparent 44%),
+    linear-gradient(138deg, #1d5caa 5%, #687bd4 47%, #342369 100%);
+}
+[data-art="pro-xdr"] {
+  background-image:
+    radial-gradient(ellipse at 74% 48%, #102a4c, transparent 54%),
+    radial-gradient(ellipse at 27% 60%, #132138, transparent 40%),
+    linear-gradient(120deg, #03050a, #090e18 59%, #010204);
+}
+[data-art="pro-xdr"]::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, #6582a400 0 1%, #c7ddf873 1.15%, #82b9ea16 1.32% 2.3%),
+    linear-gradient(98deg, #12253d 12%, #bbd4e9 44%, #e3f0ff 52%, #336ba2 70%, #95bfdc 80%, #292137 94%);
+  mask-image: radial-gradient(ellipse at 31% 44%, transparent 0 17%, black 19% 21%, transparent 24% 31%, black 33% 35%, transparent 40%),
+    radial-gradient(ellipse at 75% 59%, transparent 0 16%, black 18% 21%, transparent 24% 30%, black 31% 32%, transparent 35%);
+  opacity: .95;
+}
+.wallpaper-sample[data-art="laguna"] { background-image: radial-gradient(ellipse at 75% 16%, #b6e3c6, #70bcb1 25%, #317d83 58%, #153842 92%); }
+.wallpaper-sample[data-art="aurora"] { background-image: radial-gradient(ellipse at 75% 16%, #c3d7ef, #799ac7 25%, #354982 58%, #252842 92%); }
+.wallpaper-sample[data-art="tramonto"] { background-image: radial-gradient(ellipse at 75% 16%, #f1c2c7, #b26c73 25%, #834747 58%, #4b2a38 92%); }
 
 #menubar { position: fixed; z-index: 30; inset: 0 0 auto; height: var(--menu-height); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; color: #f7fcff; background: #1538429c; border-bottom: 1px solid #ffffff2c; backdrop-filter: blur(20px) saturate(145%); user-select: none; }
 #menus, #status-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
@@ -208,9 +242,23 @@ dialog::backdrop { background: #081f31a1; }
 .notes-view textarea { flex: 1; min-height: 0; resize: none; padding: 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; line-height: 1.55; }
 .app-hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .settings-view, .info-view { display: grid; align-content: start; gap: 15px; }
+.settings-view { height: auto; min-height: 100%; }
 .settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
 .settings-view legend { padding: 0 4px; font-size: 13px; font-weight: 650; }
 .settings-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.wallpaper-heading { margin: 8px 0 6px; color: var(--muted); font-size: 11px; font-weight: 650; }
+.wallpaper-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; }
+.wallpaper-option { display: grid; gap: 4px; min-width: 0; padding: 4px; border: 1px solid var(--line); border-radius: 8px; text-align: left; background: var(--panel); }
+.wallpaper-option:hover { background: var(--hover); }
+.wallpaper-option[aria-pressed="true"] { border-color: var(--accent); background: var(--selected); }
+.wallpaper-sample { display: block; position: relative; width: 100%; aspect-ratio: 16 / 8; border-radius: 4px; }
+.wallpaper-name { padding: 2px 3px 3px; overflow-wrap: anywhere; font-size: 11px; line-height: 1.3; font-weight: 600; }
+.wallpaper-import { display: flex; align-items: center; gap: 6px; margin: 10px 0 7px; }
+.wallpaper-source { margin-top: 6px; color: var(--muted); font-size: 12px; }
+.wallpaper-source summary { cursor: pointer; }
+.wallpaper-source a { display: block; width: fit-content; margin: 6px 0 0 13px; color: var(--accent); }
+.wallpaper-status:empty { display: none; }
+.wallpaper-status { position: sticky; z-index: 1; top: 0; padding: 6px 8px; border-radius: 6px; background: var(--surface); }
 .choice { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 12px; }
 .choice[aria-pressed="true"] { color: var(--accent); background: var(--selected); }
 .preview-view { display: flex; flex-direction: column; gap: 12px; }
@@ -311,7 +359,7 @@ dialog::backdrop { background: #081f31a1; }
 </style>
 </head>
 <body>
-  <div id="wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><div id="wallpaper-image" hidden></div></div>
   <header id="menubar" aria-label="Barra dei menu">
     <div id="menus">
       <button id="system-menu" class="menu-button system-mark" type="button" data-menu="Sistema" aria-label="Menu di sistema"></button>
@@ -383,6 +431,7 @@ dialog::backdrop { background: #081f31a1; }
   </dialog>
   <input id="file-picker" type="file" hidden>
   <input id="import-picker" type="file" hidden>
+  <input id="wallpaper-picker" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif" hidden>
   <div id="announcement" class="sr-only" role="status"></div>
   <script>
 'use strict';
@@ -484,7 +533,7 @@ const apps = {
   finder: { name: 'Finder', size: [874, 498], render: renderFinder },
   notes: { name: 'Note', size: [490, 370], render: renderNotes },
   calculator: { name: 'Calcolatrice', size: [290, 365], render: renderCalculator },
-  settings: { name: 'Impostazioni', size: [420, 314], render: renderSettings },
+  settings: { name: 'Impostazioni', size: [560, 500], render: renderSettings },
   preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
   info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
 };
@@ -1659,22 +1708,161 @@ function renderCalculator(record) {
 
 const preferences = {
   theme: { title: 'Aspetto', choices: { light: 'Chiaro', dark: 'Scuro' } },
-  wallpaper: { title: 'Sfondo', choices: { laguna: 'Laguna', aurora: 'Aurora', tramonto: 'Tramonto' } },
+  wallpaper: { title: 'Sfondo', choices: {
+    laguna: 'Laguna', aurora: 'Aurora', tramonto: 'Tramonto',
+    'pro-m6': 'MacBook Pro M6', 'imac-m6': 'iMac M6', 'pro-xdr': 'MacBook Pro PROLED XDR',
+    personal: 'Personale'
+  } },
   motion: { title: 'Animazioni', choices: { system: 'Come il sistema', reduced: 'Ridotte' } }
 };
+const macWallpapers = ['pro-m6', 'imac-m6', 'pro-xdr'];
+const originalWallpapers = [
+  ['MacBook Pro PROLED XDR', 'https://www.iclarified.com/103161/download-the-official-macbook-pro-proled-xdr-wallpaper'],
+  ['macOS 27 Golden Gate', 'https://www.iclarified.com/101095/download-the-official-macos-27-golden-gate-wallpaper-for-mac']
+];
+const personalWallpaperLimit = 900000;
+const wallpaperFormat = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/;
+let wallpaperSelection = 0;
+
+function readPersonalWallpaper() {
+  const image = readValue('wallpaper.personal', '');
+  return image.length <= personalWallpaperLimit && wallpaperFormat.test(image) ? image : '';
+}
+
+function availableWallpapers() {
+  return Object.keys(preferences.wallpaper.choices).filter((key) => key !== 'personal' || readPersonalWallpaper());
+}
 
 function applyPreference(key, value) {
   if (!Object.hasOwn(preferences[key].choices, value)) return;
+  if (key === 'wallpaper') {
+    const personal = value === 'personal' ? readPersonalWallpaper() : '';
+    if (value === 'personal' && !personal) value = 'laguna';
+    const layer = byId('wallpaper-image');
+    layer.dataset.art = value;
+    layer.hidden = !personal && !macWallpapers.includes(value);
+    layer.style.backgroundImage = personal ? 'url("' + personal + '")' : '';
+  }
   document.documentElement.dataset[key] = value;
+}
+
+function chooseWallpaper(key, status, group) {
+  applyPreference('wallpaper', key);
+  status.textContent = writeValue('wallpaper', key)
+    ? 'Sfondo salvato in questo browser.'
+    : 'Sfondo applicato a questa sessione.';
+  for (const choice of group.querySelectorAll('[data-wallpaper-key]')) {
+    choice.setAttribute('aria-pressed', choice.dataset.wallpaperKey === key);
+  }
+}
+
+function renderWallpaperSettings(status) {
+  const group = document.createElement('fieldset');
+  const title = document.createElement('legend');
+  title.textContent = 'Sfondo';
+  group.append(title);
+  const choices = availableWallpapers();
+  for (const [label, keys] of [
+    ['Ispirati ai Mac 2026', macWallpapers],
+    ['Collezione Laguna', choices.filter((key) => !macWallpapers.includes(key))]
+  ]) {
+    const heading = document.createElement('p');
+    heading.className = 'wallpaper-heading';
+    heading.textContent = label;
+    const gallery = document.createElement('div');
+    gallery.className = 'wallpaper-gallery';
+    for (const key of keys) {
+      const name = preferences.wallpaper.choices[key];
+      const option = button(name, 'wallpaper-option', '<span class="wallpaper-sample" aria-hidden="true"></span><span class="wallpaper-name"></span>', () => chooseWallpaper(key, status, group));
+      option.dataset.wallpaperKey = key;
+      const sample = option.querySelector('.wallpaper-sample');
+      sample.dataset.art = key;
+      if (key === 'personal') sample.style.backgroundImage = 'url("' + readPersonalWallpaper() + '")';
+      option.querySelector('.wallpaper-name').textContent = name;
+      option.setAttribute('aria-pressed', document.documentElement.dataset.wallpaper === key);
+      gallery.append(option);
+    }
+    group.append(heading, gallery);
+  }
+  const source = document.createElement('details');
+  source.className = 'wallpaper-source';
+  const summary = document.createElement('summary');
+  summary.textContent = 'Scarica gli sfondi Apple';
+  source.append(summary);
+  for (const [name, url] of originalWallpapers) {
+    const link = document.createElement('a');
+    link.textContent = name + ' ↗';
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    source.append(link);
+  }
+  const importImage = button('Scegli immagine', 'choice wallpaper-import', icon('image') + '<span>Scegli immagine…</span>', () => byId('wallpaper-picker').click());
+  group.append(importImage, source);
+  return group;
+}
+
+async function importWallpaper(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const selection = ++wallpaperSelection;
+  try {
+    if (!rasterType.test(file.type) || file.size > 24 * 1024 * 1024) {
+      reportWallpaper('Scegli un’immagine JPG, PNG, WebP, GIF, BMP o AVIF fino a 24 MiB.');
+      return;
+    }
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement('canvas');
+    try {
+      const scale = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height));
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const painter = canvas.getContext('2d', { alpha: false });
+      painter.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    } finally {
+      bitmap.close();
+    }
+    let image = '';
+    for (const quality of [.85, .72, .56]) {
+      image = canvas.toDataURL('image/jpeg', quality);
+      if (image.length <= personalWallpaperLimit && wallpaperFormat.test(image)) break;
+    }
+    if (selection !== wallpaperSelection) return;
+    if (image.length > personalWallpaperLimit || !wallpaperFormat.test(image)) {
+      reportWallpaper('L’immagine è troppo dettagliata per essere salvata. Prova una copia più piccola.');
+      return;
+    }
+    const stored = writeValue('wallpaper.personal', image);
+    applyPreference('wallpaper', 'personal');
+    const selected = writeValue('wallpaper', 'personal');
+    reportWallpaper(stored && selected ? 'Sfondo personale salvato in questo browser.' : 'Sfondo personale disponibile in questa sessione.');
+  } catch {
+    if (selection === wallpaperSelection) reportWallpaper('Impossibile aprire questa immagine.');
+  }
+}
+
+function reportWallpaper(message) {
+  byId('announcement').textContent = message;
+  const settings = windows.get('settings');
+  if (!settings) return;
+  renderSettings(settings);
+  settings.content.querySelector('.wallpaper-status').textContent = message;
+  settings.content.querySelector('.wallpaper-import').focus({ preventScroll: true });
 }
 
 function renderSettings(record) {
   const content = document.createElement('div');
   content.className = 'settings-view';
   const status = document.createElement('p');
-  status.className = 'app-hint';
-  status.textContent = 'Aspetto della scrivania';
+  status.className = 'app-hint wallpaper-status';
+  status.setAttribute('role', 'status');
+  content.append(status);
   for (const [key, preference] of Object.entries(preferences)) {
+    if (key === 'wallpaper') {
+      content.append(renderWallpaperSettings(status));
+      continue;
+    }
     const group = document.createElement('fieldset');
     const legend = document.createElement('legend');
     legend.textContent = preference.title;
@@ -1694,12 +1882,11 @@ function renderSettings(record) {
     group.append(legend, options);
     content.append(group);
   }
-  content.append(status);
   record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.2</h2><p>Nel Finder premi <kbd>Spazio</kbd> per l’Anteprima rapida. Usa <kbd>Ctrl</kbd> + clic per selezionare più elementi e trascinali su una cartella o sul Cestino.</p><p>Apri più cartelle con <strong>Nuova scheda</strong>. In <strong>Mission Control</strong> organizzi le finestre su più scrivanie.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.3</h2><p>Apri <strong>Impostazioni</strong> per vedere gli sfondi ispirati ai Mac del 2026 o scegliere un’immagine dal tuo dispositivo.</p><p>Nel Finder premi <kbd>Spazio</kbd> per l’Anteprima rapida. Usa <kbd>Ctrl</kbd> + clic per selezionare più elementi e trascinali su una cartella o sul Cestino.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -1836,7 +2023,7 @@ function renderControlCenter(focus = null) {
   const dark = document.documentElement.dataset.theme === 'dark';
   const reduced = document.documentElement.dataset.motion === 'reduced';
   const full = Boolean(document.fullscreenElement);
-  const wallpapers = Object.keys(preferences.wallpaper.choices);
+  const wallpapers = availableWallpapers();
   const wallpaper = document.documentElement.dataset.wallpaper;
   const options = [
     ['theme', 'moon', 'Modalità scura', dark, () => setControlPreference('theme', dark ? 'light' : 'dark')],
@@ -2163,6 +2350,7 @@ function setupEvents() {
   });
   byId('file-picker').addEventListener('change', openLocalFile);
   byId('import-picker').addEventListener('change', importVirtualFile);
+  byId('wallpaper-picker').addEventListener('change', importWallpaper);
   byId('finder-dialog-cancel').addEventListener('click', () => byId('finder-dialog').close());
   byId('mission-close').addEventListener('click', () => mission.close());
   byId('finder-form').addEventListener('submit', (event) => {

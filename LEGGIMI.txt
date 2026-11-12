@@ -1,4 +1,4 @@
-LAGUNA 1.2
+LAGUNA 1.3
 Simulatore desktop gratuito e offline per Windows 11
 
 NEL BROWSER
@@ -27,6 +27,9 @@ COMANDI
   scrivanie, poi trascinare le finestre sulle miniature o usare Sposta in.
 - Centro di Controllo: clicca i cursori in alto a destra per cambiare
   tema, sfondo, animazioni e schermo intero.
+- Impostazioni > Sfondo: scegli una delle tre interpretazioni Laguna
+  ispirate ai Mac del 2026, o carica una foto con Scegli immagine.
+  Scarica gli sfondi Apple apre i collegamenti agli originali disponibili.
 - Spotlight: premi Ctrl + Spazio per cercare app e file virtuali.
 - Schermo intero: premi F11 nel browser.
 
