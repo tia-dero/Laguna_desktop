@@ -1,0 +1,40 @@
+LAGUNA 1.0
+Simulatore desktop gratuito e offline per Windows 11
+
+AVVIO SU HP ELITEBOOK 840 G5
+1. In Esplora file, fai clic destro su Laguna-1.0.zip e scegli Estrai tutto.
+2. Apri la cartella estratta e fai doppio clic su Laguna.html. In alternativa,
+   fai doppio clic su Avvia.cmd per aprirlo nel browser predefinito.
+3. Se Windows chiede quale app usare per Laguna.html, seleziona Edge o Chrome.
+   Puoi premere F11 nel browser per entrare o uscire dallo schermo intero.
+
+Tutto gira nel browser. Puoi usarlo offline, senza installazioni o account.
+Laguna.html funziona anche da solo. Tieni Avvia.cmd accanto al file HTML
+se vuoi avviare il simulatore dal collegamento a doppio clic.
+
+COMANDI
+- Dock: clicca un'icona per aprire l'app o richiamare una finestra minimizzata.
+- Finestre: trascina la barra del titolo. Ridimensiona dal bordo destro,
+  dal bordo inferiore o dall'angolo in basso a destra.
+- Pulsanti rosso, giallo e verde: chiudi, minimizza, ingrandisci o ripristina.
+- Finder: doppio clic per aprire un elemento. Con la tastiera, Tab e Invio.
+  La barra superiore offre Indietro, Avanti, icone ed elenco.
+- Launchpad: cerca un'app, poi cliccala o premi Invio sul primo risultato.
+- Spotlight: Ctrl + Spazio o la lente nella barra menu. Cerca app e file
+  dimostrativi, usa le frecce e premi Invio. Esc chiude il pannello.
+
+SIMULAZIONE E FILE DI WINDOWS
+Laguna riproduce una scrivania ispirata a macOS nel browser. Cartelle, disco
+e cestino del Finder appartengono al simulatore. Le app disponibili sono
+quelle integrate in Laguna. Per avviare programmi di Windows usa il menu Start.
+
+Finder > File locali > Scegli file apre il selettore di Windows. Laguna legge
+solo il file scelto, senza modificarlo o inviarlo in rete. Puoi vedere i
+primi 256 KiB di testo e le immagini PNG, JPEG, GIF, WebP, BMP e AVIF fino
+a 12 MiB. Per gli altri file vedi nome e dimensione. Spotlight cerca solo
+nel catalogo del simulatore.
+
+Note e preferenze vengono conservate dal browser quando la memoria locale è
+disponibile. Per ritrovarle, usa lo stesso browser, profilo e percorso di
+apertura. Se il browser blocca la memorizzazione, restano nella pagina
+finché rimane aperta.

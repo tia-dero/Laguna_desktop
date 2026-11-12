@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-M7rFtd8weILAekRJYA4nJehWgt+zn16TkVLbLHdPVSE='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="theme-color" content="#163d42">
+  <title>Laguna · Simulatore desktop</title>
+  <style>
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", sans-serif;
+  --ink: #19272e;
+  --muted: #5a6c76;
+  --surface: #fafbfc;
+  --panel: #fff;
+  --sidebar: #eaf0f3;
+  --line: #e1e7eb;
+  --hover: #edf3f6;
+  --selected: #dcebf8;
+  --accent: #1263a9;
+  --menu-height: 34px;
+  --dock-height: 88px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #eaf2f7;
+  --muted: #afbec8;
+  --surface: #20292f;
+  --panel: #182126;
+  --sidebar: #252f37;
+  --line: #34424c;
+  --hover: #2b3a45;
+  --selected: #294863;
+  --accent: #83c3fb;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; color: var(--ink); background: #17434d; }
+button, input, textarea { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:disabled { cursor: default; opacity: .36; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #2589d8; outline-offset: 2px; }
+button, h1, h2, p { margin: 0; }
+[hidden] { display: none !important; }
+.glyph { width: 1.15em; height: 1.15em; display: block; flex: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+#wallpaper { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 73% 18%, #b6e3c6 0%, #70bcb1 24%, #317d83 59%, #153842 100%); }
+#wallpaper i { position: absolute; display: block; pointer-events: none; }
+#wallpaper i:nth-child(1) { inset: 17% -20% -25% -15%; border-radius: 55% 38% 0 0; transform: rotate(-16deg); background: linear-gradient(156deg, #2f7f85 6%, #1d5e68 44%, #102d3b 82%); box-shadow: inset 0 1px 0 #9ad8ca60; }
+#wallpaper i:nth-child(2) { inset: 40% -25% -30% -42%; border-radius: 43% 63% 0 0; transform: rotate(13deg); background: linear-gradient(155deg, #72c1b2 2%, #387f87 30%, #123743 63%); box-shadow: inset 0 2px 0 #a6dfd04d; }
+#wallpaper i:nth-child(3) { inset: 55% -32% -34% 16%; border-radius: 71% 25% 0 0; transform: rotate(-18deg); background: linear-gradient(151deg, #478e90, #2a6876 33%, #112d3c 73%); box-shadow: inset 0 1px 0 #a6dfd04d; }
+#wallpaper i:nth-child(4) { inset: 78% -20% -50% -30%; border-radius: 48% 55% 0 0; transform: rotate(7deg); background: linear-gradient(166deg, #22525e, #0d2838 60%); box-shadow: inset 0 1px 0 #6eafad42; }
+#wallpaper i:nth-child(5) { inset: 0; background: radial-gradient(ellipse at 57% 38%, transparent 20%, #061f3b42 100%); }
+:root[data-wallpaper="aurora"] #wallpaper { filter: hue-rotate(62deg) saturate(.85); }
+:root[data-wallpaper="tramonto"] #wallpaper { filter: hue-rotate(190deg) saturate(.8); }
+
+#menubar { position: fixed; z-index: 30; inset: 0 0 auto; height: var(--menu-height); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; color: #f7fcff; background: #112d37cb; border-bottom: 1px solid #ffffff23; user-select: none; }
+#menus, #status-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.menu-button { height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font-size: 12.5px; white-space: nowrap; }
+.menu-button:hover, .menu-button[aria-expanded="true"] { background: #ffffff24; }
+.system-mark { font-size: 19px; padding: 0 9px; }
+#app-menu { font-weight: 700; }
+.status-button { display: grid; place-items: center; font-size: 15px; }
+#clock { padding: 0 4px 0 9px; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#menu-popover { position: fixed; z-index: 31; top: calc(var(--menu-height) + 4px); min-width: 218px; max-width: calc(100vw - 12px); padding: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 12px 34px #05172244; }
+#menu-popover button { display: block; width: 100%; padding: 7px 10px; text-align: left; border: 0; border-radius: 5px; background: transparent; font-size: 13px; }
+#menu-popover button:not(:disabled):hover { background: var(--selected); }
+
+#desktop { position: fixed; inset: var(--menu-height) 0 var(--dock-height); }
+#desktop-icons { position: absolute; inset: 16px 15px auto auto; display: grid; gap: 11px; }
+.desktop-item { display: grid; width: 96px; justify-items: center; gap: 6px; padding: 8px 2px; background: none; border: 1px solid transparent; border-radius: 10px; color: #fff; text-shadow: 0 1px 4px #032432; font-size: 12px; }
+.desktop-item:hover, .desktop-item:focus-visible { background: #ffffff22; border-color: #ffffff3b; }
+.desktop-item .file-icon { width: 51px; height: 42px; }
+.desktop-item .drive-icon { width: 46px; height: 39px; margin-block: 2px 1px; }
+#windows { position: absolute; inset: 0; pointer-events: none; }
+.window { position: absolute; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; pointer-events: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 17px 52px #031f3c45, 0 3px 9px #021e322d; }
+.window.is-active { box-shadow: 0 24px 70px #041e365e, 0 4px 14px #031d3545; }
+.window.is-maximized { border-radius: 8px; }
+.titlebar { flex: 0 0 58px; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 15px; background: var(--surface); border-bottom: 1px solid var(--line); user-select: none; touch-action: none; cursor: grab; }
+.titlebar:active { cursor: grabbing; }
+.traffic { display: flex; gap: 8px; flex: none; }
+.traffic button { position: relative; width: 13px; height: 13px; display: grid; place-items: center; border: 1px solid #1a211f23; border-radius: 50%; padding: 0; background: var(--light); color: #182723; font: bold 10px/1 "Segoe UI", sans-serif; }
+.traffic button span { position: absolute; opacity: 0; }
+.traffic:hover button span, .traffic button:focus-visible span { opacity: 1; }
+.window:not(.is-active) .traffic button:not(:hover):not(:focus-visible) { background: #aab8c16b; }
+.title-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 700; }
+.window-content { flex: 1; min-width: 0; min-height: 0; overflow: auto; background: var(--panel); }
+.resize-handle { position: absolute; z-index: 2; touch-action: none; }
+.resize-handle[data-edge="right"] { inset: 12px 0 13px auto; width: 5px; cursor: ew-resize; }
+.resize-handle[data-edge="bottom"] { inset: auto 13px 0 12px; height: 5px; cursor: ns-resize; }
+.resize-handle[data-edge="corner"] { inset: auto 0 0 auto; width: 13px; height: 13px; cursor: nwse-resize; }
+.resize-handle[data-edge="corner"]::after { content: ""; position: absolute; right: 3px; bottom: 3px; width: 5px; height: 5px; border: solid var(--muted); border-width: 0 1px 1px 0; opacity: .55; }
+.is-maximized .resize-handle { display: none; }
+
+.icon-button { display: grid; place-items: center; width: 30px; height: 29px; flex: none; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 15px; }
+.icon-button:hover:not(:disabled) { background: var(--hover); color: var(--ink); }
+.icon-button[aria-pressed="true"] { background: var(--selected); color: var(--accent); }
+.finder-navigation, .view-buttons { display: flex; align-items: center; gap: 3px; }
+.view-buttons { padding: 2px; border: 1px solid var(--line); border-radius: 8px; }
+.view-buttons .icon-button { height: 26px; }
+.finder-body { display: flex; height: 100%; overflow: hidden; }
+.finder-sidebar { flex: 0 0 180px; padding: 18px 11px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--line); }
+.sidebar-heading { margin: 6px 9px 8px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .085em; }
+.sidebar-heading:not(:first-child) { margin-top: 22px; }
+.sidebar-item { display: flex; align-items: center; gap: 9px; width: 100%; border: 0; border-radius: 7px; padding: 8px 9px; text-align: left; background: transparent; font-size: 12.5px; white-space: nowrap; }
+.sidebar-item .glyph { color: var(--accent); font-size: 15px; }
+.sidebar-item:hover { background: var(--hover); }
+.sidebar-item[aria-current="location"] { background: var(--selected); font-weight: 650; }
+.finder-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.finder-path { display: flex; align-items: center; gap: 6px; min-height: 43px; padding: 7px 19px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.finder-path button { background: transparent; color: var(--accent); border: 0; border-radius: 4px; padding: 3px 5px; white-space: nowrap; }
+.finder-path button:hover { background: var(--hover); }
+.finder-path strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 650; }
+.finder-path > .glyph { font-size: 11px; }
+.files { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
+.files.list-view { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-block: 10px; }
+.file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; }
+.file-tile:hover { background: var(--hover); }
+.file-tile.is-selected { background: var(--selected); border-color: var(--line); }
+.file-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
+.file-kind { display: none; color: var(--muted); font-size: 11px; }
+.file-icon { width: 62px; height: 50px; display: block; flex: none; overflow: visible; }
+.list-view .file-tile { grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; justify-items: start; gap: 10px; padding: 5px 9px; text-align: left; }
+.list-view .file-icon { width: 28px; height: 25px; }
+.list-view .file-kind { display: block; }
+.finder-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px 12px; min-height: 35px; padding: 6px 17px; color: var(--muted); background: var(--surface); border-top: 1px solid var(--line); font-size: 11px; }
+.finder-footer span:last-child { display: flex; align-items: center; gap: 6px; }
+.finder-footer span:last-child::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #46a993; }
+.empty-state { grid-column: 1 / -1; align-self: start; justify-self: center; width: min(100%, 370px); padding: 24px 8px; text-align: center; }
+.empty-state > .glyph { margin: 0 auto 15px; font-size: 33px; color: var(--accent); }
+.empty-state h2 { margin-bottom: 8px; font-size: 17px; }
+.empty-state p { margin-bottom: 15px; font-size: 13px; line-height: 1.55; color: var(--muted); }
+.primary-button { border: 0; border-radius: 7px; padding: 8px 13px; background: #1769ac; color: white; font-size: 12px; font-weight: 650; }
+.primary-button:hover { background: #0e5591; }
+
+#dock { position: fixed; z-index: 25; inset: auto auto 10px 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 9px; height: 68px; max-width: calc(100vw - 14px); padding: 7px 10px 9px; border: 1px solid #d9f2f34f; border-radius: 19px; background: #c4dbe14a; box-shadow: 0 10px 35px #061e3566, inset 0 1px 0 #ffffff21; backdrop-filter: blur(13px); }
+.dock-item { position: relative; flex: none; display: grid; place-items: center; width: 47px; height: 48px; padding: 0; border: 0; border-radius: 11px; background: none; }
+.dock-item .app-icon { transition: transform .18s cubic-bezier(.2,.8,.3,1.35); transform-origin: center bottom; }
+.dock-item:hover .app-icon, .dock-item:focus-visible .app-icon { transform: translateY(-7px) scale(1.23); }
+.dock-item.is-open::after { content: ""; position: absolute; bottom: -7px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: #f6fdff; }
+.dock-item .dock-tooltip { position: absolute; bottom: calc(100% + 17px); left: 50%; transform: translateX(-50%); pointer-events: none; padding: 5px 9px; border: 1px solid #ffffff33; border-radius: 6px; background: #172d37ed; color: white; font-size: 11px; white-space: nowrap; opacity: 0; }
+.dock-item:hover .dock-tooltip, .dock-item:focus-visible .dock-tooltip { opacity: 1; }
+.dock-divider { width: 1px; height: 38px; margin: 0 1px 5px; background: #ffffff46; }
+.app-icon { display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; border: 1px solid #ffffff5c; border-radius: 24%; color: #fff; box-shadow: inset 0 1px 1px #ffffff59, 0 2px 5px #08233548; }
+.app-icon > .glyph { width: 64%; height: 64%; }
+.app-icon.finder { background: linear-gradient(155deg, #78d8ff, #2b85f4); border: 0; }
+.app-icon.finder > svg { width: 100%; height: 100%; }
+.app-icon.launchpad { background: linear-gradient(145deg, #e6effc, #99a9c6 57%, #7687aa); color: #2b4169; }
+.app-icon.notes { background: linear-gradient(#ffd460 0 24%, #fff6d9 25%, #fffdf4 100%); color: #9a6a19; }
+.app-icon.calculator { background: linear-gradient(155deg, #566273, #222b39); color: #ffe0a4; }
+.app-icon.settings { background: linear-gradient(155deg, #e9eef3, #9eacbe 65%, #798b9f); color: #304050; }
+.app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
+.app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
+
+dialog { color: var(--ink); padding: 0; border: 1px solid var(--line); background: var(--surface); }
+dialog::backdrop { background: #081f31a1; }
+#launchpad { width: min(760px, calc(100% - 28px)); max-height: calc(100% - 60px); padding: 18px 24px 29px; border-color: #ffffff47; border-radius: 20px; background: #163942f2; color: #fff; box-shadow: 0 25px 80px #00152388; }
+.launch-top { display: flex; justify-content: center; position: relative; padding: 4px 30px 17px; }
+.launch-top .search-field { width: min(280px, 100%); padding: 9px 12px; background: #ffffff19; border: 1px solid #ffffff28; border-radius: 8px; }
+.search-field { display: flex; align-items: center; gap: 10px; }
+.search-field > span { flex: none; }
+.search-field input { width: 100%; min-width: 0; border: 0; background: transparent; color: inherit; }
+.search-field input:focus { outline: none; }
+.search-field:focus-within { box-shadow: inset 0 0 0 2px #4ca8ec; }
+.launch-top input::placeholder { color: #deeff7; }
+.overlay-close { position: absolute; right: 0; top: 4px; color: #fff; }
+.overlay-close:hover:not(:disabled) { background: #ffffff28; color: white; }
+#launch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 14px; padding: 10px; }
+.launch-item { display: grid; justify-items: center; align-content: start; gap: 11px; padding: 10px 5px; border: 0; border-radius: 9px; background: transparent; color: white; font-size: 13px; }
+.launch-item:hover { background: #ffffff1d; }
+.launch-item .app-icon { width: 63px; height: 63px; }
+#spotlight { width: min(620px, calc(100% - 24px)); max-height: 77vh; margin: min(15vh, 100px) auto auto; overflow: auto; border-radius: 15px; box-shadow: 0 26px 75px #061e365c; }
+#spotlight .search-field { padding: 17px 18px; border-bottom: 1px solid var(--line); font-size: 23px; color: var(--ink); }
+#spotlight .search-field > span { color: var(--accent); }
+.spotlight-caption { padding: 11px 16px 5px; color: var(--muted); font-size: 11px; font-weight: 650; }
+#spotlight-results { padding: 0 7px 7px; }
+.spotlight-item { display: flex; align-items: center; width: 100%; gap: 10px; padding: 6px 9px; border: 0; border-radius: 7px; text-align: left; background: none; }
+.spotlight-item:hover, .spotlight-item.is-selected { background: var(--selected); }
+.spotlight-item .app-icon, .spotlight-item .file-icon { width: 29px; height: 28px; }
+.spotlight-item > span:last-child { display: grid; gap: 2px; font-size: 13px; }
+.spotlight-item small { color: var(--muted); }
+.spotlight-footer { display: flex; gap: 13px; padding: 10px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.no-results { grid-column: 1 / -1; padding: 16px; text-align: center; font-size: 13px; }
+
+.notes-view, .preview-view, .settings-view, .info-view { height: 100%; padding: 18px; }
+.notes-view { display: flex; flex-direction: column; gap: 10px; }
+.notes-view textarea { flex: 1; min-height: 0; resize: none; padding: 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; line-height: 1.55; }
+.app-hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.settings-view, .info-view { display: grid; align-content: start; gap: 15px; }
+.settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
+.settings-view legend { padding: 0 4px; font-size: 13px; font-weight: 650; }
+.settings-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 12px; }
+.choice[aria-pressed="true"] { color: var(--accent); background: var(--selected); }
+.preview-view { display: flex; flex-direction: column; gap: 12px; }
+.preview-view pre { margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 "Cascadia Mono", "Consolas", monospace; }
+.preview-view img { align-self: center; max-width: 100%; max-height: calc(100% - 32px); object-fit: contain; }
+.calculator-view { height: 100%; min-height: 270px; display: grid; grid-template-rows: auto 1fr; gap: 8px; padding: 11px; }
+.calculator-view output { display: block; text-align: right; overflow: hidden; padding: 8px 12px; border-radius: 7px; background: var(--sidebar); font-size: 29px; font-variant-numeric: tabular-nums; }
+.calculator-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.calculator-keys button { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.calculator-keys button:hover { background: var(--selected); }
+.calculator-keys .operation { background: var(--selected); color: var(--accent); }
+.info-view h2 { font-size: 21px; }
+.info-view p { font-size: 13px; line-height: 1.55; }
+.info-view kbd { padding: 1px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+
+@media (max-width: 620px) {
+  :root { --dock-height: 72px; }
+  #menubar { padding-inline: 4px; }
+  .optional-menu { display: none; }
+  #clock { font-size: 11px; }
+  #desktop-icons { inset: 10px 8px auto auto; }
+  .finder-sidebar { flex-basis: 116px; padding-inline: 5px; }
+  .sidebar-item { padding-inline: 5px; gap: 5px; font-size: 11px; }
+  .titlebar { gap: 7px; padding-inline: 9px; }
+  .traffic { gap: 5px; }
+  .files { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); padding-inline: 7px; }
+  .finder-path { padding-inline: 7px; }
+  #dock { height: 58px; gap: 6px; bottom: 7px; padding-inline: 7px; }
+  .dock-item { width: clamp(32px, 11vw, 41px); height: clamp(32px, 11vw, 41px); }
+  .dock-divider { height: 29px; }
+}
+
+@media (max-width: 365px) {
+  .view-buttons .icon-button, .finder-navigation .icon-button { width: 23px; }
+  .finder-sidebar { flex-basis: 96px; }
+  .sidebar-item .glyph { font-size: 12px; }
+  .list-view .file-kind { display: none; }
+  .list-view .file-tile { grid-template-columns: 24px minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-item .app-icon { transition: none; }
+}
+</style>
+</head>
+<body>
+  <div id="wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <header id="menubar" aria-label="Barra dei menu">
+    <div id="menus">
+      <button id="system-menu" class="menu-button system-mark" type="button" data-menu="Sistema" aria-label="Menu di sistema"></button>
+      <button id="app-menu" class="menu-button" type="button" data-menu="App">Finder</button>
+      <button class="menu-button optional-menu" type="button" data-menu="File">File</button>
+      <button class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
+      <button class="menu-button optional-menu" type="button" data-menu="Finestra">Finestra</button>
+      <button class="menu-button optional-menu" type="button" data-menu="Aiuto">Aiuto</button>
+    </div>
+    <div id="status-bar">
+      <button id="search-button" class="menu-button status-button" type="button" aria-label="Apri Spotlight" title="Spotlight · Ctrl + Spazio"></button>
+      <button id="settings-button" class="menu-button status-button" type="button" aria-label="Impostazioni" title="Impostazioni"></button>
+      <time id="clock"></time>
+    </div>
+  </header>
+  <div id="menu-popover" hidden></div>
+  <main id="desktop" aria-label="Scrivania del simulatore">
+    <div id="desktop-icons"></div>
+    <div id="windows"></div>
+  </main>
+  <nav id="dock" aria-label="Dock"></nav>
+  <dialog id="launchpad" aria-label="Launchpad">
+    <div class="launch-top">
+      <label class="search-field"><span data-icon="search"></span><input id="launch-search" type="search" aria-label="Cerca nel Launchpad" placeholder="Cerca app" autocomplete="off"></label>
+      <button class="icon-button overlay-close" type="button" data-close-overlay aria-label="Chiudi Launchpad"><span data-icon="close"></span></button>
+    </div>
+    <div id="launch-grid"></div>
+  </dialog>
+  <dialog id="spotlight" aria-label="Spotlight">
+    <label class="search-field"><span data-icon="search"></span><input id="spotlight-search" type="search" aria-label="Cerca con Spotlight" placeholder="Cerca con Spotlight" autocomplete="off"></label>
+    <div class="spotlight-caption" id="spotlight-caption">App e file del simulatore</div>
+    <div id="spotlight-results" aria-label="Risultati di ricerca"></div>
+    <footer class="spotlight-footer"><span>↑ ↓ per scegliere</span><span>Invio per aprire</span><span>Esc per chiudere</span></footer>
+  </dialog>
+  <input id="file-picker" type="file" hidden>
+  <div id="announcement" class="sr-only" role="status"></div>
+  <script>
+'use strict';
+
+const byId = (id) => document.getElementById(id);
+const desktop = byId('desktop');
+const windows = new Map();
+const memory = new Map();
+const bounds = { margin: 8, minWidth: 280, minHeight: 220 };
+let activeWindow = null;
+let zIndex = 0;
+let preview = null;
+let fileSelection = 0;
+
+const glyphs = {
+  system: '<path d="M3 15.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0M3 10.5c2.3-3 4.1-3 6 0s3.8 3 6 0 4.2-3 6 0"/>',
+  search: '<circle cx="10.8" cy="10.8" r="6.2"/><path d="m15.4 15.4 4.1 4.1"/>',
+  sliders: '<path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/>',
+  grid: '<rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h1m-1 6h1m-1 6h1"/>',
+  left: '<path d="m14 6-6 6 6 6"/>',
+  right: '<path d="m10 6 6 6-6 6"/>',
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  desktop: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 17v4m-4 0h8"/>',
+  document: '<path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/>',
+  download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m4 17 5-4 3 2 4-5 4 4"/>',
+  drive: '<rect x="3" y="12" width="18" height="8" rx="2"/><path d="M3 14 6 5h12l3 9M7 16h1m7 0h2"/>',
+  trash: '<path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/>',
+  notes: '<path d="M5 8h14M5 12h14M5 16h10"/>',
+  calculator: '<rect x="5" y="2.8" width="14" height="18.4" rx="2"/><path d="M8 7h8m-8 4h1m6 0h1m-8 4h1m6 0h1m-8 3h1m6 0h1"/>',
+  settings: '<path d="m10 3-.7 2.4-2 .9-2.2-1.1-2 3.5 2 1.6v2.4l-2 1.6 2 3.5 2.2-1.1 2 .9.7 2.4h4l.7-2.4 2-.9 2.2 1.1 2-3.5-2-1.6v-2.4l2-1.6-2-3.5-2.2 1.1-2-.9L14 3z"/><circle cx="12" cy="11.5" r="2.7"/>',
+  preview: '<path d="M2.5 12s3.4-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.4 5.5-9.5 5.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.2"/>'
+};
+
+function icon(name) {
+  return '<svg class="glyph" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + glyphs[name] + '</svg>';
+}
+
+function appIcon(id) {
+  const face = '<svg aria-hidden="true" viewBox="0 0 48 48"><path fill="#d5edfb" d="M26 0h22v48H23c-3-8-4-14-3-21h-6c1-10 6-20 12-27Z"/><path d="M12 16v4m23-4v4m-7-12c-3 5-6 12-6 16h7c-1 7 0 12 1 15M12 29c7 7 16 8 24 1" fill="none" stroke="#174272" stroke-width="2.2" stroke-linecap="round"/></svg>';
+  const symbol = { launchpad: 'grid', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system' }[id];
+  return '<span class="app-icon ' + id + '">' + (id === 'finder' ? face : icon(symbol)) + '</span>';
+}
+
+function fileIcon(kind) {
+  const paths = {
+    folder: '<path fill="#278bd5" d="M3 10a5 5 0 0 1 5-5h16l7 6h21a5 5 0 0 1 5 5v24a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5Z"/><path fill="#62bbfb" d="M3 19a5 5 0 0 1 5-5h44a5 5 0 0 1 5 5v21a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5Z"/><path stroke="#a1d7fb" stroke-width="1.3" d="M8 16h44"/>',
+    text: '<path fill="#eaf1f7" stroke="#9aafc1" d="M15 3h21l10 11v29a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Z"/><path fill="#bfd1e0" d="M36 3v11h10Z"/><path stroke="#68869f" stroke-width="1.5" stroke-linecap="round" d="M20 23h17m-17 5h17m-17 5h11"/>',
+    drive: '<path fill="#b3c8d3" d="M8 10q1-4 6-4h32q5 0 6 4l6 20H2Z"/><rect fill="#e7f0f4" x="2" y="26" width="56" height="16" rx="5"/><circle fill="#3caa92" cx="11" cy="34" r="2"/><path stroke="#748e9b" stroke-linecap="round" d="M37 34h13"/>'
+  };
+  return '<svg class="file-icon ' + kind + '-icon" aria-hidden="true" viewBox="0 0 60 49">' + paths[kind] + '</svg>';
+}
+
+function button(label, className, html, action) {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.className = className;
+  element.setAttribute('aria-label', label);
+  element.innerHTML = html;
+  element.addEventListener('click', action);
+  return element;
+}
+
+function iconButton(label, glyph, action) {
+  const element = button(label, 'icon-button', icon(glyph), action);
+  element.title = label;
+  return element;
+}
+
+function readValue(key, fallback) {
+  if (memory.has(key)) return memory.get(key);
+  try {
+    return localStorage.getItem('laguna.' + key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeValue(key, value) {
+  memory.set(key, value);
+  try {
+    localStorage.setItem('laguna.' + key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const apps = {
+  finder: { name: 'Finder', size: [874, 498], render: renderFinder },
+  notes: { name: 'Note', size: [490, 370], render: renderNotes },
+  calculator: { name: 'Calcolatrice', size: [290, 365], render: renderCalculator },
+  settings: { name: 'Impostazioni', size: [420, 314], render: renderSettings },
+  preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
+  info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
+};
+const launchApps = ['finder', 'notes', 'calculator', 'settings'];
+const dockApps = ['finder', 'launchpad', 'notes', 'calculator', 'settings', 'trash'];
+
+function appName(id) {
+  return apps[id]?.name ?? { launchpad: 'Launchpad', trash: 'Cestino' }[id];
+}
+
+function launch(id) {
+  if (id === 'launchpad') {
+    openLaunchpad();
+  } else if (id === 'trash') {
+    showFolder('trash');
+  } else {
+    openWindow(id);
+  }
+}
+
+function fit(rect) {
+  const { margin, minWidth, minHeight } = bounds;
+  const availableWidth = Math.max(1, desktop.clientWidth - margin * 2);
+  const availableHeight = Math.max(1, desktop.clientHeight - margin * 2);
+  const width = Math.min(Math.max(rect.width, minWidth), availableWidth);
+  const height = Math.min(Math.max(rect.height, minHeight), availableHeight);
+  return {
+    width,
+    height,
+    left: Math.max(margin, Math.min(rect.left, desktop.clientWidth - width - margin)),
+    top: Math.max(margin, Math.min(rect.top, desktop.clientHeight - height - margin))
+  };
+}
+
+function position(record) {
+  const margin = bounds.margin;
+  const rect = record.maximized
+    ? { left: margin, top: margin, width: desktop.clientWidth - margin * 2, height: desktop.clientHeight - margin * 2 }
+    : record.rect;
+  const fitted = fit(rect);
+  for (const [key, value] of Object.entries(fitted)) record.element.style[key] = value + 'px';
+}
+
+function refreshDock() {
+  for (const entry of byId('dock').querySelectorAll('[data-app]')) {
+    entry.classList.toggle('is-open', windows.has(entry.dataset.app));
+  }
+}
+
+function activate(record) {
+  activeWindow = record;
+  if (record) {
+    if (++zIndex > 20) {
+      const ordered = [...windows.values()].sort((first, second) => first.order - second.order);
+      ordered.forEach((item, index) => {
+        item.order = index + 1;
+        item.element.style.zIndex = item.order;
+      });
+      zIndex = ordered.length + 1;
+    }
+    record.order = zIndex;
+    record.element.style.zIndex = record.order;
+  }
+  for (const item of windows.values()) item.element.classList.toggle('is-active', item === record);
+  byId('app-menu').textContent = record ? appName(record.id) : 'Finder';
+}
+
+function focusNext(fallbackId) {
+  const remaining = [...windows.values()].filter((record) => !record.minimized);
+  const next = remaining.sort((first, second) => second.order - first.order)[0];
+  activate(next ?? null);
+  if (next) {
+    next.element.focus({ preventScroll: true });
+  } else {
+    const dockButton = byId('dock').querySelector('[data-app="' + fallbackId + '"]');
+    (dockButton ?? byId('app-menu')).focus();
+  }
+}
+
+function closeWindow(record) {
+  if (record.id === 'preview') {
+    clearPreview();
+    fileSelection += 1;
+  }
+  record.element.remove();
+  windows.delete(record.id);
+  refreshDock();
+  focusNext(record.id);
+}
+
+function minimize(record) {
+  record.minimized = true;
+  record.element.hidden = true;
+  focusNext(record.id);
+}
+
+function toggleMaximize(record) {
+  record.maximized = !record.maximized;
+  record.element.classList.toggle('is-maximized', record.maximized);
+  const label = record.maximized ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
+  record.maxButton.setAttribute('aria-label', label);
+  record.maxButton.title = label;
+  position(record);
+}
+
+function beginGeometry(event, record, handle, edge) {
+  if (event.button !== 0 || record.maximized || (!edge && event.target.closest('button'))) return;
+  const origin = fit(record.rect);
+  const startX = event.clientX;
+  const startY = event.clientY;
+  const pointer = event.pointerId;
+  handle.setPointerCapture(pointer);
+  function move(update) {
+    if (update.pointerId !== pointer) return;
+    const offsetX = update.clientX - startX;
+    const offsetY = update.clientY - startY;
+    const next = { ...origin };
+    if (!edge) {
+      next.left += offsetX;
+      next.top += offsetY;
+    } else {
+      if (edge !== 'bottom') {
+        next.width = Math.min(origin.width + offsetX, desktop.clientWidth - origin.left - bounds.margin);
+      }
+      if (edge !== 'right') {
+        next.height = Math.min(origin.height + offsetY, desktop.clientHeight - origin.top - bounds.margin);
+      }
+    }
+    record.rect = fit(next);
+    position(record);
+  }
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('lostpointercapture', () => handle.removeEventListener('pointermove', move), { once: true });
+}
+
+function openWindow(id, focus = true) {
+  let record = windows.get(id);
+  if (record) {
+    record.minimized = false;
+    record.element.hidden = false;
+  } else {
+    const { name, size, render } = apps[id];
+    const element = document.createElement('section');
+    element.className = 'window';
+    element.dataset.window = id;
+    element.tabIndex = -1;
+    element.setAttribute('aria-labelledby', 'title-' + id);
+    element.innerHTML = '<header class="titlebar"><div class="traffic"></div><h1 class="title-label" id="title-' + id + '"></h1></header><div class="window-content"></div>';
+    const titlebar = element.querySelector('.titlebar');
+    const title = element.querySelector('.title-label');
+    title.textContent = name;
+    const offset = Math.min(windows.size, 5) * 21;
+    const [width, height] = size;
+    record = {
+      id, element, titlebar, title,
+      content: element.querySelector('.window-content'),
+      rect: {
+        width, height,
+        left: Math.round((desktop.clientWidth - width) / 2) + offset,
+        top: Math.round((desktop.clientHeight - height) * .44) + offset
+      }
+    };
+    const controls = [
+      ['Chiudi finestra', '#ff655d', '×', () => closeWindow(record)],
+      ['Riduci a icona', '#f6bf46', '−', () => minimize(record)],
+      ['Ingrandisci finestra', '#36c766', '+', () => toggleMaximize(record)]
+    ];
+    for (const [label, color, symbol, action] of controls) {
+      const control = button(label, '', '<span aria-hidden="true">' + symbol + '</span>', action);
+      control.title = label;
+      control.style.setProperty('--light', color);
+      titlebar.querySelector('.traffic').append(control);
+      record.maxButton = control;
+    }
+    element.addEventListener('pointerdown', () => {
+      if (activeWindow !== record) activate(record);
+    });
+    element.addEventListener('focusin', () => {
+      if (activeWindow !== record) activate(record);
+    });
+    titlebar.addEventListener('pointerdown', (event) => beginGeometry(event, record, titlebar));
+    titlebar.addEventListener('dblclick', (event) => {
+      if (!event.target.closest('button')) toggleMaximize(record);
+    });
+    for (const edge of ['right', 'bottom', 'corner']) {
+      const handle = document.createElement('div');
+      handle.className = 'resize-handle';
+      handle.dataset.edge = edge;
+      handle.setAttribute('aria-hidden', 'true');
+      handle.addEventListener('pointerdown', (event) => beginGeometry(event, record, handle, edge));
+      element.append(handle);
+    }
+    windows.set(id, record);
+    byId('windows').append(element);
+    position(record);
+    render(record);
+  }
+  activate(record);
+  refreshDock();
+  if (focus) record.element.focus({ preventScroll: true });
+  return record;
+}
+
+const folders = {
+  desktop: { name: 'Scrivania', icon: 'desktop', items: ['documents', 'downloads', 'images'] },
+  documents: { name: 'Documenti', icon: 'document', items: ['projects', 'personal', 'welcome', 'shortcuts', 'todo'] },
+  downloads: { name: 'Download', icon: 'download', items: ['sample'] },
+  images: { name: 'Immagini', icon: 'image', items: [], empty: 'Usa File locali per aprire una foto scelta da Windows.' },
+  projects: { name: 'Progetti', parent: 'documents', items: ['project'] },
+  personal: { name: 'Personale', parent: 'documents', items: ['memo'] },
+  trash: { name: 'Cestino', icon: 'trash', items: [], empty: 'Il cestino del simulatore è vuoto.' },
+  local: { name: 'File locali', icon: 'drive', items: [] }
+};
+const files = {
+  welcome: { name: 'Benvenuto.txt', parent: 'documents', text: 'Benvenuto in Laguna!\n\nApri una cartella o un documento con un doppio clic. Con la tastiera usa Tab e Invio.\n\nProva Spotlight con Ctrl + Spazio e cerca «Progetti» o «Note».' },
+  shortcuts: { name: 'Scorciatoie.txt', parent: 'documents', text: 'Ctrl + Spazio   Apri o chiudi Spotlight\nEsc             Chiudi menu o pannello\nTab             Spostati tra i controlli\nInvio           Apri l’elemento evidenziato\nF11             Schermo intero nel browser' },
+  todo: { name: 'Appunti.txt', parent: 'documents', text: 'Da provare oggi\n\n• Trascinare una finestra dalla barra del titolo\n• Cambiare sfondo in Impostazioni\n• Aprire l’app Note per scrivere qualcosa' },
+  project: { name: 'Progetto Laguna.txt', parent: 'projects', text: 'Progetto Laguna\n\nUn desktop simulato, costruito con HTML, CSS e JavaScript.' },
+  memo: { name: 'Promemoria.txt', parent: 'personal', text: 'Per scrivere e conservare i tuoi appunti usa l’app Note nel Dock.' },
+  sample: { name: 'Esempio.txt', parent: 'downloads', text: 'Questo file dimostrativo è incluso nel simulatore.' }
+};
+const finder = { history: ['documents'], index: 0, view: 'grid', selected: null };
+
+function currentFolder() {
+  return finder.history[finder.index];
+}
+
+function goToFolder(id) {
+  if (id !== currentFolder()) {
+    finder.history = [...finder.history.slice(0, finder.index + 1), id];
+    finder.index += 1;
+    finder.selected = null;
+  }
+  updateFinder(windows.get('finder'));
+}
+
+function showFolder(id) {
+  openWindow('finder');
+  goToFolder(id);
+}
+
+function changeHistory(direction) {
+  const next = finder.index + direction;
+  if (next < 0 || next >= finder.history.length) return;
+  finder.index = next;
+  finder.selected = null;
+  updateFinder(windows.get('finder'));
+}
+
+function setFinderView(view) {
+  if (!windows.has('finder')) openWindow('finder');
+  finder.view = view;
+  updateFinder(windows.get('finder'));
+}
+
+function openItem(id) {
+  if (folders[id]) {
+    showFolder(id);
+  } else {
+    fileSelection += 1;
+    showPreview({ name: files[id].name, text: files[id].text, description: 'Documento dimostrativo · Finder' });
+  }
+}
+
+function renderFinder(record) {
+  const historyBar = document.createElement('div');
+  historyBar.className = 'finder-navigation';
+  record.backButton = iconButton('Indietro', 'left', () => changeHistory(-1));
+  record.forwardButton = iconButton('Avanti', 'right', () => changeHistory(1));
+  historyBar.append(record.backButton, record.forwardButton);
+  record.title.before(historyBar);
+  const viewBar = document.createElement('div');
+  viewBar.className = 'view-buttons';
+  record.gridButton = iconButton('Vista a icone', 'grid', () => setFinderView('grid'));
+  record.listButton = iconButton('Vista a elenco', 'list', () => setFinderView('list'));
+  viewBar.append(record.gridButton, record.listButton);
+  record.title.after(viewBar);
+  record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
+  const sidebar = record.content.querySelector('.finder-sidebar');
+  const groups = [
+    ['Preferiti', ['desktop', 'documents', 'downloads', 'images']],
+    ['Posizioni', ['local', 'trash']]
+  ];
+  for (const [label, entries] of groups) {
+    const heading = document.createElement('h2');
+    heading.className = 'sidebar-heading';
+    heading.textContent = label;
+    sidebar.append(heading);
+    for (const id of entries) {
+      const folder = folders[id];
+      const entry = button(folder.name, 'sidebar-item', icon(folder.icon) + '<span>' + folder.name + '</span>', () => goToFolder(id));
+      entry.dataset.folder = id;
+      sidebar.append(entry);
+    }
+  }
+  updateFinder(record);
+}
+
+function updateFinder(record) {
+  const id = currentFolder();
+  const folder = folders[id];
+  const surface = record.content;
+  record.title.textContent = folder.name;
+  record.backButton.disabled = finder.index === 0;
+  record.forwardButton.disabled = finder.index === finder.history.length - 1;
+  record.gridButton.setAttribute('aria-pressed', finder.view === 'grid');
+  record.listButton.setAttribute('aria-pressed', finder.view === 'list');
+  for (const entry of surface.querySelectorAll('[data-folder]')) {
+    const current = entry.dataset.folder === (folder.parent ?? id);
+    entry.setAttribute('aria-current', current ? 'location' : 'false');
+  }
+  const path = surface.querySelector('.finder-path');
+  path.replaceChildren(button('Scrivania', '', 'Scrivania', () => goToFolder('desktop')));
+  if (folder.parent) {
+    path.insertAdjacentHTML('beforeend', icon('right'));
+    path.append(button(folders[folder.parent].name, '', folders[folder.parent].name, () => goToFolder(folder.parent)));
+  }
+  const current = document.createElement('strong');
+  current.textContent = folder.name;
+  if (id === 'desktop') path.replaceChildren(current);
+  else {
+    path.insertAdjacentHTML('beforeend', icon('right'));
+    path.append(current);
+  }
+  const grid = surface.querySelector('.files');
+  grid.classList.toggle('list-view', finder.view === 'list');
+  grid.replaceChildren();
+  for (const itemId of folder.items) {
+    const isFolder = Boolean(folders[itemId]);
+    const item = folders[itemId] ?? files[itemId];
+    const kind = isFolder ? 'Cartella' : 'Documento';
+    const tile = button(item.name + ' · ' + kind, 'file-tile', fileIcon(isFolder ? 'folder' : 'text') + '<span class="file-name"></span><span class="file-kind"></span>', (event) => {
+      if (event.detail === 0) {
+        openItem(itemId);
+        return;
+      }
+      finder.selected = itemId;
+      for (const entry of grid.children) {
+        entry.classList.toggle('is-selected', entry === tile);
+        entry.setAttribute('aria-pressed', entry === tile);
+      }
+    });
+    tile.querySelector('.file-name').textContent = item.name;
+    tile.querySelector('.file-kind').textContent = kind;
+    tile.classList.toggle('is-selected', finder.selected === itemId);
+    tile.setAttribute('aria-pressed', finder.selected === itemId);
+    tile.addEventListener('dblclick', () => openItem(itemId));
+    grid.append(tile);
+  }
+  if (folder.items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = icon(folder.icon ?? 'folder') + '<h2></h2><p></p>';
+    empty.querySelector('h2').textContent = id === 'local' ? 'Apri un file da Windows' : 'Nessun elemento';
+    empty.querySelector('p').textContent = id === 'local'
+      ? 'Scegli un singolo file per visualizzarne un’anteprima in sola lettura. Il file resta sul dispositivo.'
+      : folder.empty ?? 'Questa cartella dimostrativa è vuota.';
+    if (id === 'local') {
+      empty.append(button('Scegli file', 'primary-button', 'Scegli file…', () => byId('file-picker').click()));
+    }
+    grid.append(empty);
+  }
+  const [count, mode] = surface.querySelector('.finder-footer').children;
+  count.textContent = id === 'local' ? 'Selezione manuale' : folder.items.length + (folder.items.length === 1 ? ' elemento' : ' elementi');
+  mode.textContent = id === 'local' ? 'Accesso locale in sola lettura' : 'Spazio simulato';
+}
+
+function clearPreview() {
+  if (preview?.url) URL.revokeObjectURL(preview.url);
+  preview = null;
+}
+
+function showPreview(data) {
+  clearPreview();
+  preview = data;
+  const existing = windows.has('preview');
+  const record = openWindow('preview');
+  if (existing) renderPreview(record);
+}
+
+function renderPreview(record) {
+  if (!preview) return;
+  record.title.textContent = preview.name;
+  const content = document.createElement('div');
+  content.className = 'preview-view';
+  const description = document.createElement('p');
+  description.className = 'app-hint';
+  description.textContent = preview.description;
+  content.append(description);
+  if (preview.url) {
+    const image = document.createElement('img');
+    image.alt = preview.name;
+    image.addEventListener('error', () => {
+      image.remove();
+      description.textContent += ' · Immagine illeggibile.';
+    });
+    image.src = preview.url;
+    content.append(image);
+  } else if (preview.text !== undefined) {
+    const text = document.createElement('pre');
+    text.textContent = preview.text;
+    content.append(text);
+  }
+  record.content.replaceChildren(content);
+}
+
+async function openLocalFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const selection = ++fileSelection;
+  const size = new Intl.NumberFormat('it-IT').format(file.size);
+  const data = { name: file.name, description: 'File locale · Sola lettura · ' + size + ' byte' };
+  if (/^image\/(png|jpeg|gif|webp|bmp|avif)$/.test(file.type) && file.size <= 12 * 1024 * 1024) {
+    data.url = URL.createObjectURL(file);
+  } else if (file.type.startsWith('text/') || /\.(txt|md|log|csv|json)$/i.test(file.name)) {
+    const limit = 256 * 1024;
+    try {
+      data.text = await file.slice(0, limit).text();
+      if (file.size > limit) data.description += ' · Primi 256 KiB';
+    } catch {
+      data.description += ' · Lettura non riuscita';
+    }
+  } else {
+    data.description += ' · Solo informazioni sul file';
+  }
+  if (selection === fileSelection) showPreview(data);
+}
+
+function renderNotes(record) {
+  const content = document.createElement('div');
+  content.className = 'notes-view';
+  const field = document.createElement('textarea');
+  const status = document.createElement('p');
+  status.className = 'app-hint';
+  status.textContent = 'Gli appunti vengono salvati in questo browser quando la memoria locale è disponibile.';
+  field.setAttribute('aria-label', 'Appunti');
+  field.placeholder = 'Scrivi qui…';
+  field.value = readValue('notes', '');
+  field.addEventListener('input', () => {
+    status.textContent = writeValue('notes', field.value)
+      ? 'Appunti salvati in questo browser.'
+      : 'Appunti disponibili fino alla chiusura della pagina.';
+  });
+  content.append(field, status);
+  record.content.append(content);
+}
+
+function renderCalculator(record) {
+  const content = document.createElement('div');
+  content.className = 'calculator-view';
+  const display = document.createElement('output');
+  display.setAttribute('aria-label', 'Risultato');
+  const keyboard = document.createElement('div');
+  keyboard.className = 'calculator-keys';
+  const operations = {
+    '+': (left, right) => left + right,
+    '−': (left, right) => left - right,
+    '×': (left, right) => left * right,
+    '÷': (left, right) => left / right
+  };
+  let value = '0';
+  let accumulator = null;
+  let pending = null;
+  let replace = true;
+
+  function format(number) {
+    return Number.isFinite(number) ? String(Number(number.toPrecision(12))) : 'Errore';
+  }
+
+  function press(key) {
+    if (key === 'AC') {
+      value = '0';
+      accumulator = null;
+      pending = null;
+      replace = true;
+    } else if (/^\d$/.test(key) || key === ',') {
+      if (replace || value === 'Errore') value = '0';
+      if (key === ',' && !value.includes('.')) value += '.';
+      if (key !== ',' && value.length < 14) value = value === '0' ? key : value + key;
+      replace = false;
+    } else if (key === '±' || key === '%') {
+      if (value === 'Errore') return;
+      value = format(Number(value) * (key === '±' ? -1 : .01));
+      replace = false;
+    } else if (key === '=' || operations[key]) {
+      if (value === 'Errore') return;
+      if (pending && !replace) value = format(operations[pending](accumulator, Number(value)));
+      pending = key === '=' || value === 'Errore' ? null : key;
+      accumulator = pending ? Number(value) : null;
+      replace = true;
+    }
+    display.textContent = value.replace('.', ',');
+  }
+
+  for (const key of ['AC', '±', '%', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '0', ',', '=']) {
+    const labels = { AC: 'Azzera', '±': 'Cambia segno', '%': 'Percentuale', '÷': 'Dividi', '×': 'Moltiplica', '−': 'Sottrai', '+': 'Somma', ',': 'Virgola decimale', '=': 'Uguale' };
+    const entry = button(labels[key] ?? key, operations[key] || key === '=' ? 'operation' : '', key, () => press(key));
+    if (key === '0') entry.style.gridColumn = 'span 2';
+    keyboard.append(entry);
+  }
+  display.textContent = value;
+  content.append(display, keyboard);
+  record.content.append(content);
+}
+
+const preferences = {
+  theme: { title: 'Aspetto', choices: { light: 'Chiaro', dark: 'Scuro' } },
+  wallpaper: { title: 'Sfondo', choices: { laguna: 'Laguna', aurora: 'Aurora', tramonto: 'Tramonto' } }
+};
+
+function applyPreference(key, value) {
+  if (!Object.hasOwn(preferences[key].choices, value)) return;
+  document.documentElement.dataset[key] = value;
+}
+
+function renderSettings(record) {
+  const content = document.createElement('div');
+  content.className = 'settings-view';
+  const status = document.createElement('p');
+  status.className = 'app-hint';
+  status.textContent = 'Queste opzioni cambiano l’aspetto della scrivania simulata.';
+  for (const [key, preference] of Object.entries(preferences)) {
+    const group = document.createElement('fieldset');
+    const legend = document.createElement('legend');
+    legend.textContent = preference.title;
+    const options = document.createElement('div');
+    options.className = 'settings-options';
+    for (const [value, label] of Object.entries(preference.choices)) {
+      const choice = button(label, 'choice', label, () => {
+        applyPreference(key, value);
+        status.textContent = writeValue(key, value)
+          ? 'Preferenza salvata in questo browser.'
+          : 'Preferenza applicata a questa sessione.';
+        for (const entry of options.children) entry.setAttribute('aria-pressed', entry === choice);
+      });
+      choice.setAttribute('aria-pressed', document.documentElement.dataset[key] === value);
+      options.append(choice);
+    }
+    group.append(legend, options);
+    content.append(group);
+  }
+  content.append(status);
+  record.content.append(content);
+}
+
+function renderInfo(record) {
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.0</h2><p>Simulatore offline di un desktop ispirato a macOS. Il Finder contiene cartelle dimostrative. Da <strong>File locali</strong> puoi scegliere un file di Windows e visualizzarlo in sola lettura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. Trascina una finestra dalla barra del titolo e ridimensionala dall’angolo in basso a destra.</p><p><kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+}
+
+const launchpad = byId('launchpad');
+const launchSearch = byId('launch-search');
+const spotlight = byId('spotlight');
+const spotlightSearch = byId('spotlight-search');
+let searchResults = [];
+let selectedResult = 0;
+
+function normalize(text) {
+  return text.toLocaleLowerCase('it').normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+}
+
+function renderLaunchpad() {
+  const query = normalize(launchSearch.value);
+  const grid = byId('launch-grid');
+  const matches = launchApps.filter((id) => normalize(appName(id)).includes(query));
+  grid.replaceChildren();
+  for (const id of matches) {
+    grid.append(button(appName(id), 'launch-item', appIcon(id) + '<span>' + appName(id) + '</span>', () => {
+      launchpad.close();
+      launch(id);
+    }));
+  }
+  if (!matches.length) grid.append(noResults('Nessuna app trovata'));
+}
+
+function openLaunchpad() {
+  closeMenu();
+  if (spotlight.open) spotlight.close();
+  launchSearch.value = '';
+  renderLaunchpad();
+  if (!launchpad.open) launchpad.showModal();
+  launchSearch.focus();
+}
+
+function noResults(message) {
+  const empty = document.createElement('p');
+  empty.className = 'no-results';
+  empty.textContent = message;
+  return empty;
+}
+
+const searchIndex = [
+  ...[...launchApps, 'launchpad'].map((id) => ({
+    name: appName(id), detail: 'App', art: appIcon(id), open: () => launch(id)
+  })),
+  ...Object.entries(folders).filter(([id]) => id !== 'local').map(([id, folder]) => ({
+    name: folder.name, detail: 'Cartella simulata', art: fileIcon('folder'), open: () => showFolder(id)
+  })),
+  ...Object.entries(files).map(([id, file]) => ({
+    name: file.name, detail: 'Documento · ' + folders[file.parent].name, art: fileIcon('text'), open: () => openItem(id)
+  }))
+];
+
+function chooseResult(index, scroll = false) {
+  const items = [...byId('spotlight-results').querySelectorAll('button')];
+  if (!items.length) {
+    spotlightSearch.removeAttribute('aria-activedescendant');
+    return;
+  }
+  selectedResult = (index + items.length) % items.length;
+  items.forEach((item, position) => {
+    const selected = position === selectedResult;
+    item.classList.toggle('is-selected', selected);
+    item.setAttribute('aria-selected', selected);
+  });
+  const item = items[selectedResult];
+  spotlightSearch.setAttribute('aria-activedescendant', item.id);
+  if (scroll) item.scrollIntoView({ block: 'nearest' });
+}
+
+function runResult(index) {
+  const result = searchResults[index];
+  if (!result) return;
+  spotlight.close();
+  result.open();
+}
+
+function renderSpotlight() {
+  const query = normalize(spotlightSearch.value);
+  searchResults = query
+    ? searchIndex.filter((entry) => normalize(entry.name + ' ' + entry.detail).includes(query)).slice(0, 9)
+    : searchIndex.slice(0, 5);
+  const list = byId('spotlight-results');
+  list.replaceChildren();
+  searchResults.forEach((result, index) => {
+    const item = button(result.name + ' · ' + result.detail, 'spotlight-item', result.art + '<span>' + result.name + '<small>' + result.detail + '</small></span>', () => runResult(index));
+    item.id = 'result-' + index;
+    item.tabIndex = -1;
+    item.setAttribute('role', 'option');
+    list.append(item);
+  });
+  byId('spotlight-caption').textContent = searchResults.length ? 'App e file del simulatore' : 'Nessun risultato';
+  list.hidden = !searchResults.length;
+  chooseResult(0);
+}
+
+function toggleSpotlight() {
+  if (spotlight.open) {
+    spotlight.close();
+    return;
+  }
+  closeMenu();
+  if (launchpad.open) launchpad.close();
+  spotlightSearch.value = '';
+  renderSpotlight();
+  spotlight.showModal();
+  spotlightSearch.focus();
+}
+
+const menuPopover = byId('menu-popover');
+let menuAnchor = null;
+
+function closeMenu(restoreFocus = false) {
+  if (!menuAnchor) return;
+  const anchor = menuAnchor;
+  menuAnchor = null;
+  anchor.setAttribute('aria-expanded', 'false');
+  menuPopover.hidden = true;
+  if (restoreFocus) anchor.focus();
+}
+
+function toggleFullScreen() {
+  const request = document.fullscreenElement
+    ? document.exitFullscreen()
+    : document.documentElement.requestFullscreen?.();
+  request?.catch(() => {
+    byId('announcement').textContent = 'Per lo schermo intero del browser, premi F11.';
+  });
+}
+
+function menuItems(name) {
+  const current = activeWindow;
+  const record = windows.get('finder');
+  const canOpen = current?.id === 'finder' && finder.selected;
+  const items = {
+    Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Launchpad', openLaunchpad]],
+    App: [['Apri Finder', () => openWindow('finder')], ['Apri Launchpad', openLaunchpad], ['Chiudi finestra attiva', () => closeWindow(current), !current]],
+    File: [['Apri elemento selezionato', () => openItem(finder.selected), !canOpen], ['Apri un file da Windows…', () => byId('file-picker').click()]],
+    Vista: [['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }], ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }], [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]],
+    Finestra: [
+      ['Riduci a icona', () => minimize(current), !current],
+      [current?.maximized ? 'Ripristina dimensioni' : 'Ingrandisci', () => toggleMaximize(current), !current],
+      ...[...windows.values()].map((item) => [
+        item === record ? 'Finder · ' + folders[currentFolder()].name : item.title.textContent,
+        () => openWindow(item.id)
+      ])
+    ],
+    Aiuto: [['Guida e scorciatoie', () => openWindow('info')], ['Cerca con Spotlight', toggleSpotlight]]
+  };
+  return items[name];
+}
+
+function toggleMenu(anchor, keyboard = false) {
+  const previous = menuAnchor;
+  closeMenu();
+  if (previous === anchor) return;
+  menuAnchor = anchor;
+  anchor.setAttribute('aria-expanded', 'true');
+  menuPopover.replaceChildren();
+  for (const [label, action, disabled] of menuItems(anchor.dataset.menu)) {
+    const item = button(label, '', '', () => {
+      closeMenu(true);
+      action();
+    });
+    item.textContent = label;
+    item.disabled = Boolean(disabled);
+    menuPopover.append(item);
+  }
+  menuPopover.hidden = false;
+  menuPopover.style.left = Math.max(6, Math.min(anchor.getBoundingClientRect().left, innerWidth - menuPopover.offsetWidth - 6)) + 'px';
+  if (keyboard) menuPopover.querySelector('button:not(:disabled)')?.focus();
+}
+
+function buildDesktop() {
+  byId('system-menu').innerHTML = icon('system');
+  byId('search-button').innerHTML = icon('search');
+  byId('settings-button').innerHTML = icon('sliders');
+  for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
+  const dock = byId('dock');
+  for (const id of dockApps) {
+    if (id === 'trash') {
+      const divider = document.createElement('span');
+      divider.className = 'dock-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      dock.append(divider);
+    }
+    const name = appName(id);
+    const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
+    entry.dataset.app = id;
+    dock.append(entry);
+  }
+  const icons = byId('desktop-icons');
+  for (const [label, art, action] of [
+    ['Disco virtuale', 'drive', () => showFolder('desktop')],
+    ['Documenti', 'folder', () => showFolder('documents')]
+  ]) {
+    icons.append(button(label, 'desktop-item', fileIcon(art) + '<span>' + label + '</span>', action));
+  }
+  for (const anchor of document.querySelectorAll('[data-menu]')) {
+    anchor.setAttribute('aria-expanded', 'false');
+    anchor.setAttribute('aria-controls', 'menu-popover');
+    anchor.addEventListener('click', (event) => toggleMenu(anchor, event.detail === 0));
+    anchor.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowDown') return;
+      event.preventDefault();
+      if (anchor === menuAnchor) menuPopover.querySelector('button:not(:disabled)')?.focus();
+      else toggleMenu(anchor, true);
+    });
+  }
+}
+
+function setupEvents() {
+  byId('search-button').addEventListener('click', toggleSpotlight);
+  byId('settings-button').addEventListener('click', () => openWindow('settings'));
+  byId('file-picker').addEventListener('change', openLocalFile);
+  launchSearch.addEventListener('input', renderLaunchpad);
+  launchSearch.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.isComposing) byId('launch-grid').querySelector('button')?.click();
+  });
+  spotlightSearch.setAttribute('role', 'combobox');
+  spotlightSearch.setAttribute('aria-controls', 'spotlight-results');
+  spotlightSearch.setAttribute('aria-autocomplete', 'list');
+  spotlightSearch.setAttribute('aria-expanded', 'true');
+  byId('spotlight-results').setAttribute('role', 'listbox');
+  spotlightSearch.addEventListener('input', renderSpotlight);
+  spotlightSearch.addEventListener('keydown', (event) => {
+    if (event.isComposing) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      chooseResult(selectedResult + (event.key === 'ArrowDown' ? 1 : -1), true);
+    }
+    if (event.key === 'Enter') runResult(selectedResult);
+  });
+  for (const dialog of [launchpad, spotlight]) {
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || event.isComposing) return;
+      event.preventDefault();
+      dialog.close();
+    });
+    dialog.addEventListener('click', (event) => {
+      if (event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+    });
+  }
+  launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
+  document.addEventListener('pointerdown', (event) => {
+    if (!event.target.closest('#menu-popover, [data-menu]')) closeMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.isComposing) return;
+    if (event.code === 'Space' && event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
+      event.preventDefault();
+      if (!event.repeat) toggleSpotlight();
+    }
+    if (event.key === 'Escape' && menuAnchor) closeMenu(true);
+  });
+  menuPopover.addEventListener('keydown', (event) => {
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = [...menuPopover.querySelectorAll('button:not(:disabled)')];
+    const index = buttons.indexOf(document.activeElement);
+    const direction = event.key === 'ArrowUp' ? -1 : 1;
+    buttons[(index + direction + buttons.length) % buttons.length]?.focus();
+  });
+  window.addEventListener('resize', () => {
+    closeMenu();
+    for (const record of windows.values()) position(record);
+  });
+  window.addEventListener('pagehide', (event) => {
+    if (!event.persisted) clearPreview();
+  });
+}
+
+const clockFormat = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false });
+function updateClock() {
+  const now = new Date();
+  const clock = byId('clock');
+  clock.dateTime = now.toISOString();
+  clock.textContent = clockFormat.format(now);
+}
+
+buildDesktop();
+setupEvents();
+for (const [key, preference] of Object.entries(preferences)) {
+  const fallback = Object.keys(preference.choices)[0];
+  const stored = readValue(key, fallback);
+  applyPreference(key, Object.hasOwn(preference.choices, stored) ? stored : fallback);
+}
+updateClock();
+setInterval(updateClock, 1000);
+openWindow('finder', false);
+</script>
+</body>
+</html>
