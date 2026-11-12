@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3aLfRs9Eot+L4OozSy7zFrdG+w0+hbX3o8m25Ghlav4='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-vbfbCZb7iXs7/2PLJgAIiF+BlWa5//zL+f0Y/aX5cKo='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 1.3 · Simulatore desktop</title>
+  <title>Laguna 1.4 · Simulatore desktop</title>
   <style>
 :root {
   color-scheme: light;
@@ -184,7 +184,14 @@ button, h1, h2, p { margin: 0; }
 .primary-button:hover { background: #0e5591; }
 
 #dock { position: fixed; z-index: 25; inset: auto auto 10px 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 9px; height: 68px; max-width: calc(100vw - 14px); padding: 7px 10px 9px; border: 1px solid #d9f2f34f; border-radius: 19px; background: #c4dbe14a; box-shadow: 0 10px 35px #061e3566, inset 0 1px 0 #ffffff21; backdrop-filter: blur(13px); }
+#dock-reveal { position: fixed; z-index: 24; bottom: 0; left: 50%; width: min(220px, 54vw); height: 18px; transform: translateX(-50%); border: 0; border-radius: 8px 8px 0 0; background: #0c2b3b78; }
+#dock-reveal::after { content: ""; display: block; width: 33px; height: 3px; margin: auto; border-radius: 3px; background: #d8edf6bf; }
+#dock-area[data-autohide="true"] #dock { transition: transform .2s ease; }
+#dock-area[data-autohide="true"][data-revealed="false"]:not(.finder-reveal):not(:hover) #dock:not(:focus-within) { transform: translate(-50%, calc(100% + 12px)); }
+#dock-area[data-autohide="true"]:hover #dock { transition-duration: .1s; }
 .dock-item { position: relative; flex: none; display: grid; place-items: center; width: 47px; height: 48px; padding: 0; border: 0; border-radius: 11px; background: none; }
+.dock-item[data-dock-drop]::before { content: ""; position: absolute; inset: 4px auto 4px -5px; width: 2px; border-radius: 2px; background: #bcf2ff; pointer-events: none; }
+.dock-item[data-dock-drop="after"]::before { inset-inline: auto -5px; }
 .dock-item .app-icon { transition: transform .18s cubic-bezier(.2,.8,.3,1.35); transform-origin: center bottom; }
 .dock-item:hover .app-icon, .dock-item:focus-visible .app-icon { transform: translateY(-9px) scale(1.29); }
 .dock-item:has(+ .dock-item:hover) .app-icon, .dock-item:hover + .dock-item .app-icon { transform: translateY(-4px) scale(1.1); }
@@ -259,6 +266,10 @@ dialog::backdrop { background: #081f31a1; }
 .wallpaper-source a { display: block; width: fit-content; margin: 6px 0 0 13px; color: var(--accent); }
 .wallpaper-status:empty { display: none; }
 .wallpaper-status { position: sticky; z-index: 1; top: 0; padding: 6px 8px; border-radius: 6px; background: var(--surface); }
+.dock-settings-list { display: grid; gap: 3px; margin-top: 7px; }
+.dock-settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 4px; }
+.dock-settings-row .choice { text-align: left; }
+.dock-settings-row .choice[aria-pressed="true"]::after { content: "✓"; float: right; color: var(--accent); }
 .choice { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 12px; }
 .choice[aria-pressed="true"] { color: var(--accent); background: var(--selected); }
 .preview-view { display: flex; flex-direction: column; gap: 12px; }
@@ -295,7 +306,7 @@ dialog::backdrop { background: #081f31a1; }
 .space-tile, .space-add { display: grid; place-items: center; gap: 5px; width: 114px; min-height: 72px; padding: 5px; border: 1px solid transparent; border-radius: 8px; color: white; background: #ffffff0e; font-size: 11px; }
 .space-tile:hover, .space-add:hover:not(:disabled) { background: #ffffff20; }
 .space-tile[aria-pressed="true"] { border-color: #9cd7ff; background: #ffffff20; }
-.space-art { display: block; width: 89px; height: 40px; border-radius: 4px; background: radial-gradient(ellipse at 75% 11%, #b4dfcf, transparent 51%), linear-gradient(155deg, #5fa8a4 30%, #255e70 55%, #1a4059 56%, #153346 95%); }
+.space-art { width: 89px; height: 40px; }
 .space-group > .icon-button { position: absolute; right: 1px; top: 1px; width: 22px; height: 22px; border: 1px solid #ffffff4a; border-radius: 50%; color: white; background: #213c4d; font-size: 11px; }
 .space-add .glyph { font-size: 16px; }
 .mission-tile { display: grid; gap: 8px; padding: 7px; background: none; border: 1px solid transparent; border-radius: 10px; text-align: left; font-size: 12px; overflow-wrap: anywhere; }
@@ -321,6 +332,7 @@ dialog::backdrop { background: #081f31a1; }
 .control-option:hover { background: var(--hover); }
 .control-option[aria-pressed="true"] { background: var(--selected); border-color: var(--accent); }
 :root[data-motion="reduced"] .dock-item .app-icon { transition: none; }
+:root[data-motion="reduced"] #dock-area #dock { transition: none; }
 :root[data-motion="reduced"] .dock-item:not(.is-drop-target) .app-icon { transform: none; }
 
 @media (max-width: 620px) {
@@ -355,6 +367,7 @@ dialog::backdrop { background: #081f31a1; }
 
 @media (prefers-reduced-motion: reduce) {
   .dock-item .app-icon { transition: none; }
+  #dock-area[data-autohide="true"] #dock { transition: none; }
 }
 </style>
 </head>
@@ -380,7 +393,10 @@ dialog::backdrop { background: #081f31a1; }
     <div id="desktop-icons"></div>
     <div id="windows"></div>
   </main>
-  <nav id="dock" aria-label="Dock"></nav>
+  <div id="dock-area">
+    <nav id="dock" aria-label="Dock"></nav>
+    <button id="dock-reveal" type="button" aria-label="Mostra Dock" aria-controls="dock" aria-expanded="false" hidden></button>
+  </div>
   <dialog id="launchpad" aria-label="Launchpad">
     <div class="launch-top">
       <label class="search-field"><span data-icon="search"></span><input id="launch-search" type="search" aria-label="Cerca nel Launchpad" placeholder="Cerca app" autocomplete="off"></label>
@@ -539,6 +555,60 @@ const apps = {
 };
 const launchApps = ['finder', 'notes', 'calculator', 'settings'];
 const dockApps = ['finder', 'launchpad', 'mission', 'notes', 'calculator', 'settings', 'trash'];
+const configurableDockApps = dockApps.slice(1, -1);
+const dockDragType = 'application/x-laguna-dock';
+let dockPrefs = readDockPrefs();
+let dockDrag = null;
+let dockRevealed = false;
+
+function readDockPrefs() {
+  try {
+    const saved = JSON.parse(readValue('dock.v1', '{}'));
+    const order = Array.isArray(saved.order) ? saved.order.filter((id) => configurableDockApps.includes(id)) : [];
+    const unpinned = Array.isArray(saved.unpinned) ? saved.unpinned.filter((id) => configurableDockApps.includes(id)) : [];
+    return { order: [...new Set([...order, ...configurableDockApps])], unpinned: [...new Set(unpinned)], autoHide: saved.autoHide === true };
+  } catch {
+    return { order: [...configurableDockApps], unpinned: [], autoHide: false };
+  }
+}
+
+function updateDockPrefs(next, focusApp = null, focusSetting = null) {
+  dockPrefs = next;
+  dockRevealed = false;
+  const stored = writeValue('dock.v1', JSON.stringify(next));
+  refreshDock();
+  const settings = windows.get('settings');
+  if (settings) {
+    renderSettings(settings);
+    if (focusSetting && !settings.element.hidden) settings.content.querySelector(focusSetting)?.focus({ preventScroll: true });
+  }
+  if (focusApp) (byId('dock').querySelector('[data-app="' + focusApp + '"]') ?? byId('dock').querySelector('[data-app="finder"]')).focus();
+  byId('announcement').textContent = stored ? 'Preferenze Dock salvate.' : 'Preferenze Dock applicate a questa sessione.';
+}
+
+function pinDockApp(id, focusSetting = false) {
+  if (!configurableDockApps.includes(id)) return;
+  const unpinned = dockPrefs.unpinned.includes(id)
+    ? dockPrefs.unpinned.filter((item) => item !== id)
+    : [...dockPrefs.unpinned, id];
+  updateDockPrefs({ ...dockPrefs, unpinned }, focusSetting ? null : id, focusSetting ? '[data-dock-pin="' + id + '"]' : null);
+}
+
+function moveDockApp(id, target, after = false, focusSetting = false) {
+  const order = dockPrefs.order.filter((item) => item !== id);
+  if (id === target || !configurableDockApps.includes(id) || !order.includes(target)) return;
+  order.splice(order.indexOf(target) + Number(after), 0, id);
+  updateDockPrefs({ ...dockPrefs, order }, focusSetting ? null : id, focusSetting ? '[data-dock-pin="' + id + '"]' : null);
+}
+
+function setDockVisibility() {
+  const area = byId('dock-area');
+  area.dataset.autohide = String(dockPrefs.autoHide);
+  area.dataset.revealed = String(dockRevealed);
+  const reveal = byId('dock-reveal');
+  reveal.hidden = !dockPrefs.autoHide;
+  reveal.setAttribute('aria-expanded', dockRevealed);
+}
 
 function appName(id) {
   return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino' }[id];
@@ -580,6 +650,13 @@ function position(record) {
 }
 
 function refreshDock() {
+  const dock = byId('dock');
+  const pinned = dockPrefs.order.filter((id) => !dockPrefs.unpinned.includes(id));
+  const running = dockPrefs.order.filter((id) => dockPrefs.unpinned.includes(id) && windows.has(id));
+  const visible = ['finder', ...pinned, ...running, 'trash'];
+  const existing = [...dock.querySelectorAll('[data-app]')].map((entry) => entry.dataset.app);
+  if (visible.join() !== existing.join()) renderDock(visible);
+  setDockVisibility();
   for (const entry of byId('dock').querySelectorAll('[data-app]')) {
     entry.classList.toggle('is-open', windows.has(entry.dataset.app));
     if (entry.dataset.app === 'trash') entry.classList.toggle('has-items', folderItems('trash').length > 0);
@@ -629,6 +706,7 @@ function switchSpace(id) {
   if (!spaces.includes(id) || activeSpace === id) return;
   activeSpace = id;
   syncSpaces();
+  syncWallpaper();
   const next = [...windows.values()].filter((record) => !record.element.hidden)
     .sort((first, second) => second.order - first.order)[0];
   activate(next ?? null);
@@ -698,6 +776,10 @@ function openWindow(id, focus = true) {
   let record = windows.get(id);
   if (record) {
     record.minimized = false;
+    if (id === 'settings' && record.space !== activeSpace) {
+      record.space = activeSpace;
+      renderSettings(record);
+    }
     switchSpace(record.space);
   } else {
     const { name, size, render } = apps[id];
@@ -1725,8 +1807,29 @@ const wallpaperFormat = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/;
 let wallpaperSelection = 0;
 
 function readPersonalWallpaper() {
-  const image = readValue('wallpaper.personal', '');
+  return personalWallpaper(activeSpace);
+}
+
+function personalWallpaper(space) {
+  const image = readValue('wallpaper.image.' + space, readValue('wallpaper.personal', ''));
   return image.length <= personalWallpaperLimit && wallpaperFormat.test(image) ? image : '';
+}
+
+function spaceWallpaper(space) {
+  const value = readValue('wallpaper.space.' + space, readValue('wallpaper', 'laguna'));
+  return Object.hasOwn(preferences.wallpaper.choices, value) && (value !== 'personal' || personalWallpaper(space)) ? value : 'laguna';
+}
+
+function saveWallpaper(value, space = activeSpace) {
+  const stored = writeValue('wallpaper.space.' + space, value);
+  if (space === activeSpace) applyPreference('wallpaper', value);
+  return stored;
+}
+
+function syncWallpaper() {
+  applyPreference('wallpaper', spaceWallpaper(activeSpace));
+  const settings = windows.get('settings');
+  if (settings) renderSettings(settings);
 }
 
 function availableWallpapers() {
@@ -1747,8 +1850,8 @@ function applyPreference(key, value) {
 }
 
 function chooseWallpaper(key, status, group) {
-  applyPreference('wallpaper', key);
-  status.textContent = writeValue('wallpaper', key)
+  wallpaperSelection += 1;
+  status.textContent = saveWallpaper(key)
     ? 'Sfondo salvato in questo browser.'
     : 'Sfondo applicato a questa sessione.';
   for (const choice of group.querySelectorAll('[data-wallpaper-key]')) {
@@ -1759,7 +1862,7 @@ function chooseWallpaper(key, status, group) {
 function renderWallpaperSettings(status) {
   const group = document.createElement('fieldset');
   const title = document.createElement('legend');
-  title.textContent = 'Sfondo';
+  title.textContent = 'Sfondo · ' + spaceName(activeSpace);
   group.append(title);
   const choices = availableWallpapers();
   for (const [label, keys] of [
@@ -1807,6 +1910,7 @@ async function importWallpaper(event) {
   event.target.value = '';
   if (!file) return;
   const selection = ++wallpaperSelection;
+  const space = activeSpace;
   try {
     if (!rasterType.test(file.type) || file.size > 24 * 1024 * 1024) {
       reportWallpaper('Scegli un’immagine JPG, PNG, WebP, GIF, BMP o AVIF fino a 24 MiB.');
@@ -1828,15 +1932,14 @@ async function importWallpaper(event) {
       image = canvas.toDataURL('image/jpeg', quality);
       if (image.length <= personalWallpaperLimit && wallpaperFormat.test(image)) break;
     }
-    if (selection !== wallpaperSelection) return;
+    if (selection !== wallpaperSelection || !spaces.includes(space)) return;
     if (image.length > personalWallpaperLimit || !wallpaperFormat.test(image)) {
       reportWallpaper('L’immagine è troppo dettagliata per essere salvata. Prova una copia più piccola.');
       return;
     }
-    const stored = writeValue('wallpaper.personal', image);
-    applyPreference('wallpaper', 'personal');
-    const selected = writeValue('wallpaper', 'personal');
-    reportWallpaper(stored && selected ? 'Sfondo personale salvato in questo browser.' : 'Sfondo personale disponibile in questa sessione.');
+    const stored = writeValue('wallpaper.image.' + space, image);
+    const selected = saveWallpaper('personal', space);
+    reportWallpaper(stored && selected ? 'Sfondo personale salvato per ' + spaceName(space) + '.' : 'Sfondo personale disponibile in questa sessione.');
   } catch {
     if (selection === wallpaperSelection) reportWallpaper('Impossibile aprire questa immagine.');
   }
@@ -1882,11 +1985,12 @@ function renderSettings(record) {
     group.append(legend, options);
     content.append(group);
   }
+  content.append(renderDockSettings());
   record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.3</h2><p>Apri <strong>Impostazioni</strong> per vedere gli sfondi ispirati ai Mac del 2026 o scegliere un’immagine dal tuo dispositivo.</p><p>Nel Finder premi <kbd>Spazio</kbd> per l’Anteprima rapida. Usa <kbd>Ctrl</kbd> + clic per selezionare più elementi e trascinali su una cartella o sul Cestino.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 1.4</h2><p>Ogni scrivania ha il suo sfondo. Passa a un’altra scrivania in <strong>Mission Control</strong>, poi scegli lo sfondo in <strong>Impostazioni</strong>.</p><p>Trascina le icone del <strong>Dock</strong> per riordinarle. Con il clic destro puoi tenerle nel Dock o rimuoverle dai preferiti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -2049,8 +2153,13 @@ function renderControlCenter(focus = null) {
 }
 
 function setControlPreference(key, value) {
-  applyPreference(key, value);
-  writeValue(key, value);
+  if (key === 'wallpaper') {
+    wallpaperSelection += 1;
+    saveWallpaper(value);
+  } else {
+    applyPreference(key, value);
+    writeValue(key, value);
+  }
   const settings = windows.get('settings');
   if (settings) renderSettings(settings);
   renderControlCenter(key);
@@ -2078,7 +2187,10 @@ function spaceName(id) {
 
 function addSpace() {
   if (spaces.length >= spaceLimit) return;
-  spaces.push(Math.max(...spaces) + 1);
+  const id = Math.max(...spaces) + 1;
+  spaces.push(id);
+  saveWallpaper('laguna', id);
+  writeValue('wallpaper.image.' + id, '');
   saveWorkspace();
   renderMission('[data-add-space]');
 }
@@ -2091,6 +2203,8 @@ function removeSpace(id) {
     if (record.space === id) record.space = destination;
   }
   spaces = spaces.filter((space) => space !== id);
+  wallpaperSelection += 1;
+  writeValue('wallpaper.image.' + id, '');
   if (activeSpace === id) switchSpace(destination);
   else syncSpaces();
   saveWorkspace();
@@ -2122,6 +2236,11 @@ function renderMission(focus = null) {
       renderMission('[data-space="' + id + '"]');
     });
     tile.dataset.space = String(id);
+    const sample = tile.querySelector('.space-art');
+    const wallpaper = spaceWallpaper(id);
+    sample.classList.toggle('wallpaper-sample', true);
+    sample.dataset.art = wallpaper;
+    if (wallpaper === 'personal') sample.style.backgroundImage = 'url("' + personalWallpaper(id) + '")';
     tile.querySelector('.space-name').textContent = name;
     tile.setAttribute('aria-pressed', id === activeSpace);
     tile.addEventListener('dragover', (event) => {
@@ -2292,20 +2411,6 @@ function buildDesktop() {
   byId('search-button').innerHTML = icon('search');
   byId('settings-button').innerHTML = icon('sliders');
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
-  const dock = byId('dock');
-  for (const id of dockApps) {
-    if (id === 'trash') {
-      const divider = document.createElement('span');
-      divider.className = 'dock-divider';
-      divider.setAttribute('aria-hidden', 'true');
-      dock.append(divider);
-    }
-    const name = appName(id);
-    const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
-    entry.dataset.app = id;
-    if (id === 'trash') bindFinderDrop(entry, 'trash');
-    dock.append(entry);
-  }
   const icons = byId('desktop-icons');
   for (const [label, art, action] of [
     ['Disco virtuale', 'drive', () => showFolder('desktop')],
@@ -2326,7 +2431,134 @@ function buildDesktop() {
   }
 }
 
+function renderDock(visible) {
+  const dock = byId('dock');
+  dock.replaceChildren();
+  for (const id of visible) {
+    if (id === 'trash') {
+      const divider = document.createElement('span');
+      divider.className = 'dock-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      dock.append(divider);
+    }
+    const name = appName(id);
+    const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
+    entry.dataset.app = id;
+    if (id === 'trash') bindFinderDrop(entry, 'trash');
+    if (configurableDockApps.includes(id)) bindDockItem(entry, id);
+    dock.append(entry);
+  }
+}
+
+function bindDockItem(entry, id) {
+  const pinned = () => !dockPrefs.unpinned.includes(id);
+  const showOptions = (keyboard, point) => {
+    const choices = [
+      [pinned() ? 'Rimuovi dal Dock' : 'Mantieni nel Dock', () => pinDockApp(id)],
+      ['Impostazioni Dock…', () => {
+        const settings = openWindow('settings');
+        settings.content.querySelector('[data-dock-autohide]')?.focus();
+      }]
+    ];
+    toggleMenu(entry, keyboard, choices, point);
+  };
+  entry.dataset.dockMenu = '';
+  entry.setAttribute('aria-controls', 'menu-popover');
+  entry.setAttribute('aria-expanded', 'false');
+  entry.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    showOptions(false, { left: event.clientX, top: event.clientY - 80 });
+  });
+  entry.addEventListener('keydown', (event) => {
+    if (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+    event.preventDefault();
+    const rect = entry.getBoundingClientRect();
+    showOptions(true, { left: rect.left, top: rect.top - 80 });
+  });
+  entry.draggable = true;
+  entry.addEventListener('dragstart', (event) => {
+    if (!pinned()) {
+      event.preventDefault();
+      return;
+    }
+    dockDrag = id;
+    event.dataTransfer.setData(dockDragType, id);
+    event.dataTransfer.effectAllowed = 'move';
+  });
+  entry.addEventListener('dragover', (event) => {
+    if (!pinned() || !dockDrag || dockDrag === id || !event.dataTransfer.types.includes(dockDragType)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const rect = entry.getBoundingClientRect();
+    entry.dataset.dockDrop = event.clientX < (rect.left + rect.right) / 2 ? 'before' : 'after';
+  });
+  entry.addEventListener('dragleave', (event) => {
+    if (!event.relatedTarget || !entry.contains(event.relatedTarget)) delete entry.dataset.dockDrop;
+  });
+  entry.addEventListener('drop', (event) => {
+    if (!pinned() || !dockDrag || !event.dataTransfer.types.includes(dockDragType)) return;
+    event.preventDefault();
+    const rect = entry.getBoundingClientRect();
+    const moved = dockDrag;
+    dockDrag = null;
+    delete entry.dataset.dockDrop;
+    moveDockApp(moved, id, event.clientX >= (rect.left + rect.right) / 2);
+  });
+  entry.addEventListener('dragend', () => {
+    dockDrag = null;
+    for (const target of byId('dock').querySelectorAll('[data-dock-drop]')) delete target.dataset.dockDrop;
+  });
+}
+
+function renderDockSettings() {
+  const group = document.createElement('fieldset');
+  const title = document.createElement('legend');
+  title.textContent = 'Dock';
+  const hide = button('Nascondi automaticamente il Dock', 'choice', 'Nascondi automaticamente il Dock', () => {
+    updateDockPrefs({ ...dockPrefs, autoHide: !dockPrefs.autoHide }, null, '[data-dock-autohide]');
+  });
+  hide.dataset.dockAutohide = '';
+  hide.setAttribute('aria-pressed', dockPrefs.autoHide);
+  group.append(title, hide);
+  const list = document.createElement('div');
+  list.className = 'dock-settings-list';
+  for (const [index, id] of dockPrefs.order.entries()) {
+    const row = document.createElement('div');
+    row.className = 'dock-settings-row';
+    const name = appName(id);
+    const pinned = !dockPrefs.unpinned.includes(id);
+    const label = (pinned ? 'Rimuovi ' : 'Fissa ') + name;
+    const pin = button(label, 'choice', '', () => pinDockApp(id, true));
+    pin.textContent = name;
+    pin.dataset.dockPin = id;
+    pin.setAttribute('aria-label', name + ' nel Dock');
+    pin.title = label;
+    pin.setAttribute('aria-pressed', pinned);
+    const left = iconButton('Sposta ' + name + ' a sinistra', 'left', () => moveDockApp(id, dockPrefs.order[index - 1], false, true));
+    const right = iconButton('Sposta ' + name + ' a destra', 'right', () => moveDockApp(id, dockPrefs.order[index + 1], true, true));
+    left.disabled = index === 0;
+    right.disabled = index === dockPrefs.order.length - 1;
+    row.append(pin, left, right);
+    list.append(row);
+  }
+  group.append(list);
+  return group;
+}
+
 function setupEvents() {
+  const reveal = byId('dock-reveal');
+  reveal.addEventListener('click', () => {
+    dockRevealed = !dockRevealed;
+    setDockVisibility();
+    if (dockRevealed) byId('dock').querySelector('button')?.focus();
+  });
+  reveal.addEventListener('dragover', (event) => {
+    if (!finderDrag.length) return;
+    event.preventDefault();
+    byId('dock-area').classList.toggle('finder-reveal', true);
+  });
+  document.addEventListener('dragend', () => byId('dock-area').classList.toggle('finder-reveal', false));
+  document.addEventListener('drop', () => byId('dock-area').classList.toggle('finder-reveal', false), true);
   byId('search-button').addEventListener('click', toggleSpotlight);
   const controlButton = byId('settings-button');
   controlButton.setAttribute('aria-expanded', 'false');
@@ -2391,7 +2623,11 @@ function setupEvents() {
   }
   launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
   document.addEventListener('pointerdown', (event) => {
-    if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu]')) closeMenu();
+    if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu], [data-dock-menu]')) closeMenu();
+    if (dockRevealed && !event.target.closest('#dock-area, #menu-popover')) {
+      dockRevealed = false;
+      setDockVisibility();
+    }
   });
   document.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
@@ -2400,6 +2636,11 @@ function setupEvents() {
       if (!event.repeat) toggleSpotlight();
     }
     if (event.key === 'Escape' && menuAnchor) closeMenu(true);
+    else if (event.key === 'Escape' && dockPrefs.autoHide && event.target.closest('#dock')) {
+      dockRevealed = false;
+      setDockVisibility();
+      reveal.focus();
+    }
   });
   menuPopover.addEventListener('keydown', (event) => {
     if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
@@ -2484,6 +2725,7 @@ function restoreWorkspace() {
 buildDesktop();
 setupEvents();
 for (const [key, preference] of Object.entries(preferences)) {
+  if (key === 'wallpaper') continue;
   const fallback = Object.keys(preference.choices)[0];
   const stored = readValue(key, fallback);
   applyPreference(key, Object.hasOwn(preference.choices, stored) ? stored : fallback);
@@ -2492,6 +2734,7 @@ updateClock();
 setInterval(updateClock, 1000);
 restoreWorkspace();
 restoringWorkspace = false;
+syncWallpaper();
 refreshDock();
 </script>
 </body>

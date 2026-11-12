@@ -1,4 +1,4 @@
-LAGUNA 1.3
+LAGUNA 1.4
 Simulatore desktop gratuito e offline per Windows 11
 
 NEL BROWSER
@@ -12,6 +12,9 @@ SU WINDOWS, ANCHE OFFLINE
 
 COMANDI
 - Dock: apri un'app o richiama una finestra minimizzata.
+  Trascina le icone fissate per riordinarle e usa il clic destro per
+  fissarle o rimuoverle. In Impostazioni > Dock trovi le frecce e
+  la scomparsa automatica. Passa sulla linguetta in basso per farlo riapparire.
 - Finestre: trascina la barra del titolo. Ridimensiona dal bordo destro,
   dal bordo inferiore o dall'angolo in basso a destra.
 - Finder: fai doppio clic per aprire un elemento. Con la tastiera usa Tab
@@ -30,6 +33,7 @@ COMANDI
 - Impostazioni > Sfondo: scegli una delle tre interpretazioni Laguna
   ispirate ai Mac del 2026, o carica una foto con Scegli immagine.
   Scarica gli sfondi Apple apre i collegamenti agli originali disponibili.
+  Ogni scrivania ha il suo sfondo, visibile nelle miniature di Mission Control.
 - Spotlight: premi Ctrl + Spazio per cercare app e file virtuali.
 - Schermo intero: premi F11 nel browser.
 
