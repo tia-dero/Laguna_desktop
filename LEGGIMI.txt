@@ -1,4 +1,4 @@
-LAGUNA 1.6
+LAGUNA 1.7
 Simulatore desktop gratuito e offline per Windows 11
 
 NEL BROWSER
@@ -11,6 +11,8 @@ SU WINDOWS, ANCHE OFFLINE
    Chrome. Puoi anche aprire Avvia.cmd per usare il browser predefinito.
 
 COMANDI
+- Blocco simulato: dal menu di sistema scegli Blocca schermo. Premi Invio
+  o clicca Torna alla scrivania per riprendere. Il blocco riguarda Laguna.
 - Widget: dal menu di sistema scegli Modifica widget. La galleria mostra
   le anteprime di Orologio analogico, Calendario e Promemoria nei vari
   formati. Scegli lo stile automatico, monocromatico o a colori. Trascina
