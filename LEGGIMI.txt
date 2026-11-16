@@ -1,59 +1,37 @@
-LAGUNA 1.7
-Simulatore desktop gratuito e offline per Windows 11
+LAGUNA 2.0
+Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
-NEL BROWSER
-Apri https://tia-dero.github.io/Laguna_desktop/
+AVVIO
+- Online: https://tia-dero.github.io/Laguna_desktop/
+- Offline: scarica lo ZIP del repository, estrailo e apri index.html
+  in Edge o Chrome. Puoi usare Avvia.cmd nella stessa cartella.
+- Per un'icona su Windows, fai clic destro su Avvia.cmd e scegli
+  Mostra altre opzioni > Invia a > Desktop (crea collegamento).
+- Premi F11 o usa Schermo intero nella barra per occupare il display.
+  Chiudi la scheda o la finestra del browser per tornare a Windows.
 
-SU WINDOWS, ANCHE OFFLINE
-1. Dalla pagina del repository scegli Code > Download ZIP.
-2. In Esplora file, fai clic destro sullo ZIP e scegli Estrai tutto.
-3. Apri la cartella estratta e fai doppio clic su index.html con Edge o
-   Chrome. Puoi anche aprire Avvia.cmd per usare il browser predefinito.
+SCRIVANIE
+- Università: apri Orario e appunti, scegli un giorno e annota le lezioni.
+  Per JARVIS University OS, configura l'indirizzo HTTP o HTTPS della tua
+  installazione attiva. È supportato anche un server su localhost.
+- Foto: scegli la cartella della Nikon o più file dal PC. Laguna mostra
+  miniature e anteprime per JPEG, PNG, WebP, AVIF, GIF e BMP. Per vedere
+  un RAW Nikon NEF o NRW, apri una copia JPEG. I file sono in sola lettura.
+  Riapri la cartella per riprendere dall'ultima foto selezionata.
+- Progetti: tieni note di stampa 3D e di codice, apri l'anteprima locale
+  dei file supportati o visita il repository che hai salvato. Per avviare
+  Cura, Esplora file o VS Code usa le icone di Windows.
+
+Passa tra le tre scrivanie dalla barra in alto. Mission Control gestisce
+anche scrivanie aggiuntive e spostamento delle finestre. Ogni scrivania
+ha il suo sfondo e ricorda le finestre quando usi lo stesso browser e
+lo stesso indirizzo o percorso di apertura.
 
 COMANDI
-- Blocco simulato: dal menu di sistema scegli Blocca schermo. Premi Invio
-  o clicca Torna alla scrivania per riprendere. Il blocco riguarda Laguna.
-- Widget: dal menu di sistema scegli Modifica widget. La galleria mostra
-  le anteprime di Orologio analogico, Calendario e Promemoria nei vari
-  formati. Scegli lo stile automatico, monocromatico o a colori. Trascina
-  il bordo superiore per spostare un widget. Usa il clic destro per
-  cambiarne il formato o rimuoverlo. I promemoria restano nel browser.
-- Dock: apri un'app o richiama una finestra minimizzata.
-  Trascina le icone fissate per riordinarle e usa il clic destro per
-  fissarle o rimuoverle. In Impostazioni > Dock trovi le frecce e
-  la scomparsa automatica. Passa sulla linguetta in basso per farlo riapparire.
-- Finestre: trascina la barra del titolo. Ridimensiona dal bordo destro,
-  dal bordo inferiore o dall'angolo in basso a destra.
-- Finder: fai doppio clic per aprire un elemento. Con la tastiera usa Tab
-  e Invio. Clic destro o Azioni Finder apre il menu per creare, rinominare,
-  spostare, importare ed esportare. Apri un documento di testo per scriverci.
-- Anteprima rapida: seleziona un elemento e premi Spazio. Esc la chiude.
-- Schede Finder: usa il + per aprire una scheda. Il menu Vista permette
-  di ordinare gli elementi per nome o tipo.
-- Trascinamento: usa Ctrl + clic per selezionare più elementi o Maiusc +
-  clic per un intervallo. Trascinali su una cartella o sul Cestino.
-- Cestino: seleziona un elemento e scegli Ripristina da Azioni Finder.
-- Mission Control: clicca l'icona con due finestre nel Dock. Puoi creare
-  scrivanie, poi trascinare le finestre sulle miniature o usare Sposta in.
-- Centro di Controllo: clicca i cursori in alto a destra per cambiare
-  tema, sfondo, animazioni e schermo intero.
-- Impostazioni > Sfondo: scegli una delle tre interpretazioni Laguna
-  ispirate ai Mac del 2026, o carica una foto con Scegli immagine.
-  Scarica gli sfondi Apple apre i collegamenti agli originali disponibili.
-  Ogni scrivania ha il suo sfondo, visibile nelle miniature di Mission Control.
-- Spotlight: premi Ctrl + Spazio per cercare app e file virtuali.
-- Schermo intero: premi F11 nel browser.
-
-DISCO VIRTUALE E FILE DI WINDOWS
-Da una cartella virtuale, Azioni Finder > Importa copia da Windows crea
-una copia del file nel simulatore. Il limite per file importato è 256 KiB.
-Esporta copia scarica il documento o il file importato.
-
-Finder > File locali > Scegli file apre il selettore del browser per
-visualizzare un file di Windows in sola lettura. Laguna mostra i primi
-256 KiB dei file di testo e le immagini supportate fino a 12 MiB.
-
-Disco virtuale, appunti, preferenze e disposizione delle finestre vengono
-conservati dal browser quando la memoria locale è disponibile. Per
-ritrovarli, usa lo stesso browser, profilo e indirizzo o percorso di
-apertura. Esporta i file che vuoi conservare anche fuori dal browser.
+- Finder: doppio clic per aprire, Spazio per l'anteprima, + per una scheda.
+  Clic destro o Azioni Finder per gestire gli elementi virtuali.
+- Spotlight: Ctrl + Spazio. Widget: menu di sistema > Modifica widget.
+- Dock: clic per aprire, trascina le icone fissate per riordinarle.
+  Per la scomparsa automatica usa Impostazioni > Dock.
+- Sfondo: Impostazioni > Sfondo apre la galleria della scrivania attiva.
+- Blocco simulato: menu di sistema > Blocca schermo. Premi Invio per uscire.
