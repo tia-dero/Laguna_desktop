@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-e98EvP7gjNn2rW7ck+LzdN27HiOgH89IJXMkFQsA5cE='; style-src 'unsafe-inline'; img-src blob: data:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-QHc9GssiyTlWYvfeOsOkugboyjldZdGdMir3Ix4TV/c='; style-src 'unsafe-inline'; img-src blob: data:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.4 · Desktop per EliteBook</title>
+  <title>Laguna 2.6 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -161,13 +161,16 @@ button, h1, h2, p { margin: 0; }
 .finder-path button:hover { background: var(--hover); }
 .finder-path strong { flex: none; white-space: nowrap; color: var(--ink); font-weight: 650; }
 .finder-path > .glyph { font-size: 11px; }
-.files { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
+.files { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
 .files.list-view { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-block: 10px; }
 .file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; touch-action: manipulation; }
 .file-tile:hover { background: var(--hover); }
 .file-tile.is-selected { background: var(--selected); border-color: var(--line); }
 .file-tile[draggable="true"] { user-select: none; }
 .file-tile.is-drop-target, .sidebar-item.is-drop-target, .space-tile.is-drop-target { background: var(--selected); outline: 2px solid #338cd3; outline-offset: -2px; }
+.files.is-drop-target { box-shadow: inset 0 0 0 2px #338cd3; }
+.file-tile.is-spring-target, .sidebar-item.is-spring-target { outline-style: dashed; }
+.files .finder-drag-source { position: absolute; inset: 0 auto auto 0; width: 1px; height: 1px; min-width: 0; min-height: 0; padding: 0; border: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 .dock-item.is-drop-target .app-icon { transform: translateY(-10px) scale(1.29); outline: 2px solid #8dd5ff; outline-offset: 2px; }
 .file-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
 .file-kind { display: none; color: var(--muted); font-size: 11px; }
@@ -189,7 +192,7 @@ button, h1, h2, p { margin: 0; }
 #dock-reveal { position: fixed; z-index: 24; bottom: 0; left: 50%; width: min(220px, 54vw); height: 18px; transform: translateX(-50%); border: 0; border-radius: 8px 8px 0 0; background: #0c2b3b78; }
 #dock-reveal::after { content: ""; display: block; width: 33px; height: 3px; margin: auto; border-radius: 3px; background: #d8edf6bf; }
 #dock-area[data-autohide="true"] #dock { transition: transform .2s ease; }
-#dock-area[data-autohide="true"][data-revealed="false"]:not(.finder-reveal):not(:hover) #dock:not(:focus-within) { transform: translate(-50%, calc(100% + 12px)); }
+#dock-area[data-autohide="true"][data-revealed="false"]:not(.finder-reveal):not(.download-open):not(:hover) #dock:not(:focus-within) { transform: translate(-50%, calc(100% + 12px)); }
 #dock-area[data-autohide="true"]:hover #dock { transition-duration: .1s; }
 .dock-item { position: relative; flex: none; display: grid; place-items: center; width: 47px; height: 48px; padding: 0; border: 0; border-radius: 11px; background: none; }
 .dock-item[data-dock-drop]::before { content: ""; position: absolute; inset: 4px auto 4px -5px; width: 2px; border-radius: 2px; background: #bcf2ff; pointer-events: none; }
@@ -213,6 +216,28 @@ button, h1, h2, p { margin: 0; }
 .app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
 .app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
 .app-icon.info { background: linear-gradient(155deg, #76cbbb, #33758a); }
+.app-icon.downloads { background: linear-gradient(145deg, #ddf1ff, #789fb9); }
+.app-icon.downloads .file-icon { width: 80%; height: 80%; }
+#download-stack { --stack-width: min(288px, calc(100vw - 20px)); position: fixed; z-index: 26; bottom: calc(var(--dock-height) + 2px); left: clamp(calc(var(--stack-width) / 2 + 10px), var(--stack-anchor, 50vw), calc(100vw - var(--stack-width) / 2 - 10px)); transform: translateX(-50%); width: var(--stack-width); max-height: calc(100dvh - var(--dock-height) - var(--menu-height) - 12px); overflow: auto; padding: 11px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); box-shadow: 0 15px 45px #09192865; }
+#download-stack > header { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+#download-stack h2 { margin: 0; font-size: 15px; }
+#download-stack-items { display: grid; gap: 4px; padding-inline: 4px; }
+.download-stack-item { display: flex; align-items: center; gap: 8px; min-width: 0; margin-inline-end: var(--fan-indent, 0px); padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); font-size: 12px; text-align: start; }
+.download-stack-item:hover, .download-stack-item:focus-visible { background: var(--selected); }
+.download-stack-item:nth-child(1) { --fan-indent: 28px; }
+.download-stack-item:nth-child(2) { --fan-indent: 16px; }
+.download-stack-item:nth-child(3) { --fan-indent: 8px; }
+.download-stack-item .file-icon { width: 27px; height: 24px; flex: none; }
+.download-stack-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#download-stack-empty { margin: 4px; }
+#app-switcher { width: fit-content; max-width: calc(100vw - 24px); padding: 16px; border: 1px solid #e7f0ff50; border-radius: 22px; background: #142239ec; color: #fff; text-align: center; box-shadow: 0 18px 60px #06101f85; }
+#app-switcher::backdrop { background: #09122265; }
+#app-switcher-items { display: flex; gap: 5px; overflow: auto; padding: 4px; }
+.app-switcher-item { flex: 0 0 clamp(48px, 10vw, 72px); aspect-ratio: 1; display: grid; place-items: center; border: 1px solid transparent; border-radius: 12px; padding: 9px; background: transparent; }
+.app-switcher-item .app-icon { width: 100%; height: 100%; max-width: 52px; max-height: 52px; }
+.app-switcher-item[aria-pressed="true"] { border-color: #f4f8ff94; background: #edf5ff22; }
+#app-switcher-selection { margin: 8px 0 3px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+#app-switcher-help { margin: 0; color: #d8e5f7; font-size: 11px; }
 .dock-item.has-items .app-icon.trash { background: linear-gradient(155deg, #f9fbff, #9fbed4); color: #294d67; }
 .dock-item.has-items::before { content: ""; position: absolute; z-index: 1; bottom: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #3189bf; pointer-events: none; }
 
@@ -255,6 +280,10 @@ dialog::backdrop { background: #081f31a1; }
 .settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
 .settings-view legend { padding: 0 4px; font-size: 13px; font-weight: 650; }
 .settings-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.corner-hint { margin: 0 0 8px; }
+.corner-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)); gap: 10px 16px; }
+.corner-settings label { display: grid; gap: 4px; min-width: 0; font-size: 12px; }
+.corner-settings select { width: 100%; padding: 5px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
 .wallpaper-heading { margin: 8px 0 6px; color: var(--muted); font-size: 11px; font-weight: 650; }
 .wallpaper-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; }
 .wallpaper-option { display: grid; gap: 4px; min-width: 0; padding: 4px; border: 1px solid var(--line); border-radius: 8px; text-align: left; background: var(--panel); }
@@ -477,8 +506,8 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   .traffic { gap: 5px; }
   .files { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); padding-inline: 7px; }
   .finder-path { padding-inline: 7px; }
-  #dock { height: 58px; gap: 6px; bottom: 7px; padding-inline: 7px; }
-  .dock-item { width: clamp(32px, 11vw, 41px); height: clamp(32px, 11vw, 41px); }
+  #dock { height: 58px; gap: 4px; bottom: 7px; padding-inline: 6px; }
+  .dock-item { width: clamp(32px, 10vw, 41px); height: clamp(32px, 10vw, 41px); }
   .dock-divider { height: 29px; }
 }
 
@@ -630,8 +659,22 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   </dialog>
   <div id="dock-area">
     <nav id="dock" aria-label="Dock"></nav>
+    <section id="download-stack" aria-labelledby="download-stack-title" hidden>
+      <header>
+        <h2 id="download-stack-title">Download</h2>
+        <button id="download-stack-finder" class="choice" type="button">Apri nel Finder</button>
+      </header>
+      <div id="download-stack-items"></div>
+      <p id="download-stack-empty" class="app-hint">Trascina un file virtuale sull’icona Download nel Dock.</p>
+    </section>
     <button id="dock-reveal" type="button" aria-label="Mostra Dock" aria-controls="dock" aria-expanded="false" hidden></button>
   </div>
+  <dialog id="app-switcher" aria-labelledby="app-switcher-title">
+    <h2 id="app-switcher-title" class="sr-only">Cambia app</h2>
+    <div id="app-switcher-items"></div>
+    <p id="app-switcher-selection" role="status"></p>
+    <p id="app-switcher-help"></p>
+  </dialog>
   <dialog id="launchpad" aria-label="Launchpad">
     <div class="launch-top">
       <label class="search-field"><span data-icon="search"></span><input id="launch-search" type="search" aria-label="Cerca nel Launchpad" placeholder="Cerca app" autocomplete="off"></label>
@@ -1871,6 +1914,307 @@ function renderPhotos(record) {
 
 'use strict';
 
+let switcherWindows = [];
+let switcherIndex = 0;
+let switcherHeld = false;
+
+function downloadStackButton() {
+  return byId('dock').querySelector('[data-app="downloads"]');
+}
+
+function syncDownloadStackButton() {
+  const trigger = downloadStackButton();
+  if (!trigger) return;
+  const panel = byId('download-stack');
+  trigger.setAttribute('aria-expanded', !panel.hidden);
+  if (panel.hidden) return;
+  const rect = trigger.getBoundingClientRect();
+  panel.style.setProperty('--stack-anchor', (rect.left + rect.right) / 2 + 'px');
+}
+
+function renderDownloadStack() {
+  const container = byId('download-stack-items');
+  const entries = folderItems('downloads').slice(-6).reverse();
+  byId('download-stack-empty').hidden = entries.length > 0;
+  container.replaceChildren();
+  for (const id of entries) {
+    const entry = virtualEntries.get(id);
+    const row = button(entry.name, 'download-stack-item', fileIcon(entry.kind === 'folder' ? 'folder' : 'text'), () => {
+      closeDownloadStack();
+      openItem(id);
+    });
+    row.dataset.stackFile = id;
+    row.draggable = true;
+    row.addEventListener('dragstart', (event) => startFinderDrag(event, [id]));
+    row.addEventListener('dragend', endFinderDrag);
+    const label = document.createElement('span');
+    label.textContent = entry.name;
+    row.append(label);
+    container.append(row);
+  }
+}
+
+function closeDownloadStack(restoreFocus = false) {
+  const panel = byId('download-stack');
+  if (panel.hidden) return;
+  panel.hidden = true;
+  byId('dock-area').classList.toggle('download-open', false);
+  syncDownloadStackButton();
+  if (restoreFocus) downloadStackButton()?.focus();
+}
+
+function toggleDownloadStack() {
+  const panel = byId('download-stack');
+  if (!panel.hidden) {
+    closeDownloadStack(true);
+    return;
+  }
+  closeMenu();
+  renderDownloadStack();
+  panel.hidden = false;
+  byId('dock-area').classList.toggle('download-open', true);
+  syncDownloadStackButton();
+  (byId('download-stack-items').querySelector('button') ?? byId('download-stack-finder')).focus();
+}
+
+function selectSwitcherWindow(index) {
+  switcherIndex = (index + switcherWindows.length) % switcherWindows.length;
+  const buttons = [...byId('app-switcher-items').querySelectorAll('button')];
+  buttons.forEach((entry, position) => {
+    entry.setAttribute('aria-pressed', position === switcherIndex);
+    entry.tabIndex = position === switcherIndex ? 0 : -1;
+  });
+  const selected = switcherWindows[switcherIndex];
+  byId('app-switcher-selection').textContent = selected.title.textContent + ' · ' + spaceName(selected.space)
+    + (selected.minimized ? ' · Minimizzata' : '');
+  buttons[switcherIndex].focus({ preventScroll: true });
+  buttons[switcherIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function finishAppSwitcher(activateChoice = false) {
+  const dialog = byId('app-switcher');
+  const selected = switcherWindows[switcherIndex];
+  switcherHeld = false;
+  switcherWindows = [];
+  if (dialog.open) dialog.close();
+  if (activateChoice && selected && windows.has(selected.id)) {
+    switchSpace(selected.space);
+    openWindow(selected.id);
+  }
+}
+
+function openAppSwitcher(held = false, direction = 1) {
+  const dialog = byId('app-switcher');
+  if (dialog.open || !windows.size || [...document.querySelectorAll('dialog')].some((item) => item.open)) return false;
+  closeMenu();
+  closeDownloadStack();
+  switcherWindows = [...windows.values()].sort((first, second) => second.order - first.order);
+  switcherHeld = held;
+  const container = byId('app-switcher-items');
+  container.replaceChildren();
+  for (const [index, record] of switcherWindows.entries()) {
+    const entry = button(appName(record.id), 'app-switcher-item', appIcon(record.id), () => {
+      switcherIndex = index;
+      finishAppSwitcher(true);
+    });
+    entry.dataset.switchApp = record.id;
+    container.append(entry);
+  }
+  byId('app-switcher-help').textContent = held ? 'Q per scorrere · Rilascia Alt per aprire · Esc per annullare' : 'Frecce per scorrere · Invio per aprire · Esc per annullare';
+  dialog.showModal();
+  const current = switcherWindows.indexOf(activeWindow);
+  selectSwitcherWindow(held ? (current >= 0 ? current + direction : direction < 0 ? switcherWindows.length - 1 : 0) : Math.max(0, current));
+  return true;
+}
+
+function setupDockExtras() {
+  const dialog = byId('app-switcher');
+  byId('download-stack-finder').addEventListener('click', () => {
+    closeDownloadStack();
+    showFolder('downloads');
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!event.target.closest('#download-stack, [data-app="downloads"]')) closeDownloadStack();
+  }, true);
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    finishAppSwitcher();
+  });
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) finishAppSwitcher();
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.isComposing) return;
+    if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyQ') {
+      const direction = event.shiftKey ? -1 : 1;
+      if (dialog.open) {
+        event.preventDefault();
+        switcherHeld = true;
+        selectSwitcherWindow(switcherIndex + direction);
+      } else if (openAppSwitcher(true, direction)) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (dialog.open && ['Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === 'Escape' || event.key === 'Enter') finishAppSwitcher(event.key === 'Enter');
+      else selectSwitcherWindow(switcherIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+      return;
+    }
+    if (event.key === 'Escape' && !byId('download-stack').hidden) {
+      event.preventDefault();
+      closeDownloadStack(true);
+    }
+  }, true);
+  window.addEventListener('keyup', (event) => {
+    if (dialog.open && switcherHeld && event.key === 'Alt' && !event.altKey) {
+      event.preventDefault();
+      finishAppSwitcher(true);
+    }
+  }, true);
+  window.addEventListener('blur', () => {
+    leaveHotCorner();
+    if (dialog.open && switcherHeld) finishAppSwitcher();
+  });
+}
+
+
+const hotCornerLabels = {
+  'top-left': 'In alto a sinistra',
+  'top-right': 'In alto a destra',
+  'bottom-left': 'In basso a sinistra',
+  'bottom-right': 'In basso a destra'
+};
+const hotCornerActions = {
+  none: ['Disattivato', null],
+  mission: ['Mission Control', openMission],
+  desktop: ['Mostra scrivania', toggleDesktopPeek],
+  lock: ['Blocca schermo (simulato)', openLockScreen]
+};
+let enteredCorner = null;
+let hotCornerTimer = null;
+let peekActive = false;
+let peekWindow = null;
+
+function renderHotCornerSettings(status) {
+  const group = document.createElement('fieldset');
+  const title = document.createElement('legend');
+  title.textContent = 'Angoli attivi';
+  const hint = document.createElement('p');
+  hint.className = 'app-hint corner-hint';
+  hint.textContent = 'Tieni il puntatore in un angolo di Laguna per circa mezzo secondo.';
+  const rows = document.createElement('div');
+  rows.className = 'corner-settings';
+  for (const [corner, label] of Object.entries(hotCornerLabels)) {
+    const row = document.createElement('label');
+    const caption = document.createElement('span');
+    caption.textContent = label;
+    const select = document.createElement('select');
+    select.dataset.hotCorner = corner;
+    for (const [value, [name]] of Object.entries(hotCornerActions)) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = name;
+      select.append(option);
+    }
+    select.value = hotCornerAction(corner);
+    select.addEventListener('change', () => {
+      cancelHotCorner();
+      status.textContent = writeValue('hot-corner.' + corner, select.value)
+        ? 'Angolo attivo salvato in questo browser.'
+        : 'Angolo attivo applicato a questa sessione.';
+    });
+    row.append(caption, select);
+    rows.append(row);
+  }
+  group.append(title, hint, rows);
+  return group;
+}
+
+function hotCornerAction(corner) {
+  const action = readValue('hot-corner.' + corner, 'none');
+  return Object.hasOwn(hotCornerActions, action) ? action : 'none';
+}
+
+function cancelHotCorner() {
+  if (hotCornerTimer === null) return;
+  clearTimeout(hotCornerTimer);
+  hotCornerTimer = null;
+}
+
+function leaveHotCorner() {
+  cancelHotCorner();
+  enteredCorner = null;
+}
+
+function canTriggerHotCorner() {
+  return !finderDrag.length && !dockDrag && !menuAnchor
+    && ![...document.querySelectorAll('dialog')].some((dialog) => dialog.open);
+}
+
+function onHotCornerPointer(event) {
+  if (event.pointerType === 'touch') {
+    leaveHotCorner();
+    return;
+  }
+  const edge = 10;
+  const { clientX: x, clientY: y } = event;
+  const horizontal = x < edge ? 'left' : x >= innerWidth - edge ? 'right' : '';
+  const vertical = y < edge ? 'top' : y >= innerHeight - edge ? 'bottom' : '';
+  if (!horizontal || !vertical || x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) {
+    leaveHotCorner();
+    return;
+  }
+  if (event.buttons) cancelHotCorner();
+  const corner = vertical + '-' + horizontal;
+  if (corner === enteredCorner) return;
+  cancelHotCorner();
+  enteredCorner = corner;
+  const action = hotCornerActions[hotCornerAction(corner)][1];
+  if (!action || event.buttons || !canTriggerHotCorner()) return;
+  hotCornerTimer = setTimeout(() => {
+    hotCornerTimer = null;
+    if (canTriggerHotCorner()) action();
+  }, 650);
+}
+
+function setupHotCorners() {
+  window.addEventListener('pointermove', onHotCornerPointer);
+  document.documentElement.addEventListener('pointerleave', leaveHotCorner);
+  window.addEventListener('pointercancel', leaveHotCorner);
+  document.addEventListener('dragstart', cancelHotCorner, true);
+}
+
+function clearDesktopPeek() {
+  peekActive = false;
+  peekWindow = null;
+}
+
+function toggleDesktopPeek() {
+  if (peekActive) {
+    const previous = peekWindow;
+    clearDesktopPeek();
+    syncSpaces();
+    if (previous && !previous.element.hidden && windows.get(previous.id) === previous) {
+      activate(previous);
+      previous.element.focus({ preventScroll: true });
+    } else focusNext('finder');
+    byId('announcement').textContent = 'Finestre ripristinate.';
+    return;
+  }
+  peekWindow = activeWindow;
+  peekActive = true;
+  closeDownloadStack();
+  syncSpaces();
+  activate(null);
+  byId('announcement').textContent = 'Scrivania visibile. Per ripristinare le finestre, usa il menu Vista.';
+}
+
+
+'use strict';
+
 const byId = (id) => document.getElementById(id);
 const desktop = byId('desktop');
 const windows = new Map();
@@ -2041,7 +2385,7 @@ function setDockVisibility() {
 }
 
 function appName(id) {
-  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino' }[id];
+  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino', downloads: 'Download' }[id];
 }
 
 function launch(id) {
@@ -2099,13 +2443,17 @@ function refreshDock() {
   const dock = byId('dock');
   const pinned = dockPrefs.order.filter((id) => !dockPrefs.unpinned.includes(id));
   const running = dockPrefs.order.filter((id) => dockPrefs.unpinned.includes(id) && windows.has(id));
-  const visible = ['finder', ...pinned, ...running, 'trash'];
+  const visible = ['finder', ...pinned, ...running, 'downloads', 'trash'];
   const existing = [...dock.querySelectorAll('[data-app]')].map((entry) => entry.dataset.app);
   if (visible.join() !== existing.join()) renderDock(visible);
   setDockVisibility();
   for (const entry of byId('dock').querySelectorAll('[data-app]')) {
     entry.classList.toggle('is-open', windows.has(entry.dataset.app));
     if (entry.dataset.app === 'trash') entry.classList.toggle('has-items', folderItems('trash').length > 0);
+  }
+  if (!byId('download-stack').hidden) {
+    syncDownloadStackButton();
+    if (!finderDrag.length) renderDownloadStack();
   }
 }
 
@@ -2144,7 +2492,7 @@ function focusNext(fallbackId) {
 
 function syncSpaces() {
   for (const record of windows.values()) {
-    record.element.hidden = Boolean(record.minimized || record.space !== activeSpace);
+    record.element.hidden = Boolean(peekActive || record.minimized || record.space !== activeSpace);
   }
   desktop.setAttribute('aria-label', spaceName(activeSpace));
   desktop.dataset.space = String(spaces.indexOf(activeSpace) + 1);
@@ -2152,6 +2500,8 @@ function syncSpaces() {
 
 function switchSpace(id) {
   if (!spaces.includes(id) || activeSpace === id) return;
+  clearDesktopPeek();
+  closeDownloadStack();
   activeSpace = id;
   syncSpaces();
   syncWallpaper();
@@ -2163,6 +2513,7 @@ function switchSpace(id) {
 }
 
 function closeWindow(record) {
+  if (record.id === 'finder' && finderDrag.length) endFinderDrag();
   if (record.id === 'photos') clearPhotoUrls();
   if (record.id === 'preview') {
     clearPreview();
@@ -2289,6 +2640,7 @@ function beginGeometry(event, record, handle, edge) {
 }
 
 function openWindow(id, focus = true) {
+  clearDesktopPeek();
   let record = windows.get(id);
   if (record) {
     record.minimized = false;
@@ -2401,6 +2753,9 @@ const finder = {
 const tabLimit = 12;
 const finderDragType = 'application/x-laguna-items';
 let finderDrag = [];
+let finderDragSource = null;
+let springHover = null;
+const springDelay = 650;
 const fixedFolders = ['desktop', 'documents', 'downloads', 'images', 'trash', 'local'];
 const limitBytes = 256 * 1024;
 const limitEntries = 240;
@@ -2739,6 +3094,7 @@ function renderFinder(record) {
   record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-tabs" aria-label="Schede Finder"></nav><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
   const sidebar = record.content.querySelector('.finder-sidebar');
   const grid = record.content.querySelector('.files');
+  bindFinderDrop(grid, currentFolder);
   grid.addEventListener('click', (event) => {
     if (event.target === grid) selectFinderItem(null, grid);
   });
@@ -2794,7 +3150,7 @@ function renderFinder(record) {
       const folder = folders[id];
       const entry = button(folder.name, 'sidebar-item', icon(folder.icon) + '<span>' + folder.name + '</span>', () => goToFolder(id));
       entry.dataset.folder = id;
-      if (id !== 'local') bindFinderDrop(entry, id);
+      if (id !== 'local') bindFinderDrop(entry, id, true);
       sidebar.append(entry);
     }
   }
@@ -2855,26 +3211,70 @@ function renderFinderTabs(container) {
   container.append(add);
 }
 
-function bindFinderDrop(element, destination) {
+function clearSpringHover(target = null) {
+  if (!springHover || (target && springHover.element !== target)) return;
+  clearTimeout(springHover.timer);
+  springHover.element.classList.toggle('is-spring-target', false);
+  springHover = null;
+}
+
+function validFinderDrop(destination) {
+  return finderDrag.length && (destination === 'trash' || (canWriteFolder(destination)
+    && finderDrag.every((id) => !insideFolder(destination, id))));
+}
+
+function queueSpringOpen(element, destination) {
+  const finderWindow = windows.get('finder');
+  if (!finderWindow || finderWindow.element.hidden || destination === currentFolder() || !canWriteFolder(destination)) return;
+  clearSpringHover();
+  element.classList.toggle('is-spring-target', true);
+  const timer = setTimeout(() => {
+    clearSpringHover(element);
+    element.classList.toggle('is-drop-target', false);
+    if (element.isConnected && !finderWindow.element.hidden && validFinderDrop(destination)) {
+      goToFolder(destination);
+      finderWindow.content.querySelector('.files').scrollTop = 0;
+    }
+  }, springDelay);
+  springHover = { element, timer };
+}
+
+function bindFinderDrop(element, target, spring = false) {
+  const targetFolder = typeof target === 'function' ? target : () => target;
   const isDrag = (event) => finderDrag.length && event.dataTransfer.types.includes(finderDragType);
   element.addEventListener('dragover', (event) => {
-    if (!isDrag(event) || finderDrag.includes(destination)) return;
+    if (!isDrag(event)) return;
+    event.stopPropagation();
+    const destination = targetFolder();
+    if (!validFinderDrop(destination)) {
+      clearSpringHover();
+      return;
+    }
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     element.classList.toggle('is-drop-target', true);
+    if (springHover?.element !== element) {
+      clearSpringHover();
+      if (spring) queueSpringOpen(element, destination);
+    }
   });
   element.addEventListener('dragleave', (event) => {
-    if (!event.relatedTarget || !element.contains(event.relatedTarget)) element.classList.toggle('is-drop-target', false);
+    if (!event.relatedTarget || !element.contains(event.relatedTarget)) {
+      element.classList.toggle('is-drop-target', false);
+      clearSpringHover(element);
+    }
   });
   element.addEventListener('drop', (event) => {
     if (!isDrag(event)) return;
-    event.preventDefault();
     event.stopPropagation();
-    element.classList.toggle('is-drop-target', false);
+    const destination = targetFolder();
+    if (!validFinderDrop(destination)) return;
+    event.preventDefault();
     const ids = finderDrag;
-    finderDrag = [];
+    element.classList.toggle('is-drop-target', false);
+    endFinderDrag();
     if (destination === 'trash') sendToTrash(ids);
-    else if (destination !== currentFolder()) {
+    else if (ids.some((id) => virtualEntries.get(id)?.parent !== destination)) {
       const error = moveEntries(ids, destination);
       showFinderMessage(error || 'Elementi spostati in ' + folderInfo(destination).name + '.');
     }
@@ -2885,14 +3285,28 @@ function bindFinderDrag(tile, id, grid) {
   tile.draggable = true;
   tile.addEventListener('dragstart', (event) => {
     if (!finder.selection.has(id)) selectFinderItem(id, grid);
-    finderDrag = [...finder.selection].filter((item) => virtualEntries.has(item));
-    event.dataTransfer.setData(finderDragType, id);
-    event.dataTransfer.effectAllowed = 'move';
+    startFinderDrag(event, [...finder.selection].filter((item) => virtualEntries.has(item)), tile);
   });
-  tile.addEventListener('dragend', () => {
-    finderDrag = [];
-    for (const target of document.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
-  });
+  tile.addEventListener('dragend', endFinderDrag);
+}
+
+function startFinderDrag(event, ids, source = null) {
+  clearSpringHover();
+  finderDrag = ids;
+  finderDragSource = source;
+  event.dataTransfer.setData(finderDragType, ids[0]);
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function endFinderDrag() {
+  const source = finderDragSource;
+  const finderWindow = windows.get('finder');
+  const parked = source?.classList.contains('finder-drag-source');
+  clearSpringHover();
+  finderDrag = [];
+  finderDragSource = null;
+  for (const target of document.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
+  if (parked && finderWindow) updateFinder(finderWindow);
 }
 
 function updateFinder(record) {
@@ -2928,8 +3342,15 @@ function updateFinder(record) {
   path.append(current);
   const grid = surface.querySelector('.files');
   grid.classList.toggle('list-view', finder.view === 'list');
-  grid.replaceChildren();
+  const parked = finderDragSource && [...grid.children].includes(finderDragSource) ? finderDragSource : null;
+  if (parked) {
+    parked.classList.toggle('finder-drag-source', true);
+    parked.tabIndex = -1;
+    parked.setAttribute('aria-hidden', 'true');
+    for (const child of [...grid.children]) if (child !== parked) child.remove();
+  } else grid.replaceChildren();
   for (const itemId of items) {
+    if (parked?.dataset.item === itemId) continue;
     const item = virtualEntries.get(itemId) ?? folders[itemId];
     const isFolder = item.kind === 'folder' || fixedFolders.includes(itemId);
     const kind = isFolder ? 'Cartella' : item.kind === 'import' ? 'File importato' : 'Documento';
@@ -2949,7 +3370,7 @@ function updateFinder(record) {
     tile.addEventListener('dblclick', (event) => {
       if (!event.ctrlKey && !event.metaKey && !event.shiftKey) openItem(itemId);
     });
-    if (isFolder && canWriteFolder(itemId)) bindFinderDrop(tile, itemId);
+    if (isFolder && canWriteFolder(itemId)) bindFinderDrop(tile, itemId, true);
     if (id !== 'trash' && virtualEntries.has(itemId)) bindFinderDrag(tile, itemId, grid);
     grid.append(tile);
   }
@@ -3519,11 +3940,12 @@ function renderSettings(record) {
     content.append(group);
   }
   content.append(renderDockSettings());
+  content.append(renderHotCornerSettings(status));
   record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.3</h2><p>In <strong>Università</strong>, JARVIS University OS si apre nella sua finestra. Usa <strong>Cambia indirizzo</strong> per configurare il sito.</p><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Trascina il titolo del riquadro per spostarlo.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.6</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Trascina il titolo del riquadro per spostarlo.</p><p>In Finder, tieni un file virtuale sopra una cartella per aprirla durante il trascinamento. Attiva gli <strong>Angoli attivi</strong> in Impostazioni.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -3927,9 +4349,11 @@ function menuItems(name) {
     File: fileCommands,
     Vista: [
       ...viewCommands,
+      [peekActive ? 'Ripristina finestre' : 'Mostra scrivania', toggleDesktopPeek],
       [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]
     ],
     Finestra: [
+      ['Cambia app…', () => openAppSwitcher(), !windows.size],
       ['Mission Control', openMission],
       ['Affianca JARVIS e appunti', arrangeStudyWindows, !canSplitWindows()],
       ...(id === 'finder' ? [['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit]] : []),
@@ -3998,15 +4422,22 @@ function renderDock(visible) {
   const dock = byId('dock');
   dock.replaceChildren();
   for (const id of visible) {
-    if (id === 'trash') {
+    if (id === 'downloads') {
       const divider = document.createElement('span');
       divider.className = 'dock-divider';
       divider.setAttribute('aria-hidden', 'true');
       dock.append(divider);
     }
     const name = appName(id);
-    const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
+    const artwork = id === 'downloads' ? '<span class="app-icon downloads">' + fileIcon('folder') + '</span>' : appIcon(id);
+    const entry = button(name, 'dock-item', artwork + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>',
+      id === 'downloads' ? toggleDownloadStack : () => { closeDownloadStack(); launch(id); });
     entry.dataset.app = id;
+    if (id === 'downloads') {
+      entry.setAttribute('aria-controls', 'download-stack');
+      entry.setAttribute('aria-expanded', 'false');
+      bindFinderDrop(entry, 'downloads');
+    }
     if (id === 'trash') bindFinderDrop(entry, 'trash');
     if (configurableDockApps.includes(id)) bindDockItem(entry, id);
     dock.append(entry);
@@ -4109,6 +4540,8 @@ function renderDockSettings() {
 }
 
 function setupEvents() {
+  setupDockExtras();
+  setupHotCorners();
   byId('fullscreen-button').addEventListener('click', toggleFullScreen);
   document.addEventListener('fullscreenchange', () => {
     const label = document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero';
@@ -4200,6 +4633,7 @@ function setupEvents() {
   }
   launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
   document.addEventListener('pointerdown', (event) => {
+    cancelHotCorner();
     if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu], [data-dock-menu], [data-widget-menu]')) closeMenu();
     if (dockRevealed && !event.target.closest('#dock-area, #menu-popover')) {
       dockRevealed = false;
@@ -4210,7 +4644,7 @@ function setupEvents() {
     if (!event.target.closest('.window, .desktop-item')) activate(null);
   });
   document.addEventListener('keydown', (event) => {
-    if (event.isComposing || lockScreen.open) return;
+    if (event.isComposing || lockScreen.open || byId('app-switcher').open) return;
     if (event.code === 'Space' && event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
       event.preventDefault();
       if (!event.repeat) toggleSpotlight();
@@ -4231,7 +4665,9 @@ function setupEvents() {
     buttons[(index + direction + buttons.length) % buttons.length]?.focus();
   });
   window.addEventListener('resize', () => {
+    leaveHotCorner();
     closeMenu();
+    syncDownloadStackButton();
     showSplitPreview(null);
     for (const record of windows.values()) position(record);
     positionWidgets();

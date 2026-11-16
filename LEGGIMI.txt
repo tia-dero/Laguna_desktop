@@ -1,4 +1,4 @@
-LAGUNA 2.4
+LAGUNA 2.6
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
@@ -32,12 +32,23 @@ Da tastiera seleziona la maniglia e usa le frecce, oppure premi Home per
 ripristinare la posizione iniziale.
 
 COMANDI
+- Tieni premuto Alt e premi Q per scorrere tra le app aperte. Rilascia
+  Alt per attivare quella scelta. Oppure usa Finestra > Cambia app.
+- L'icona Download del Dock apre la pila dei file virtuali. Apri un file
+  con un clic, oppure trascinalo in un'altra cartella del Finder.
 - I menu seguono la finestra attiva, con azioni di Finder, JARVIS e Foto.
 - Finestra > Affianca JARVIS e appunti apre entrambi in Università.
   Trascina una finestra verso un bordo per affiancarla, oppure fai clic
   destro sul pulsante verde. Un clic sul verde ripristina la misura.
 - Finder: doppio clic per aprire, Spazio per l'anteprima, + per una scheda.
   Clic destro o Azioni Finder per gestire gli elementi virtuali.
+- Tieni un file virtuale sopra una cartella del Finder per aprirla senza
+  rilasciarlo. Ripeti sulle sottocartelle e lascia il file a destinazione.
+  Lo spostamento riguarda solo i file virtuali di Laguna.
+- In Impostazioni > Angoli attivi assegna a ciascun angolo Mission Control,
+  Mostra scrivania o Blocca schermo. Gli angoli partono disattivati.
+  Tieni il puntatore nell'angolo per circa mezzo secondo. Per rivedere
+  le finestre, esci e rientra nell'angolo o usa Vista > Ripristina finestre.
 - Spotlight: Ctrl + Spazio. Widget: menu di sistema > Modifica widget.
   Scegli fra otto widget, inclusi Note rapide, Timer, Orario, Progetti
   e Convertitore mm/cm/pollici. Trascina l'angolo in basso a destra
