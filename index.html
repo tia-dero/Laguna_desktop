@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ChuUf+6YW5RDqLr2fslI/L8RJKH4GWU4efv+ExDefPU='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Zv8C2CFi/JC5FhKSZGwp6au+sUP9GCcK9vPc/VB7mqU='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.1 · Desktop per EliteBook</title>
+  <title>Laguna 2.2 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -500,8 +500,14 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .space-chip { border: 0; border-radius: 6px; background: transparent; color: #eef6ff; padding: 4px 13px; font-size: 11px; font-weight: 650; white-space: nowrap; }
 .space-chip:hover { background: #ffffff21; }
 .space-chip[aria-current="true"] { color: #fff; background: #ffffff34; box-shadow: inset 0 0 0 1px #ffffff21; }
-#space-home { position: absolute; top: clamp(30px, 12vh, 155px); left: clamp(16px, 6vw, 100px); width: min(360px, calc(100% - 38px)); color: #fff; padding: 21px 22px 22px; border: 1px solid #eaf0ff40; border-radius: 23px; background: #101b2b99; box-shadow: 0 18px 54px #07152342; backdrop-filter: blur(18px) saturate(118%); }
+#space-home { position: absolute; top: clamp(30px, 12vh, 155px); left: clamp(16px, 6vw, 100px); width: min(360px, calc(100% - 38px)); max-height: calc(100% - 16px); overflow: auto; color: #fff; padding: 21px 22px 22px; border: 1px solid #eaf0ff40; border-radius: 23px; background: #101b2b99; box-shadow: 0 18px 54px #07152342; backdrop-filter: blur(18px) saturate(118%); }
 #space-home h1 { font-size: clamp(34px, 5vw, 57px); line-height: 1; letter-spacing: -.055em; font-weight: 680; }
+.space-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: grab; touch-action: none; user-select: none; }
+.space-panel-header h1 { min-width: 0; overflow-wrap: anywhere; }
+.space-panel-grip { display: grid; place-items: center; flex: 0 0 34px; height: 36px; padding: 0; border: 1px solid #ffffff35; border-radius: 9px; background: #ffffff1a; color: #f0f7ff; cursor: grab; }
+.space-panel-grip .glyph { width: 17px; height: 17px; }
+.space-panel-grip:hover { background: #ffffff33; }
+#space-home.is-moving :is(.space-panel-header, .space-panel-grip) { cursor: grabbing; }
 #space-home > p { margin: 10px 0 21px; color: #e5edf8; font-size: 13px; line-height: 1.4; }
 .space-actions { display: grid; gap: 7px; }
 .space-action { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border: 1px solid #ffffff25; border-radius: 10px; background: #e9f4ff18; color: #fff; font-size: 12px; font-weight: 650; text-align: left; }
@@ -546,7 +552,9 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 }
 @media (max-width: 620px) {
   #clock { display: none; }
-  #space-home { top: 18px; }
+  #space-home { top: 18px; padding: 16px; border-radius: 18px; }
+  #space-home h1 { font-size: clamp(24px, 8vw, 40px); }
+  .space-panel-grip { flex-basis: 40px; height: 42px; }
   #desktop-icons { display: none; }
   #app-menu { max-width: 62px; overflow: hidden; text-overflow: ellipsis; }
   #menubar .status-button { padding-inline: 5px; }
@@ -1382,6 +1390,79 @@ const studioSpaces = {
 };
 const studioIcons = { studio: 'calendar', jarvis: 'spark', photos: 'image', projects: 'cube' };
 const studyWeekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+const spacePanelMargin = 8;
+const spacePanelArrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+
+function spacePanelKey(space) {
+  return 'space.panel.' + space;
+}
+
+function readSpacePanelPosition(space) {
+  try {
+    const position = JSON.parse(readValue(spacePanelKey(space), 'null'));
+    return position && Number.isFinite(position.left) && Number.isFinite(position.top) ? position : null;
+  } catch {
+    return null;
+  }
+}
+
+function placeSpacePanel(home, position) {
+  if (!position) {
+    home.style.left = '';
+    home.style.top = '';
+    return;
+  }
+  const right = desktop.clientWidth - home.offsetWidth - spacePanelMargin;
+  const bottom = desktop.clientHeight - home.offsetHeight - spacePanelMargin;
+  const left = Math.round(Math.max(spacePanelMargin, Math.min(right, position.left)));
+  const top = Math.round(Math.max(spacePanelMargin, Math.min(bottom, position.top)));
+  home.style.left = left + 'px';
+  home.style.top = top + 'px';
+  return { left, top };
+}
+
+function positionSpaceHome() {
+  const home = byId('space-home');
+  if (!home.hidden) placeSpacePanel(home, readSpacePanelPosition(activeSpace));
+}
+
+function bindSpacePanelDrag(home, header, grip, space) {
+  let drag = null;
+  const savePosition = (position) => saveActivityValue(spacePanelKey(space), JSON.stringify(position));
+  header.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || drag) return;
+    drag = { pointer: event.pointerId, left: home.offsetLeft, top: home.offsetTop, x: event.clientX, y: event.clientY };
+    header.setPointerCapture(event.pointerId);
+  });
+  header.addEventListener('pointermove', (event) => {
+    if (!drag || drag.pointer !== event.pointerId || space !== activeSpace) return;
+    const moveX = event.clientX - drag.x;
+    const moveY = event.clientY - drag.y;
+    if (!drag.position && Math.hypot(moveX, moveY) < 4) return;
+    home.classList.toggle('is-moving', true);
+    drag.position = placeSpacePanel(home, { left: drag.left + moveX, top: drag.top + moveY });
+  });
+  const finish = (event) => {
+    if (!drag || drag.pointer !== event.pointerId) return;
+    const { position } = drag;
+    drag = null;
+    home.classList.toggle('is-moving', false);
+    if (position) savePosition(position);
+  };
+  for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) header.addEventListener(event, finish);
+  grip.addEventListener('keydown', (event) => {
+    const offset = spacePanelArrows[event.key];
+    if (!offset && event.key !== 'Home') return;
+    event.preventDefault();
+    if (!offset) {
+      savePosition(null);
+      positionSpaceHome();
+      return;
+    }
+    const step = event.shiftKey ? 32 : 8;
+    savePosition(placeSpacePanel(home, { left: home.offsetLeft + offset[0] * step, top: home.offsetTop + offset[1] * step }));
+  });
+}
 
 function renderSpaceHome() {
   const home = byId('space-home');
@@ -1399,10 +1480,17 @@ function renderSpaceHome() {
     nav.append(control);
   }
   home.replaceChildren();
+  home.classList.toggle('is-moving', false);
   home.hidden = !profile;
   if (!profile) return;
+  const header = document.createElement('header');
+  header.className = 'space-panel-header';
   const title = document.createElement('h1');
   title.textContent = profile.name;
+  const grip = button('Sposta riquadro ' + profile.name, 'space-panel-grip', icon('grip'), () => {});
+  grip.title = 'Trascina per spostare · Frecce da tastiera · Home per ripristinare';
+  grip.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home');
+  header.append(title, grip);
   const subtitle = document.createElement('p');
   subtitle.textContent = profile.caption;
   const actions = document.createElement('div');
@@ -1411,7 +1499,9 @@ function renderSpaceHome() {
     const entry = button(label, 'space-action', appIcon(id) + '<span>' + label + '</span>' + icon('right'), () => openWindow(id));
     actions.append(entry);
   }
-  home.append(title, subtitle, actions);
+  home.append(header, subtitle, actions);
+  bindSpacePanelDrag(home, header, grip, activeSpace);
+  positionSpaceHome();
 }
 
 function activityField(label, text, save) {
@@ -1691,6 +1781,7 @@ let spaces = [1, 2, 3];
 let activeSpace = 1;
 
 const glyphs = {
+  grip: '<path d="M8 6h.1M16 6h.1M8 12h.1M16 12h.1M8 18h.1M16 18h.1" stroke-width="3.2"/>',
   spark: '<path d="M12 2.5c.8 5.1 3 7.3 8.5 9.5-5.5 1.8-7.7 4-8.5 9.5-.9-5.5-3.1-7.7-8.5-9.5C8.9 9.8 11.1 7.6 12 2.5Z"/>',
   cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9 8-4.5M12 12 4 7.5M12 12v9"/>',
   lock: '<rect x="6" y="10.5" width="12" height="10" rx="2"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5M12 14.5v2"/>',
@@ -3237,7 +3328,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.1</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Laguna ricorda appunti, orari, sfondi e finestre in questo browser.</p><p>Apri <strong>Modifica widget</strong> nel menu di sistema per scegliere i widget. Trascina l’angolo inferiore destro per cambiarne la misura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.2</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Trascina il titolo del riquadro per spostarlo. Ogni scrivania ricorda la sua posizione.</p><p>Apri <strong>Modifica widget</strong> nel menu di sistema per scegliere i widget. Trascina l’angolo inferiore destro per cambiarne la misura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -3922,6 +4013,7 @@ function setupEvents() {
     closeMenu();
     for (const record of windows.values()) position(record);
     positionWidgets();
+    positionSpaceHome();
   });
   window.addEventListener('pagehide', (event) => {
     if (!event.persisted) {
