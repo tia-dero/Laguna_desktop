@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Zv8C2CFi/JC5FhKSZGwp6au+sUP9GCcK9vPc/VB7mqU='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-e98EvP7gjNn2rW7ck+LzdN27HiOgH89IJXMkFQsA5cE='; style-src 'unsafe-inline'; img-src blob: data:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.2 · Desktop per EliteBook</title>
+  <title>Laguna 2.4 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -110,6 +110,8 @@ button, h1, h2, p { margin: 0; }
 .desktop-item .file-icon { width: 51px; height: 42px; }
 .desktop-item .drive-icon { width: 46px; height: 39px; margin-block: 2px 1px; }
 #windows { position: absolute; inset: 0; pointer-events: none; }
+#split-preview { position: absolute; z-index: 23; pointer-events: none; border: 2px solid #addaffc9; border-radius: 12px; background: #80baff24; box-shadow: inset 0 0 0 1px #163c70a1; }
+.window.is-split .resize-handle { display: none; }
 .window { position: absolute; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; pointer-events: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 17px 52px #031f3c45, 0 3px 9px #021e322d; }
 .window.is-active { box-shadow: 0 24px 70px #041e365e, 0 4px 14px #031d3545; }
 .window.is-maximized { border-radius: 8px; }
@@ -529,6 +531,18 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .activity-link { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .activity-link .app-hint { width: 100%; }
 .activity-link .primary-button { text-decoration: none; }
+.jarvis-workspace { height: 100%; min-height: 0; display: flex; flex-direction: column; background: var(--surface); }
+.jarvis-toolbar, .jarvis-address-editor { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.jarvis-toolbar > a { margin-inline-start: auto; text-decoration: none; }
+.jarvis-address-editor input { flex: 1 1 190px; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); font: inherit; font-size: 12px; }
+.jarvis-address-editor .app-hint { flex-basis: 100%; }
+.jarvis-address-editor .app-hint:empty { display: none; }
+.jarvis-view { flex: 1; min-height: 70px; display: grid; background: var(--panel); }
+.jarvis-view iframe { display: block; width: 100%; height: 100%; min-height: 0; border: 0; background: #fff; }
+.jarvis-empty { display: grid; justify-items: center; align-content: center; gap: 9px; padding: 12px; text-align: center; }
+.jarvis-empty .glyph { color: var(--accent); font-size: 28px; }
+.jarvis-empty p { font-size: 12px; color: var(--muted); }
+.jarvis-hint { padding: 5px 10px; border-top: 1px solid var(--line); }
 .photo-library { height: 100%; min-height: 0; display: flex; flex-direction: column; }
 .photo-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
 .photo-empty { display: grid; align-content: center; justify-items: center; gap: 12px; height: 100%; padding: 14px; color: var(--muted); font-size: 13px; }
@@ -572,8 +586,8 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     <div id="menus">
       <button id="system-menu" class="menu-button system-mark" type="button" data-menu="Sistema" aria-label="Menu di sistema"></button>
       <button id="app-menu" class="menu-button" type="button" data-menu="App">Finder</button>
-      <button class="menu-button optional-menu" type="button" data-menu="File">File</button>
-      <button class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
+      <button id="file-menu" class="menu-button optional-menu" type="button" data-menu="File">File</button>
+      <button id="view-menu" class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
       <button class="menu-button optional-menu" type="button" data-menu="Finestra">Finestra</button>
       <button class="menu-button optional-menu" type="button" data-menu="Aiuto">Aiuto</button>
     </div>
@@ -591,6 +605,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     <div id="widgets" aria-label="Widget della scrivania"></div>
     <div id="desktop-icons"></div>
     <div id="windows"></div>
+    <div id="split-preview" aria-hidden="true" hidden></div>
   </main>
   <dialog id="widget-gallery" aria-labelledby="widget-gallery-title">
     <header class="control-header">
@@ -1607,12 +1622,93 @@ function toolLink(label, key, placeholder) {
 }
 
 function renderJarvis(record) {
-  const panel = activityPanel('JARVIS University OS');
+  const content = document.createElement('div');
+  content.className = 'jarvis-workspace';
+  const toolbar = document.createElement('div');
+  toolbar.className = 'jarvis-toolbar';
+  const editor = document.createElement('div');
+  editor.className = 'jarvis-address-editor';
+  const field = document.createElement('input');
+  field.type = 'url';
+  field.maxLength = 1500;
+  field.autocomplete = 'off';
+  field.placeholder = 'https://… oppure http://localhost:…';
+  field.setAttribute('aria-label', 'Indirizzo JARVIS');
+  field.value = readValue('study.jarvis', '');
+  const status = document.createElement('p');
+  status.className = 'app-hint';
+  status.setAttribute('role', 'status');
+  const view = document.createElement('div');
+  view.className = 'jarvis-view';
+  const empty = document.createElement('div');
+  empty.className = 'jarvis-empty';
+  empty.innerHTML = icon('spark') + '<strong>JARVIS University OS</strong><p>Inserisci l’indirizzo del tuo sito per aprirlo qui.</p>';
   const help = document.createElement('p');
-  help.className = 'app-hint';
-  help.textContent = 'Inserisci l’indirizzo della tua installazione web di JARVIS. Puoi usare anche un server attivo su questo PC.';
-  panel.append(help, toolLink('JARVIS', 'study.jarvis', 'https://… oppure http://localhost:…'));
-  record.content.replaceChildren(panel);
+  help.className = 'app-hint jarvis-hint';
+  help.textContent = 'Se la pagina non compare, usa Apri in una scheda.';
+  const external = document.createElement('a');
+  external.className = 'choice';
+  external.target = '_blank';
+  external.rel = 'noopener noreferrer';
+  external.textContent = 'Apri in una scheda ↗';
+  let address = webAddress(field.value);
+  const change = button('Cambia indirizzo', 'choice', 'Cambia indirizzo', () => {
+    editor.hidden = !editor.hidden;
+    if (!editor.hidden) {
+      field.focus();
+      field.select();
+    }
+  });
+  const reload = button('Ricarica JARVIS', 'choice', 'Ricarica', () => showJarvis());
+
+  function showJarvis() {
+    record.fileCommands = [
+      [address ? 'Cambia indirizzo…' : 'Imposta indirizzo…', () => { editor.hidden = false; field.focus(); field.select(); }],
+      ['Ricarica JARVIS', () => showJarvis(), !address],
+      ['Apri in una scheda', () => external.click(), !address]
+    ];
+    toolbar.hidden = help.hidden = !address;
+    if (!address) {
+      external.removeAttribute('href');
+      view.replaceChildren(empty);
+      return;
+    }
+    external.href = address;
+    const frame = document.createElement('iframe');
+    frame.title = 'JARVIS University OS';
+    frame.referrerPolicy = 'no-referrer';
+    const sameOrigin = new URL(address).origin === window.location.origin;
+    frame.setAttribute('sandbox', sameOrigin ? 'allow-forms allow-scripts' : 'allow-forms allow-scripts allow-same-origin');
+    frame.src = address;
+    view.replaceChildren(frame);
+  }
+
+  function saveAddress() {
+    const entered = webAddress(field.value);
+    if (!entered) {
+      status.textContent = 'Inserisci un indirizzo HTTP o HTTPS valido.';
+      field.focus();
+      return;
+    }
+    field.value = address = entered;
+    saveActivityValue('study.jarvis', address);
+    status.textContent = '';
+    showJarvis();
+    editor.hidden = true;
+    change.focus();
+  }
+
+  field.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.isComposing) return;
+    event.preventDefault();
+    saveAddress();
+  });
+  toolbar.append(change, reload, external);
+  editor.append(field, button('Salva indirizzo JARVIS', 'primary-button', 'Apri nella finestra', saveAddress), status);
+  editor.hidden = Boolean(address);
+  content.append(toolbar, editor, view, help);
+  showJarvis();
+  record.content.replaceChildren(content);
 }
 
 function renderProjects(record) {
@@ -1670,6 +1766,8 @@ function renderPhotos(record) {
   library.className = 'photo-library';
   const tools = document.createElement('div');
   tools.className = 'photo-tools';
+  record.fileCommands = [];
+  record.viewCommands = [];
   for (const [label, directory] of [['Apri cartella', true], ['Scegli foto', false]]) {
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -1683,6 +1781,7 @@ function renderPhotos(record) {
       record.content.querySelector('.photo-tools button')?.focus();
     });
     tools.append(button(label, directory ? 'primary-button' : 'choice', label + '…', () => picker.click()), picker);
+    record.fileCommands.push([label + '…', () => picker.click()]);
   }
   const help = document.createElement('p');
   help.className = 'app-hint';
@@ -1740,6 +1839,10 @@ function renderPhotos(record) {
   const next = iconButton('Foto successiva', 'right', () => showPhoto(photoSession.selected + 1, true));
   previous.disabled = photoSession.selected === 0;
   next.disabled = photoSession.selected >= photoSession.files.length - 1;
+  record.viewCommands = [
+    ['Foto precedente', () => showPhoto(photoSession.selected - 1, true), previous.disabled],
+    ['Foto successiva', () => showPhoto(photoSession.selected + 1, true), next.disabled]
+  ];
   details.append(previous, fileName, meta, next);
   const start = photoSession.page * photoPageSize;
   for (const [offset, candidate] of photoSession.files.slice(start, start + photoPageSize).entries()) {
@@ -1874,7 +1977,7 @@ const apps = {
   calculator: { name: 'Calcolatrice', size: [290, 365], render: renderCalculator },
   settings: { name: 'Impostazioni', size: [560, 500], render: renderSettings },
   studio: { name: 'Orario e appunti', size: [660, 410], space: 1, render: renderStudio },
-  jarvis: { name: 'JARVIS University OS', size: [510, 290], space: 1, render: renderJarvis },
+  jarvis: { name: 'JARVIS University OS', size: [980, 596], space: 1, render: renderJarvis },
   photos: { name: 'Foto', size: [860, 550], space: 2, render: renderPhotos },
   projects: { name: 'Banco progetti', size: [700, 435], space: 3, render: renderProjects },
   preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
@@ -1967,11 +2070,27 @@ function fit(rect) {
   };
 }
 
+const splitSides = ['left', 'right'];
+
+function canSplitWindows() {
+  return desktop.clientWidth >= bounds.minWidth * 2 + bounds.margin * 3;
+}
+
+function splitRect(side) {
+  const margin = bounds.margin;
+  const width = Math.floor((desktop.clientWidth - margin * 3) / 2);
+  return {
+    left: side === 'left' ? margin : width + margin * 2,
+    top: margin, width, height: desktop.clientHeight - margin * 2
+  };
+}
+
 function position(record) {
   const margin = bounds.margin;
   const rect = record.maximized
     ? { left: margin, top: margin, width: desktop.clientWidth - margin * 2, height: desktop.clientHeight - margin * 2 }
-    : record.rect;
+    : record.split && canSplitWindows() ? splitRect(record.split) : record.rect;
+  record.element.classList.toggle('is-split', Boolean(record.split && canSplitWindows()));
   const fitted = fit(rect);
   for (const [key, value] of Object.entries(fitted)) record.element.style[key] = value + 'px';
 }
@@ -2007,6 +2126,7 @@ function activate(record) {
   }
   for (const item of windows.values()) item.element.classList.toggle('is-active', item === record);
   byId('app-menu').textContent = record ? appName(record.id) : 'Finder';
+  updateAppMenus(record);
   saveWorkspace();
 }
 
@@ -2060,31 +2180,89 @@ function minimize(record) {
   focusNext(record.id);
 }
 
-function toggleMaximize(record) {
-  record.maximized = !record.maximized;
+function setWindowLayout(record, { maximized = false, split = null } = {}) {
+  record.maximized = maximized;
+  record.split = split;
   record.element.classList.toggle('is-maximized', record.maximized);
-  const label = record.maximized ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
+  const label = record.maximized || record.split ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
   record.maxButton.setAttribute('aria-label', label);
   record.maxButton.title = label;
   position(record);
   saveWorkspace();
 }
 
+function toggleMaximize(record) {
+  setWindowLayout(record, { maximized: !record.maximized && !record.split });
+}
+
+function tileWindow(record, side) {
+  if (!record || !splitSides.includes(side) || !canSplitWindows()) return;
+  for (const item of windows.values()) {
+    if (item !== record && item.space === record.space && item.split === side) setWindowLayout(item);
+  }
+  setWindowLayout(record, { split: side });
+}
+
+function arrangeStudyWindows() {
+  if (!canSplitWindows()) return;
+  for (const id of ['jarvis', 'studio']) {
+    const existing = windows.get(id);
+    if (existing) existing.space = 1;
+  }
+  switchSpace(1);
+  tileWindow(openWindow('jarvis', false), 'left');
+  tileWindow(openWindow('studio'), 'right');
+}
+
+function edgeSplit(event) {
+  if (!canSplitWindows()) return null;
+  const rect = desktop.getBoundingClientRect();
+  if (event.clientY < rect.top || event.clientY > rect.bottom) return null;
+  if (event.clientX <= rect.left + 20) return 'left';
+  if (event.clientX >= rect.right - 20) return 'right';
+  return null;
+}
+
+function showSplitPreview(side) {
+  const overlay = byId('split-preview');
+  overlay.hidden = !side;
+  if (!side) return;
+  for (const [key, value] of Object.entries(splitRect(side))) overlay.style[key] = value + 'px';
+}
+
 function beginGeometry(event, record, handle, edge) {
-  if (event.button !== 0 || record.maximized || (!edge && event.target.closest('button'))) return;
-  const origin = fit(record.rect);
+  if (event.button !== 0 || record.maximized || (edge && record.split) || (!edge && event.target.closest('button'))) return;
+  let origin = fit(record.rect);
   const startX = event.clientX;
   const startY = event.clientY;
   const pointer = event.pointerId;
+  const dockedRect = record.split && canSplitWindows() ? splitRect(record.split) : null;
+  let pendingSplit = null;
+  let moved = false;
   handle.setPointerCapture(pointer);
   function move(update) {
     if (update.pointerId !== pointer) return;
     const offsetX = update.clientX - startX;
     const offsetY = update.clientY - startY;
+    if (!moved) {
+      if (!edge && Math.hypot(offsetX, offsetY) < 5) return;
+      moved = true;
+      if (dockedRect) {
+        const desktopRect = desktop.getBoundingClientRect();
+        const fraction = Math.max(0, Math.min(1, (startX - desktopRect.left - dockedRect.left) / dockedRect.width));
+        origin = { ...origin, left: startX - desktopRect.left - origin.width * fraction, top: dockedRect.top };
+      }
+      if (record.split) {
+        record.rect = fit(origin);
+        setWindowLayout(record);
+      }
+    }
     const next = { ...origin };
     if (!edge) {
       next.left += offsetX;
       next.top += offsetY;
+      pendingSplit = edgeSplit(update);
+      showSplitPreview(pendingSplit);
     } else {
       if (edge !== 'bottom') {
         next.width = Math.min(origin.width + offsetX, desktop.clientWidth - origin.left - bounds.margin);
@@ -2096,11 +2274,18 @@ function beginGeometry(event, record, handle, edge) {
     record.rect = fit(next);
     position(record);
   }
-  handle.addEventListener('pointermove', move);
-  handle.addEventListener('lostpointercapture', () => {
+  function finish(update = {}) {
+    if (update.pointerId !== undefined && update.pointerId !== pointer) return;
     handle.removeEventListener('pointermove', move);
-    saveWorkspace();
-  }, { once: true });
+    handle.removeEventListener('pointerup', finish);
+    handle.removeEventListener('lostpointercapture', finish);
+    showSplitPreview(null);
+    if (update.type === 'pointerup' && pendingSplit) tileWindow(record, pendingSplit);
+    else saveWorkspace();
+  }
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('lostpointercapture', finish);
 }
 
 function openWindow(id, focus = true) {
@@ -2147,6 +2332,16 @@ function openWindow(id, focus = true) {
       titlebar.querySelector('.traffic').append(control);
       record.maxButton = control;
     }
+    record.maxButton.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      toggleMenu(record.maxButton, false, windowLayoutMenu(record), { left: event.clientX, top: event.clientY + 6 });
+    });
+    record.maxButton.addEventListener('keydown', (event) => {
+      if (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+      event.preventDefault();
+      const rect = record.maxButton.getBoundingClientRect();
+      toggleMenu(record.maxButton, true, windowLayoutMenu(record), { left: rect.left, top: rect.bottom + 6 });
+    });
     element.addEventListener('pointerdown', () => {
       if (activeWindow !== record) activate(record);
     });
@@ -3328,7 +3523,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.2</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Trascina il titolo del riquadro per spostarlo. Ogni scrivania ricorda la sua posizione.</p><p>Apri <strong>Modifica widget</strong> nel menu di sistema per scegliere i widget. Trascina l’angolo inferiore destro per cambiarne la misura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.3</h2><p>In <strong>Università</strong>, JARVIS University OS si apre nella sua finestra. Usa <strong>Cambia indirizzo</strong> per configurare il sito.</p><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Trascina il titolo del riquadro per spostarlo.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -3691,29 +3886,55 @@ function toggleFullScreen() {
   });
 }
 
+const finderViewCommands = [
+  ['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }],
+  ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }],
+  ['Ordina per nome', () => sortFinder('name')],
+  ['Ordina per tipo', () => sortFinder('kind')],
+  ['Ordine originale', () => sortFinder('default')]
+];
+
+function windowLayoutMenu(record) {
+  const canTile = Boolean(record) && canSplitWindows();
+  return [
+    ['Affianca a sinistra', () => tileWindow(record, 'left'), !canTile || record?.split === 'left'],
+    ['Affianca a destra', () => tileWindow(record, 'right'), !canTile || record?.split === 'right'],
+    [record?.maximized || record?.split ? 'Ripristina dimensioni' : 'Ingrandisci finestra', () => toggleMaximize(record), !record]
+  ];
+}
+
+function updateAppMenus(record) {
+  const id = record?.id ?? 'finder';
+  byId('file-menu').hidden = id !== 'finder' && !record?.fileCommands?.length;
+  byId('view-menu').textContent = id === 'photos' ? 'Foto' : 'Vista';
+}
+
 function menuItems(name) {
   const current = activeWindow;
   const record = windows.get('finder');
+  const id = current?.id ?? 'finder';
+  const fileCommands = id === 'finder'
+    ? [...finderActions(), ['Apri un file da Windows…', () => byId('file-picker').click()]]
+    : current.fileCommands ?? [];
+  const viewCommands = id === 'finder' ? finderViewCommands : current.viewCommands ?? [];
   const items = {
     Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Launchpad', openLaunchpad], ['Blocca schermo', openLockScreen]],
-    App: [['Apri Finder', () => openWindow('finder')], ['Apri Launchpad', openLaunchpad], ['Chiudi finestra attiva', () => closeWindow(current), !current]],
-    File: [
-      ...(current?.id === 'finder' ? finderActions() : []),
-      ['Apri un file da Windows…', () => byId('file-picker').click()]
+    App: [
+      ...(id === 'finder' ? [['Apri Finder', () => openWindow('finder')]] : fileCommands),
+      ['Apri Launchpad', openLaunchpad],
+      ['Chiudi finestra attiva', () => closeWindow(current), !current]
     ],
+    File: fileCommands,
     Vista: [
-      ['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }],
-      ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }],
-      ['Ordina per nome', () => sortFinder('name')],
-      ['Ordina per tipo', () => sortFinder('kind')],
-      ['Ordine originale', () => sortFinder('default')],
+      ...viewCommands,
       [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]
     ],
     Finestra: [
       ['Mission Control', openMission],
-      ['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit],
+      ['Affianca JARVIS e appunti', arrangeStudyWindows, !canSplitWindows()],
+      ...(id === 'finder' ? [['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit]] : []),
       ['Riduci a icona', () => minimize(current), !current],
-      [current?.maximized ? 'Ripristina dimensioni' : 'Ingrandisci', () => toggleMaximize(current), !current],
+      ...windowLayoutMenu(current),
       ...[...windows.values()].map((item) => [
         item === record ? 'Finder · ' + folderInfo(currentFolder()).name : item.title.textContent,
         () => openWindow(item.id)
@@ -4011,6 +4232,7 @@ function setupEvents() {
   });
   window.addEventListener('resize', () => {
     closeMenu();
+    showSplitPreview(null);
     for (const record of windows.values()) position(record);
     positionWidgets();
     positionSpaceHome();
@@ -4064,7 +4286,7 @@ function saveWorkspace() {
   if (restoringWorkspace) return;
   const state = [...windows.values()].filter(({ id }) => restorableApps.includes(id))
     .sort((first, second) => first.order - second.order)
-    .map(({ id, rect, minimized, maximized, space }) => ({ id, rect, minimized, maximized, space }));
+    .map(({ id, rect, minimized, maximized, split, space }) => ({ id, rect, minimized, maximized, split, space }));
   writeValue('workspace.v1', JSON.stringify({
     windows: state, spaces, activeSpace, folder: currentFolder(), view: finder.view, sort: finder.sort,
     tabs: finder.tabs.map((tab) => tab.history[tab.index]), activeTab: finder.activeTab
@@ -4095,8 +4317,10 @@ function restoreWorkspace() {
       const record = openWindow(item.id, false);
       record.space = spaces.includes(item.space) ? item.space : spaces[0];
       if (['left', 'top', 'width', 'height'].every((key) => Number.isFinite(item.rect?.[key]))) record.rect = item.rect;
-      if (item.maximized) toggleMaximize(record);
-      else position(record);
+      setWindowLayout(record, {
+        maximized: item.maximized === true,
+        split: !item.maximized && splitSides.includes(item.split) ? item.split : null
+      });
       if (item.minimized) {
         record.minimized = true;
       }

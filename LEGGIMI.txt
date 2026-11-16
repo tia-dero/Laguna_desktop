@@ -1,4 +1,4 @@
-LAGUNA 2.2
+LAGUNA 2.4
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
@@ -12,8 +12,9 @@ AVVIO
 
 SCRIVANIE
 - Università: apri Orario e appunti, scegli un giorno e annota le lezioni.
-  Per JARVIS University OS, configura l'indirizzo HTTP o HTTPS della tua
-  installazione attiva. È supportato anche un server su localhost.
+  Apri JARVIS University OS per vedere il sito in una finestra di Laguna.
+  Se serve, usa Cambia indirizzo per impostare l'indirizzo HTTP o HTTPS.
+  Se il sito non si vede nella finestra, usa Apri in una scheda.
 - Foto: scegli la cartella della Nikon o più file dal PC. Laguna mostra
   miniature e anteprime per JPEG, PNG, WebP, AVIF, GIF e BMP. Per vedere
   un RAW Nikon NEF o NRW, apri una copia JPEG. I file sono in sola lettura.
@@ -31,6 +32,10 @@ Da tastiera seleziona la maniglia e usa le frecce, oppure premi Home per
 ripristinare la posizione iniziale.
 
 COMANDI
+- I menu seguono la finestra attiva, con azioni di Finder, JARVIS e Foto.
+- Finestra > Affianca JARVIS e appunti apre entrambi in Università.
+  Trascina una finestra verso un bordo per affiancarla, oppure fai clic
+  destro sul pulsante verde. Un clic sul verde ripristina la misura.
 - Finder: doppio clic per aprire, Spazio per l'anteprima, + per una scheda.
   Clic destro o Azioni Finder per gestire gli elementi virtuali.
 - Spotlight: Ctrl + Spazio. Widget: menu di sistema > Modifica widget.
