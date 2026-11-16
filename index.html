@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Nvj0ITqwgcsxuKZdFDmE47IFGICn1tUpTb3W3od0770='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ChuUf+6YW5RDqLr2fslI/L8RJKH4GWU4efv+ExDefPU='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.0 · Desktop per EliteBook</title>
+  <title>Laguna 2.1 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -362,7 +362,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 :root[data-motion="reduced"] #dock-area #dock { transition: none; }
 :root[data-motion="reduced"] .dock-item:not(.is-drop-target) .app-icon { transform: none; }
 
-#widgets { position: absolute; inset: 0; pointer-events: none; }
+#widgets { position: absolute; inset: 0; isolation: isolate; pointer-events: none; }
 .widget-surface { --widget-base: #f8f8fa; --widget-ink: #202027; --widget-secondary: #565663; --widget-accent: #0068dc; --widget-rule: #74747e29; color: var(--widget-ink); background: var(--widget-base); border: 1px solid #c4c4cc60; border-radius: 22px; overflow: hidden; }
 .widget-surface[data-widget-kind="calendar"] { --widget-accent: #c12837; }
 .widget-surface[data-widget-kind="clock"] { --widget-base: #19191d; --widget-ink: #fafafa; --widget-secondary: #c0c0c9; --widget-accent: #ff9f0a; --widget-rule: #ffffff29; }
@@ -373,26 +373,33 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .desktop-widget[data-size="medium"], .desktop-widget[data-size="large"] { width: min(366px, calc(100% - 12px)); }
 .desktop-widget[data-size="large"] { height: min(318px, calc(100% - 12px)); }
 .desktop-widget:focus-within { z-index: 1; }
+.widget-resize { position: absolute; z-index: 3; right: 5px; bottom: 5px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 5px; background: transparent; touch-action: none; cursor: nwse-resize; }
+.widget-resize::before { content: ""; display: block; width: 8px; height: 8px; margin: 6px; border-right: 2px solid var(--widget-secondary); border-bottom: 2px solid var(--widget-secondary); border-radius: 0 0 3px; opacity: .55; }
+.widget-resize:hover, .widget-resize:focus-visible { background: var(--widget-rule); }
+.widget-resize:hover::before, .widget-resize:focus-visible::before { opacity: 1; }
 .desktop-widget header { position: absolute; z-index: 2; inset: 0 0 auto; }
 .widget-handle { width: 100%; height: 15px; padding: 0; touch-action: none; user-select: none; border: 0; background: transparent; color: transparent; cursor: grab; }
 .widget-handle::before { content: ""; display: block; width: 22px; height: 3px; margin: auto; border-radius: 99px; background: var(--widget-secondary); opacity: 0; }
 .desktop-widget:hover .widget-handle::before, .widget-handle:focus-visible::before { opacity: .65; }
 .widget-handle:active { cursor: grabbing; }
 .widget-body { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 15px 12px 10px; overflow: auto; }
+.desktop-widget .widget-body { padding-bottom: 25px; }
+.desktop-widget[data-widget-kind="clock"] .widget-body { padding-bottom: 10px; }
 .widget-surface[data-widget-kind="clock"] .widget-body { align-items: center; justify-content: center; overflow: hidden; }
-.widget-surface[data-widget-kind="clock"][data-size="medium"] .widget-body { flex-direction: row; gap: 16px; }
-.widget-clock-face { position: relative; flex: none; width: 120px; aspect-ratio: 1; border: 1px solid #d8d8e5; border-radius: 50%; color: #1b1b22; background: #fdfdff; }
-.widget-clock-number { position: absolute; inset: 50% auto auto 50%; font-size: 12px; font-weight: 650; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-44px) rotate(var(--counter-angle)); }
+.widget-surface[data-widget-kind="clock"]:not([data-size="small"]) .widget-body { flex-direction: row; gap: 16px; }
+.widget-clock-face { --clock-diameter: 120px; position: relative; flex: none; width: var(--clock-diameter); aspect-ratio: 1; border: 1px solid #d8d8e5; border-radius: 50%; color: #1b1b22; background: #fdfdff; }
+.widget-surface[data-size="small"] .widget-clock-face { --clock-diameter: 108px; }
+.widget-clock-number { position: absolute; inset: 50% auto auto 50%; font-size: 11px; font-weight: 650; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(calc(var(--clock-diameter) * -.37)) rotate(var(--counter-angle)); }
 .widget-clock-face > span:not(.widget-clock-number) { position: absolute; z-index: 1; bottom: 50%; left: 50%; border-radius: 12px; background: currentColor; transform-origin: 50% 100%; }
-.widget-clock-hour { width: 5px; height: 26px; transform: translateX(-50%) rotate(var(--hour, 0deg)); }
-.widget-clock-minute { width: 3px; height: 39px; transform: translateX(-50%) rotate(var(--minute, 0deg)); }
-.widget-clock-second { width: 2px; height: 47px; color: var(--widget-second, #df7400); transform: translateX(-50%) rotate(var(--second, 0deg)); }
+.widget-clock-hour { width: 5px; height: 22%; transform: translateX(-50%) rotate(var(--hour, 0deg)); }
+.widget-clock-minute { width: 3px; height: 33%; transform: translateX(-50%) rotate(var(--minute, 0deg)); }
+.widget-clock-second { width: 2px; height: 40%; color: var(--widget-second, #df7400); transform: translateX(-50%) rotate(var(--second, 0deg)); }
 .widget-clock-face > .widget-clock-pin { width: 7px; height: 7px; transform: translate(-50%, 50%); }
 .widget-clock-caption { min-width: 0; margin-top: 3px; text-align: center; }
 .widget-time { font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .widget-date { color: var(--widget-secondary); font-size: 10px; }
-.widget-surface[data-size="medium"] .widget-clock-caption { text-align: left; }
-.widget-surface[data-size="medium"] .widget-time { font-size: 32px; letter-spacing: -.04em; }
+.widget-surface:not([data-size="small"]) .widget-clock-caption { text-align: left; }
+.widget-surface:not([data-size="small"]) .widget-time { font-size: 32px; letter-spacing: -.04em; }
 .widget-calendar-head { display: flex; align-items: center; gap: 1px; }
 .widget-calendar-label { flex: 1; padding: 2px 0; border: 0; border-radius: 4px; background: none; text-align: left; font-size: 11px; font-weight: 700; text-transform: capitalize; }
 .widget-calendar-head .icon-button, .widget-reminder-list .icon-button, .widget-reminder-add .icon-button { width: 21px; height: 21px; color: var(--widget-accent); font-size: 12px; }
@@ -417,6 +424,20 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .widget-reminder-add { display: flex; align-items: center; gap: 3px; }
 .widget-reminder-add input { width: 100%; min-width: 0; padding: 4px; border: 1px solid var(--widget-rule); border-radius: 6px; color: inherit; background: transparent; font-size: 11px; }
 .widget-reminder-add input::placeholder { color: var(--widget-secondary); }
+.widget-surface[data-widget-kind="sticky"] { --widget-base: #fff1bd; --widget-ink: #2c241b; --widget-secondary: #5a482b; }
+:root[data-theme="dark"] .widget-surface[data-widget-kind="sticky"] { --widget-base: #544327; --widget-ink: #ffedbd; --widget-secondary: #e3ca96; }
+.widget-surface[data-widget-kind="timer"] { --widget-base: #222532; --widget-ink: #fff; --widget-accent: #ffd28d; }
+.widget-utility-label { margin: 0 0 5px; font-size: 12px; font-weight: 680; }
+.widget-sticky-text { flex: 1; min-height: 0; resize: none; padding: 5px 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: 12px; line-height: 1.45; }
+.widget-sticky-text::placeholder { color: var(--widget-secondary); }
+.widget-summary { flex: 1; min-height: 0; margin: 0 0 7px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.45; }
+.widget-utility-controls { display: flex; align-items: center; gap: 5px; margin-top: 5px; }
+.widget-utility-controls .widget-utility-label { margin: 0; }
+.widget-utility-controls .icon-button { width: 23px; height: 24px; color: var(--widget-accent); }
+.widget-utility-controls input, .widget-surface[data-widget-kind="converter"] input, .widget-utility-controls select { min-width: 0; width: 100%; padding: 4px 5px; border: 1px solid var(--widget-rule); border-radius: 5px; color: inherit; background: var(--widget-base); font-size: 11px; }
+.widget-surface .choice { padding: 4px 7px; border-color: var(--widget-rule); color: inherit; background: var(--widget-rule); font-size: 11px; }
+.widget-timer-digits { flex: 1; display: grid; place-content: center; font-size: clamp(25px, 4vw, 44px); line-height: 1; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.055em; }
+.widget-converter-result { display: block; margin-top: 7px; font-size: 19px; font-weight: 700; overflow-wrap: anywhere; }
 #widget-gallery { width: min(800px, calc(100% - 20px)); max-height: 85vh; border-radius: 16px; box-shadow: 0 20px 65px #05182772; }
 .widget-gallery-layout { display: grid; grid-template-columns: 144px minmax(0, 1fr); }
 #widget-categories { display: grid; align-content: start; gap: 3px; padding: 10px 7px; border-inline-end: 1px solid var(--line); background: var(--sidebar); }
@@ -657,9 +678,16 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 const widgetTypes = {
   clock: { name: 'Orologio', icon: 'clock', sizes: ['small', 'medium'], render: renderWidgetClock },
   calendar: { name: 'Calendario', icon: 'calendar', sizes: ['small', 'medium', 'large'], render: renderWidgetCalendar },
-  reminders: { name: 'Promemoria', icon: 'checklist', sizes: ['small', 'medium', 'large'], render: renderWidgetReminders }
+  reminders: { name: 'Promemoria', icon: 'checklist', sizes: ['small', 'medium', 'large'], render: renderWidgetReminders },
+  sticky: { name: 'Note rapide', icon: 'notes', sizes: ['small', 'medium', 'large'], render: renderWidgetSticky },
+  timer: { name: 'Timer', icon: 'clock', sizes: ['small', 'medium'], render: renderWidgetTimer },
+  schedule: { name: 'Orario', icon: 'calendar', sizes: ['small', 'medium', 'large'], render: renderWidgetSchedule },
+  projects: { name: 'Progetti', icon: 'cube', sizes: ['small', 'medium', 'large'], render: renderWidgetProjects },
+  converter: { name: 'Convertitore', icon: 'calculator', sizes: ['small', 'medium'], render: renderWidgetConverter }
 };
 const widgetSizes = { small: 'Piccolo', medium: 'Medio', large: 'Grande' };
+const widgetLimits = { minWidth: 160, minHeight: 164, maxWidth: 620, maxHeight: 480, margin: 6 };
+const widgetArrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 let widgetCategory = 'clock';
 const widgetTimeFormat = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
 const widgetDateFormat = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -694,20 +722,26 @@ function relocateWidgets(from, to) {
   renderWidgets();
 }
 
-function widgetDimensions(size) {
+function boundWidgetLength(value, min, max, available) {
+  const limit = Math.max(1, Math.min(available, max));
+  return Math.round(Math.min(limit, Math.max(value, Math.min(min, limit))));
+}
+
+function widgetDimensions(entry, left = widgetLimits.margin, top = widgetLimits.margin) {
+  const { minWidth, minHeight, maxWidth, maxHeight, margin } = widgetLimits;
   return {
-    width: Math.min(size === 'small' ? 176 : 366, Math.max(1, desktop.clientWidth - 12)),
-    height: Math.min(size === 'large' ? 318 : 176, Math.max(1, desktop.clientHeight - 12))
+    width: boundWidgetLength(entry.width ?? (entry.size === 'small' ? 176 : 366), minWidth, maxWidth, desktop.clientWidth - left - margin),
+    height: boundWidgetLength(entry.height ?? (entry.size === 'large' ? 318 : 176), minHeight, maxHeight, desktop.clientHeight - top - margin)
   };
 }
 
-function findWidgetPosition(size, ignored = null) {
-  const { width, height } = widgetDimensions(size);
-  const others = widgetEntries.filter((entry) => entry.space === activeSpace && entry !== ignored);
+function findWidgetPosition(size) {
+  const { width, height } = widgetDimensions({ size });
+  const others = widgetEntries.filter((entry) => entry.space === activeSpace);
   const right = desktop.clientWidth - width - 6;
   const bottom = desktop.clientHeight - height - 6;
   const occupied = others.map((entry) => {
-    const dimensions = widgetDimensions(entry.size);
+    const dimensions = widgetDimensions(entry);
     return {
       ...dimensions,
       left: Math.max(6, Math.min(entry.left, desktop.clientWidth - dimensions.width - 6)),
@@ -726,16 +760,21 @@ function findWidgetPosition(size, ignored = null) {
 
 function setWidget(kind, enabled, size = 'small') {
   const existing = widgetOnSpace(kind);
-  if (!widgetTypes[kind].sizes.includes(size) || (!enabled && !existing)) return;
+  if (!Object.hasOwn(widgetTypes, kind) || !widgetTypes[kind].sizes.includes(size) || (!enabled && !existing)) return;
   if (enabled && existing) {
-    if (existing.size === size) return;
+    if (existing.size === size && !existing.width) return;
     existing.size = size;
+    delete existing.width;
+    delete existing.height;
     saveWidgets();
-    renderWidgets();
+    const card = byId('widgets').querySelector('[data-widget="' + kind + '"]');
+    if (card) updateWidgetPosition(card, existing);
     return;
   }
   if (enabled) {
-    widgetEntries.push({ kind, size, space: activeSpace, ...findWidgetPosition(size) });
+    const entry = { kind, size, space: activeSpace, ...findWidgetPosition(size) };
+    if (kind === 'timer') entry.timer = normalizeWidgetTimer();
+    widgetEntries.push(entry);
   } else {
     widgetEntries = widgetEntries.filter((entry) => entry !== existing);
   }
@@ -782,8 +821,9 @@ function renderWidgetGallery() {
     body.className = 'widget-body';
     widget.render(body, { preview: true });
     preview.append(body);
-    const selected = widgetOnSpace(kind)?.size === size;
-    const verb = selected ? 'Rimuovi' : widgetOnSpace(kind) ? 'Ridimensiona' : 'Aggiungi';
+    const existing = widgetOnSpace(kind);
+    const selected = existing?.size === size && !existing.width;
+    const verb = selected ? 'Rimuovi' : existing ? 'Ridimensiona' : 'Aggiungi';
     const change = button(verb + ' ' + widget.name + ' · ' + widgetSizes[size], 'widget-size-button', '', () => {
       setWidget(kind, !selected, size);
       renderWidgetGallery();
@@ -791,20 +831,61 @@ function renderWidgetGallery() {
     });
     change.dataset.widgetSize = size;
     change.setAttribute('aria-pressed', selected);
-    change.textContent = widgetSizes[size] + ' · ' + (selected ? 'Rimuovi' : widgetOnSpace(kind) ? 'Usa formato' : 'Aggiungi');
+    change.textContent = widgetSizes[size] + ' · ' + (selected ? 'Rimuovi' : existing ? 'Usa formato' : 'Aggiungi');
     option.append(preview, change);
     options.append(option);
   }
 }
 
 function updateWidgetPosition(card, entry, left = entry.left, top = entry.top) {
-  const { width, height } = widgetDimensions(entry.size);
-  const maxLeft = Math.max(6, desktop.clientWidth - (card.offsetWidth || width) - 6);
-  const maxTop = Math.max(6, desktop.clientHeight - (card.offsetHeight || height) - 6);
+  const { width, height } = widgetDimensions(entry);
+  const maxLeft = Math.max(6, desktop.clientWidth - width - 6);
+  const maxTop = Math.max(6, desktop.clientHeight - height - 6);
   const position = { left: Math.round(Math.max(6, Math.min(left, maxLeft))), top: Math.round(Math.max(6, Math.min(top, maxTop))) };
   card.style.left = position.left + 'px';
   card.style.top = position.top + 'px';
+  card.style.width = width + 'px';
+  card.style.height = height + 'px';
+  card.dataset.size = width < 274 ? 'small' : height < 246 ? 'medium' : 'large';
   return position;
+}
+
+function resizeWidget(card, entry, requested, origin = updateWidgetPosition(card, entry)) {
+  const dimensions = widgetDimensions({ ...entry, ...requested }, origin.left, origin.top);
+  Object.assign(entry, dimensions, origin);
+  updateWidgetPosition(card, entry);
+}
+
+function bindWidgetResize(handle, card, entry) {
+  let drag = null;
+  handle.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || drag) return;
+    const origin = updateWidgetPosition(card, entry);
+    drag = { origin, ...widgetDimensions(entry), pointer: event.pointerId, startX: event.clientX, startY: event.clientY };
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener('pointermove', (event) => {
+    if (drag?.pointer !== event.pointerId) return;
+    const width = drag.width + event.clientX - drag.startX;
+    const height = drag.height + event.clientY - drag.startY;
+    if (width === drag.width && height === drag.height && !entry.width) return;
+    resizeWidget(card, entry, { width, height }, drag.origin);
+  });
+  handle.addEventListener('lostpointercapture', (event) => {
+    if (drag?.pointer !== event.pointerId) return;
+    drag = null;
+    saveWidgets();
+  });
+  handle.addEventListener('keydown', (event) => {
+    const offset = widgetArrows[event.key];
+    if (!offset) return;
+    event.preventDefault();
+    const current = widgetDimensions(entry);
+    const step = event.shiftKey ? 32 : 8;
+    resizeWidget(card, entry, { width: current.width + offset[0] * step, height: current.height + offset[1] * step });
+    saveWidgets();
+    byId('announcement').textContent = entry.width + ' per ' + entry.height + ' pixel';
+  });
 }
 
 function positionWidgets() {
@@ -831,8 +912,7 @@ function bindWidgetMove(handle, card, entry) {
     saveWidgets();
   });
   handle.addEventListener('keydown', (event) => {
-    const offsets = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
-    const offset = offsets[event.key];
+    const offset = widgetArrows[event.key];
     if (!offset) return;
     event.preventDefault();
     const start = updateWidgetPosition(card, entry);
@@ -867,7 +947,7 @@ function renderWidgets() {
         ...widget.sizes.map((size) => [widgetSizes[size], () => {
           setWidget(entry.kind, true, size);
           layer.querySelector('[data-widget="' + entry.kind + '"]').querySelector('.widget-handle').focus();
-        }, size === entry.size]),
+        }, size === entry.size && !entry.width]),
         ['Modifica widget…', openWidgetGallery],
         ['Rimuovi widget', remove]
       ], point);
@@ -889,8 +969,11 @@ function renderWidgets() {
     header.append(handle);
     const content = document.createElement('div');
     content.className = 'widget-body';
-    card.append(header, content);
-    widget.render(content);
+    const resize = button('Ridimensiona ' + widget.name + ' con le frecce', 'widget-resize', '', () => {});
+    resize.title = 'Trascina per ridimensionare oppure usa le frecce';
+    bindWidgetResize(resize, card, entry);
+    card.append(header, content, resize);
+    widget.render(content, { entry });
     layer.append(card);
   }
   positionWidgets();
@@ -926,9 +1009,10 @@ function drawWidgetClock(content, now, updateText) {
 
 function updateWidgetTime(now) {
   const clock = byId('widgets').querySelector('[data-widget="clock"]');
-  if (!clock) return;
   const key = Math.floor(now.getTime() / 60000);
-  drawWidgetClock(clock, now, widgetTimeKey !== key);
+  if (clock) drawWidgetClock(clock, now, widgetTimeKey !== key);
+  updateWidgetTimer(now.getTime());
+  if (widgetTimeKey !== key) updateWidgetSchedule(now);
   widgetTimeKey = key;
 }
 
@@ -1053,11 +1137,220 @@ function renderWidgetReminders(content, { focusIndex = null, preview = false } =
   }
 }
 
+function widgetLabel(text) {
+  const label = document.createElement('p');
+  label.className = 'widget-utility-label';
+  label.textContent = text;
+  return label;
+}
+
+function renderWidgetSticky(content, { entry, preview }) {
+  const field = document.createElement('textarea');
+  field.className = 'widget-sticky-text';
+  field.setAttribute('aria-label', 'Testo delle note rapide');
+  field.placeholder = 'Scrivi una nota…';
+  field.maxLength = 2000;
+  field.value = preview ? 'Idee da ricordare\n\n• Rivedere gli appunti\n• Provare una nuova stampa' : entry.text ?? '';
+  if (!preview) {
+    field.addEventListener('input', () => {
+      entry.text = field.value;
+      saveWidgets();
+    });
+  }
+  content.replaceChildren(widgetLabel('Note rapide'), field);
+}
+
+function normalizeWidgetTimer(timer) {
+  const minutes = Number.isInteger(timer?.minutes) && timer.minutes >= 1 && timer.minutes <= 120 ? timer.minutes : 25;
+  const remaining = Number.isFinite(timer?.remaining) && timer.remaining >= 0 && timer.remaining <= 7200000 ? timer.remaining : minutes * 60000;
+  const deadline = Number.isFinite(timer?.deadline) && timer.deadline > 0 ? timer.deadline : 0;
+  return { minutes, remaining, deadline };
+}
+
+function timerRemaining(timer, now) {
+  return Math.max(0, timer.deadline ? timer.deadline - now : timer.remaining);
+}
+
+function drawTimer(container, timer, now) {
+  const seconds = Math.ceil(timerRemaining(timer, now) / 1000);
+  const value = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+  const digits = container.querySelector('.widget-timer-digits');
+  if (digits.textContent !== value) digits.textContent = value;
+  const action = container.querySelector('.widget-timer-action');
+  const label = timer.deadline ? 'Pausa' : 'Avvia';
+  if (action.textContent !== label) {
+    action.textContent = label;
+    action.setAttribute('aria-label', label + ' timer');
+  }
+  container.querySelector('input').disabled = Boolean(timer.deadline);
+}
+
+function renderWidgetTimer(content, { entry, preview }) {
+  const timer = preview ? normalizeWidgetTimer() : entry.timer;
+  const digits = document.createElement('output');
+  digits.className = 'widget-timer-digits';
+  digits.setAttribute('aria-label', 'Tempo rimanente');
+  digits.setAttribute('aria-live', 'off');
+  const options = document.createElement('div');
+  options.className = 'widget-utility-controls';
+  const minutes = document.createElement('input');
+  minutes.type = 'number';
+  minutes.min = '1';
+  minutes.max = '120';
+  minutes.step = '1';
+  minutes.value = String(timer.minutes);
+  minutes.setAttribute('aria-label', 'Minuti del timer');
+  const applyMinutes = () => {
+    const value = Number(minutes.value);
+    if (!Number.isInteger(value) || value < 1 || value > 120) {
+      minutes.value = String(timer.minutes);
+      return;
+    }
+    timer.minutes = value;
+    timer.remaining = value * 60000;
+    timer.deadline = 0;
+    saveWidgets();
+    drawTimer(content, timer, Date.now());
+  };
+  const action = button('Avvia timer', 'choice widget-timer-action', '', () => {
+    const now = Date.now();
+    if (timer.deadline) {
+      timer.remaining = timerRemaining(timer, now);
+      timer.deadline = 0;
+    } else {
+      if (Number(minutes.value) !== timer.minutes) applyMinutes();
+      timer.deadline = now + (timer.remaining || timer.minutes * 60000);
+    }
+    saveWidgets();
+    drawTimer(content, timer, now);
+  });
+  minutes.addEventListener('change', applyMinutes);
+  const reset = iconButton('Azzera timer', 'close', () => {
+    timer.deadline = 0;
+    timer.remaining = timer.minutes * 60000;
+    saveWidgets();
+    drawTimer(content, timer, Date.now());
+  });
+  options.append(minutes, action, reset);
+  content.replaceChildren(widgetLabel('Timer'), digits, options);
+  drawTimer(content, timer, Date.now());
+}
+
+function updateWidgetTimer(now) {
+  for (const entry of widgetEntries) {
+    const timer = entry.timer;
+    if (!timer?.deadline || timer.deadline > now) continue;
+    timer.deadline = 0;
+    timer.remaining = 0;
+    saveWidgets();
+    byId('announcement').textContent = 'Tempo scaduto.';
+  }
+  const card = byId('widgets').querySelector('[data-widget="timer"]');
+  if (card) drawTimer(card, widgetOnSpace('timer').timer, now);
+}
+
+function scheduleDay(now) {
+  return studyWeekdays[(now.getDay() + 6) % 7];
+}
+
+function scheduleSummary(day) {
+  return readValue('study.day.' + day, '').trim() || 'Nessuna lezione annotata.';
+}
+
+function updateWidgetSchedule(now) {
+  const card = byId('widgets').querySelector('[data-widget="schedule"]');
+  if (!card) return;
+  const day = scheduleDay(now);
+  card.querySelector('.widget-schedule-day').textContent = day;
+  card.querySelector('.widget-summary').textContent = scheduleSummary(day);
+}
+
+function renderWidgetSchedule(content, { preview }) {
+  const day = widgetLabel(scheduleDay(new Date()));
+  day.classList.toggle('widget-schedule-day', true);
+  const schedule = document.createElement('p');
+  schedule.className = 'widget-summary';
+  schedule.textContent = preview ? '09:00  Matematica\n11:30  Laboratorio' : scheduleSummary(day.textContent);
+  content.replaceChildren(day, schedule, button('Apri orario delle lezioni', 'choice', 'Apri orario', () => openWindow('studio')));
+}
+
+function projectSummary() {
+  const print = readValue('projects.print', '').trim();
+  const code = readValue('projects.code', '').trim();
+  return [print && 'Stampa 3D\n' + print.slice(0, 200), code && 'Codice\n' + code.slice(0, 200)].filter(Boolean).join('\n\n') || 'Nessun appunto di progetto.';
+}
+
+function updateWidgetProjects() {
+  const card = byId('widgets').querySelector('[data-widget="projects"]');
+  if (card) card.querySelector('.widget-summary').textContent = projectSummary();
+}
+
+function renderWidgetProjects(content, { preview }) {
+  const summary = document.createElement('p');
+  summary.className = 'widget-summary';
+  summary.textContent = preview ? 'Stampa 3D\nProva con filamento PLA\n\nCodice\nAggiornare il README' : projectSummary();
+  content.replaceChildren(widgetLabel('Progetti'), summary, button('Apri banco progetti', 'choice', 'Apri progetti', () => openWindow('projects')));
+}
+
+const conversionFactors = [1, 10, 25.4];
+const conversionFormat = new Intl.NumberFormat('it-IT', { maximumSignificantDigits: 8 });
+
+function renderWidgetConverter(content, { preview }) {
+  const amount = document.createElement('input');
+  amount.type = 'number';
+  amount.step = 'any';
+  amount.value = preview ? '25.4' : '';
+  amount.placeholder = 'Valore';
+  amount.setAttribute('aria-label', 'Valore da convertire');
+  const controls = document.createElement('div');
+  controls.className = 'widget-utility-controls';
+  const units = ['mm', 'cm', 'in'];
+  const makeUnit = (label, selected) => {
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', label);
+    for (const [index, name] of units.entries()) {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = name;
+      select.append(option);
+    }
+    select.value = String(selected);
+    return select;
+  };
+  const from = makeUnit('Unità di partenza', 0);
+  const to = makeUnit('Unità di arrivo', 2);
+  const result = document.createElement('output');
+  result.className = 'widget-converter-result';
+  result.setAttribute('aria-label', 'Risultato conversione');
+  const convert = () => {
+    const value = Number(amount.value) * conversionFactors[from.value] / conversionFactors[to.value];
+    result.textContent = amount.value !== '' && Number.isFinite(value) ? conversionFormat.format(value) + ' ' + units[to.value] : '—';
+  };
+  amount.addEventListener('input', convert);
+  from.addEventListener('change', convert);
+  to.addEventListener('change', convert);
+  controls.append(from, widgetLabel('→'), to);
+  content.replaceChildren(widgetLabel('Conversioni'), amount, controls, result);
+  convert();
+}
+
 function setupWidgets() {
   widgetEntries = readWidgetArray('widgets.v1').filter((entry) =>
     entry && Object.hasOwn(widgetTypes, entry.kind) && spaces.includes(entry.space)
     && Number.isFinite(entry.left) && Number.isFinite(entry.top))
-    .map((entry) => ({ ...entry, size: widgetTypes[entry.kind].sizes.includes(entry.size) ? entry.size : 'small' }));
+    .map((entry) => {
+      const restored = {
+        kind: entry.kind, space: entry.space, left: entry.left, top: entry.top,
+        size: widgetTypes[entry.kind].sizes.includes(entry.size) ? entry.size : 'small'
+      };
+      if (Number.isFinite(entry.width) && Number.isFinite(entry.height)) {
+        restored.width = entry.width;
+        restored.height = entry.height;
+      }
+      if (entry.kind === 'sticky' && typeof entry.text === 'string') restored.text = entry.text.slice(0, 2000);
+      if (entry.kind === 'timer') restored.timer = normalizeWidgetTimer(entry.timer);
+      return restored;
+    });
   widgetReminders = readWidgetArray('reminders.v1').filter((item) =>
     item && typeof item.text === 'string' && item.text.length <= 120 && typeof item.done === 'boolean').slice(0, 40);
   const gallery = byId('widget-gallery');
@@ -1088,6 +1381,7 @@ const studioSpaces = {
   3: { name: 'Progetti', art: 'progetti', caption: 'Stampa 3D e progetti di codice', actions: [['projects', 'Apri banco progetti']] }
 };
 const studioIcons = { studio: 'calendar', jarvis: 'spark', photos: 'image', projects: 'cube' };
+const studyWeekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
 function renderSpaceHome() {
   const home = byId('space-home');
@@ -1132,6 +1426,8 @@ function activityField(label, text, save) {
 
 function saveActivityValue(key, value) {
   const stored = writeValue(key, value);
+  if (key.startsWith('study.day.')) updateWidgetSchedule(new Date());
+  if (key === 'projects.print' || key === 'projects.code') updateWidgetProjects();
   if (!stored) byId('announcement').textContent = 'Modifiche disponibili per questa sessione.';
   return stored;
 }
@@ -1149,18 +1445,17 @@ function renderStudio(record) {
   const content = document.createElement('div');
   content.className = 'activity-grid studio-grid';
   const schedule = activityPanel('Orario delle lezioni');
-  const days = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
   const select = document.createElement('select');
   select.setAttribute('aria-label', 'Giorno dell’orario');
-  for (const day of days) {
+  for (const day of studyWeekdays) {
     const option = document.createElement('option');
     option.value = day;
     option.textContent = day;
     select.append(option);
   }
-  const today = days[(new Date().getDay() + 6) % 7];
+  const today = scheduleDay(new Date());
   const savedDay = readValue('study.day', today);
-  select.value = days.includes(savedDay) ? savedDay : today;
+  select.value = studyWeekdays.includes(savedDay) ? savedDay : today;
   const dayField = document.createElement('div');
   dayField.className = 'activity-field';
   const renderDay = () => dayField.replaceChildren(activityField('Orario ' + select.value, '09:00  Corso · aula\n11:00  Laboratorio', 'study.day.' + select.value));
@@ -2942,7 +3237,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.0</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Laguna ricorda appunti, orari, sfondi e finestre in questo browser.</p><p>Apri <strong>Schermo intero</strong> nella barra per usare tutto il display. Dal menu di sistema puoi anche scegliere <strong>Blocca schermo</strong>.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.1</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Laguna ricorda appunti, orari, sfondi e finestre in questo browser.</p><p>Apri <strong>Modifica widget</strong> nel menu di sistema per scegliere i widget. Trascina l’angolo inferiore destro per cambiarne la misura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
