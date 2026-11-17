@@ -1,8 +1,8 @@
-LAGUNA 2.7
+LAGUNA 2.8
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 2.7 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 2.8 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -34,6 +34,16 @@ stesso browser e percorso di apertura. Puoi cambiare sfondo per ciascuna
 scrivania da Impostazioni. Le foto restano in sola lettura sul PC.
 Quando riapri Laguna, scegli di nuovo la cartella: Laguna ricorda il
 nome dell'ultima foto aperta.
+
+APP IN LAUNCHPAD E SPOTLIGHT
+- Calendario: scegli una data, aggiungi un titolo e, se vuoi, un orario.
+  Gli appuntamenti si salvano nello stesso browser.
+- Orologio: imposta il timer da 1 a 120 minuti oppure usa il cronometro
+  con i giri. Alla scadenza il timer mostra un avviso in Laguna.
+- Musica: scegli più file audio dal PC per creare la coda di riproduzione.
+  Laguna apre i file in sola lettura e li riproduce nel browser.
+  La riproduzione continua quando chiudi la finestra. Esci dall'app
+  per fermarla e svuotare la coda.
 
 ALTRE FUNZIONI
 Il pulsante giallo minimizza la finestra con l'Effetto Genio. Fai clic

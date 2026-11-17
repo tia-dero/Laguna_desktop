@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IuJWBxbjp8TRyXqnwJdy+P/wVcBbuoUlZoXW7tFAxgY='; style-src 'unsafe-inline'; img-src blob: data:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yBmPvm1aAeK8hrrWS0TjzLcWbU5nC5tMJGf+tV+RTUI='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.7 · Desktop per EliteBook</title>
+  <title>Laguna 2.8 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -227,6 +227,9 @@ button, h1, h2, p { margin: 0; }
 .app-icon.notes { background: linear-gradient(#ffd460 0 24%, #fff6d9 25%, #fffdf4 100%); color: #9a6a19; }
 .app-icon.calculator { background: linear-gradient(155deg, #566273, #222b39); color: #ffe0a4; }
 .app-icon.settings { background: linear-gradient(155deg, #e9eef3, #9eacbe 65%, #798b9f); color: #304050; }
+.app-icon.calendar { background: linear-gradient(#e84954 0 24%, #fff2f2 24%); color: #a63442; }
+.app-icon.clock-app { background: linear-gradient(155deg, #394153, #131722); color: #fff3ca; }
+.app-icon.music { background: linear-gradient(155deg, #ff6884, #df2853 72%, #ab2048); color: #fff; }
 .app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
 .app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
 .app-icon.info { background: linear-gradient(155deg, #76cbbb, #33758a); }
@@ -289,6 +292,41 @@ dialog::backdrop { background: #081f31a1; }
 .notes-view { display: flex; flex-direction: column; gap: 10px; }
 .notes-view textarea { flex: 1; min-height: 0; resize: none; padding: 12px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; line-height: 1.55; }
 .app-hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.calendar-app, .clock-app, .music-app { display: grid; align-content: start; gap: 14px; padding: 15px; }
+.calendar-app, .clock-app { grid-template-columns: repeat(auto-fit, minmax(min(100%, 232px), 1fr)); }
+.calendar-app-header { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.calendar-app-header h2, .calendar-agenda h3 { margin: 0; text-transform: capitalize; }
+.calendar-app h2, .clock-app h2, .music-app h2 { font-size: 17px; }
+.calendar-agenda h3 { font-size: 14px; }
+.utility-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.calendar-app-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-content: start; gap: 3px; text-align: center; }
+.calendar-app-days > span { padding: 3px 0 5px; color: var(--muted); font-size: 11px; }
+.calendar-date { position: relative; min-height: 32px; padding: 3px 0 6px; border: 1px solid transparent; border-radius: 8px; background: var(--surface); font-size: 13px; }
+.calendar-date.other-month { color: var(--muted); background: transparent; }
+.calendar-date[aria-current="date"] { border-color: var(--accent); }
+.calendar-date:hover, .calendar-date[aria-pressed="true"] { color: var(--ink); background: var(--selected); }
+.calendar-date.has-appointments::after { content: ""; position: absolute; bottom: 3px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: #e64b67; }
+.calendar-agenda, .calendar-appointments { display: grid; gap: 8px; align-content: start; }
+.appointment-row { display: grid; grid-template-columns: minmax(38px, auto) minmax(0, 1fr) auto; align-items: center; gap: 7px; padding: 3px 5px; background: var(--surface); border-radius: 6px; font-size: 12px; }
+.appointment-row span { color: var(--muted); }
+.appointment-row strong { overflow-wrap: anywhere; }
+.appointment-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+.appointment-form label, .clock-app label { min-width: 0; font-size: 12px; }
+.appointment-form input, .clock-app input { width: 100%; margin-top: 4px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--surface); }
+.appointment-form button { grid-column: 1 / -1; justify-self: start; }
+.clock-app section { display: grid; gap: 9px; align-content: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.clock-app output { font-size: clamp(29px, 5vw, 42px); line-height: 1.15; font-variant-numeric: tabular-nums; }
+.clock-app input { width: 3.6em; margin: 0; }
+.clock-laps { display: grid; gap: 4px; max-height: 120px; margin: 0; padding: 0; overflow: auto; list-style: none; font-size: 12px; }
+.clock-laps li { padding: 3px 5px; border-bottom: 1px solid var(--line); }
+.music-app header { display: flex; align-items: center; gap: 11px; }
+.music-app h2 { overflow-wrap: anywhere; }
+.music-art { flex: 0 0 50px; height: 50px; }
+.music-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.music-progress input { width: 100%; margin: 0; accent-color: #e64b67; }
+.music-status:empty, .timer-status:empty, .calendar-agenda [role="status"]:empty { display: none; }
+.music-tracks { display: grid; gap: 5px; }
+.music-tracks button { min-width: 0; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 .settings-view, .info-view { display: grid; align-content: start; gap: 15px; }
 .settings-view { height: auto; min-height: 100%; }
 .settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
@@ -751,6 +789,8 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   <input id="file-picker" type="file" hidden>
   <input id="import-picker" type="file" hidden>
   <input id="wallpaper-picker" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/bmp,image/avif" hidden>
+  <input id="music-picker" type="file" accept="audio/*,.flac,.m4a,.opus" multiple hidden>
+  <audio id="music-player" preload="metadata" hidden></audio>
   <div id="announcement" class="sr-only" role="status"></div>
   <script>
 'use strict';
@@ -1928,6 +1968,375 @@ function renderPhotos(record) {
 
 'use strict';
 
+const calendarMonthFormat = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
+const calendarDayFormat = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+let calendarDay = new Date();
+
+function calendarKey(date) {
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()].map((part) => String(part).padStart(2, '0')).join('-');
+}
+
+function readAppointments() {
+  try {
+    const saved = JSON.parse(readValue('calendar.appointments', '[]'));
+    return Array.isArray(saved) ? saved.filter((entry) => typeof entry?.day === 'string'
+      && typeof entry.title === 'string' && typeof entry.time === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function renderCalendar(record, focus = null, message = '') {
+  const view = document.createElement('div');
+  view.className = 'calendar-app';
+  view.innerHTML = '<div class="calendar-app-header"><h2></h2><div class="utility-actions"></div></div><div class="calendar-app-days" aria-label="Giorni del mese"></div><section class="calendar-agenda"><h3></h3><div class="calendar-appointments"></div><form class="appointment-form"><label>Appuntamento <input type="text" required maxlength="100" autocomplete="off"></label><label>Ora <input type="time"></label><button type="submit" class="primary-button">Aggiungi</button></form><p class="app-hint" role="status"></p></section>';
+  const year = calendarDay.getFullYear();
+  const month = calendarDay.getMonth();
+  const selected = calendarKey(calendarDay);
+  const today = calendarKey(new Date());
+  const appointments = readAppointments();
+  view.querySelector('h2').textContent = calendarMonthFormat.format(calendarDay);
+  view.querySelector('h3').textContent = calendarDayFormat.format(calendarDay);
+  const actions = view.querySelector('.utility-actions');
+  for (const [step, label, sign] of [[-1, 'Mese precedente', 'left'], [1, 'Mese successivo', 'right']]) {
+    const control = iconButton(label, sign, () => {
+      calendarDay = new Date(year, month + step, 1, 12);
+      renderCalendar(record, '[data-month="' + step + '"]');
+    });
+    control.dataset.month = String(step);
+    actions.append(control);
+  }
+  const todayButton = button('Vai a oggi', 'choice', 'Oggi', () => {
+    calendarDay = new Date();
+    renderCalendar(record, '[data-day="' + calendarKey(calendarDay) + '"]');
+  });
+  actions.children[0].after(todayButton);
+  const dates = view.querySelector('.calendar-app-days');
+  for (const name of ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']) {
+    const caption = document.createElement('span');
+    caption.textContent = name;
+    dates.append(caption);
+  }
+  const start = (new Date(year, month, 1).getDay() + 6) % 7;
+  const occupied = new Set(appointments.map(({ day }) => day));
+  for (let index = 0; index < 42; index += 1) {
+    const date = new Date(year, month, index - start + 1, 12);
+    const key = calendarKey(date);
+    const hasAppointments = occupied.has(key);
+    const cell = button(calendarDayFormat.format(date) + (hasAppointments ? ', con appuntamenti' : ''), 'calendar-date', '', () => {
+      calendarDay = date;
+      renderCalendar(record, '[data-day="' + key + '"]');
+    });
+    cell.textContent = date.getDate();
+    cell.dataset.day = key;
+    cell.classList.toggle('other-month', date.getMonth() !== month);
+    cell.classList.toggle('has-appointments', hasAppointments);
+    cell.setAttribute('aria-pressed', key === selected);
+    if (key === today) cell.setAttribute('aria-current', 'date');
+    dates.append(cell);
+  }
+  const agenda = view.querySelector('.calendar-appointments');
+  const items = appointments.map((entry, index) => ({ ...entry, index })).filter((entry) => entry.day === selected)
+    .sort((first, second) => first.time.localeCompare(second.time));
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'app-hint';
+    empty.textContent = 'Nessun appuntamento.';
+    agenda.append(empty);
+  }
+  for (const item of items) {
+    const row = document.createElement('div');
+    row.className = 'appointment-row';
+    const time = document.createElement('span');
+    time.textContent = item.time || 'Tutto il giorno';
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+    const remove = iconButton('Elimina ' + item.title, 'close', () => {
+      appointments.splice(item.index, 1);
+      const saved = writeValue('calendar.appointments', JSON.stringify(appointments));
+      renderCalendar(record, 'input', saved ? 'Appuntamento eliminato.' : 'Appuntamento eliminato per questa sessione.');
+    });
+    row.append(time, title, remove);
+    agenda.append(row);
+  }
+  const form = view.querySelector('form');
+  const [title, time] = form.querySelectorAll('input');
+  const status = view.querySelector('[role="status"]');
+  status.textContent = message;
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = title.value.trim();
+    if (!name) {
+      status.textContent = 'Inserisci il titolo dell’appuntamento.';
+      title.focus();
+      return;
+    }
+    appointments.push({ day: selected, title: name, time: time.value });
+    const saved = writeValue('calendar.appointments', JSON.stringify(appointments));
+    renderCalendar(record, 'input', saved ? 'Appuntamento salvato.' : 'Appuntamento salvato per questa sessione.');
+  });
+  record.content.replaceChildren(view);
+  if (focus) view.querySelector(focus)?.focus({ preventScroll: true });
+}
+
+const clockTimer = { minutes: 5, deadline: 0, remaining: 300000 };
+const stopwatch = { elapsed: 0, started: null, laps: [], interval: null };
+
+function durationText(milliseconds, tenths = false) {
+  const seconds = Math.floor(milliseconds / 1000);
+  const pair = (value) => String(value).padStart(2, '0');
+  const digits = pair(Math.floor(seconds / 60)) + ':' + pair(seconds % 60);
+  return tenths ? digits + '.' + Math.floor(milliseconds / 100) % 10 : digits;
+}
+
+function stopwatchElapsed() {
+  return stopwatch.elapsed + (stopwatch.started === null ? 0 : performance.now() - stopwatch.started);
+}
+
+function updateStopwatch() {
+  const record = windows.get('clock-app');
+  if (!record || record.element.hidden) return;
+  const digits = record.content.querySelector('.stopwatch-digits');
+  if (digits) digits.textContent = durationText(stopwatchElapsed(), true);
+}
+
+function updateClockApp(now) {
+  if (clockTimer.deadline && timerRemaining(clockTimer, now) === 0) {
+    clockTimer.deadline = 0;
+    clockTimer.remaining = 0;
+    byId('announcement').textContent = 'Il timer di Orologio è scaduto.';
+  }
+  const content = windows.get('clock-app')?.content;
+  if (!content) return;
+  content.querySelector('.timer-digits').textContent = durationText(Math.ceil(timerRemaining(clockTimer, now) / 1000) * 1000);
+  const action = content.querySelector('.clock-timer-action');
+  action.textContent = clockTimer.deadline ? 'Pausa' : 'Avvia';
+  action.setAttribute('aria-label', action.textContent + ' timer');
+  content.querySelector('input').disabled = Boolean(clockTimer.deadline);
+  content.querySelector('.timer-status').textContent = !clockTimer.deadline && !clockTimer.remaining ? 'Tempo scaduto.' : '';
+}
+
+function resetStopwatch() {
+  if (stopwatch.interval !== null) clearInterval(stopwatch.interval);
+  Object.assign(stopwatch, { elapsed: 0, started: null, laps: [], interval: null });
+}
+
+function resetClockApp() {
+  clockTimer.deadline = 0;
+  clockTimer.remaining = clockTimer.minutes * 60000;
+  resetStopwatch();
+}
+
+function renderClockApp(record) {
+  record.content.innerHTML = '<div class="clock-app"><section><h2>Timer</h2><output class="timer-digits" aria-label="Tempo restante" aria-live="off"></output><div class="utility-actions"></div><p class="app-hint timer-status"></p></section><section><h2>Cronometro</h2><output class="stopwatch-digits" aria-label="Tempo trascorso" aria-live="off"></output><div class="utility-actions"></div><ol class="clock-laps" aria-label="Giri del cronometro"></ol></section></div>';
+  const [timer, watch] = record.content.querySelectorAll('section');
+  const minutes = document.createElement('input');
+  minutes.type = 'number';
+  minutes.min = '1';
+  minutes.max = '120';
+  minutes.setAttribute('aria-label', 'Minuti del timer');
+  minutes.value = String(clockTimer.minutes);
+  const minuteLabel = document.createElement('label');
+  minuteLabel.textContent = 'Minuti ';
+  minuteLabel.append(minutes);
+  const setMinutes = () => {
+    const value = Number(minutes.value);
+    if (Number.isInteger(value) && value >= 1 && value <= 120) {
+      clockTimer.minutes = value;
+      clockTimer.remaining = value * 60000;
+    } else minutes.value = String(clockTimer.minutes);
+  };
+  minutes.addEventListener('change', () => {
+    setMinutes();
+    updateClockApp(Date.now());
+  });
+  const timerAction = button('Avvia timer', 'primary-button clock-timer-action', '', () => {
+    const now = Date.now();
+    if (clockTimer.deadline) {
+      clockTimer.remaining = timerRemaining(clockTimer, now);
+      clockTimer.deadline = 0;
+    } else {
+      if (Number(minutes.value) !== clockTimer.minutes) setMinutes();
+      clockTimer.deadline = now + (clockTimer.remaining || clockTimer.minutes * 60000);
+    }
+    updateClockApp(now);
+  });
+  timer.querySelector('.utility-actions').append(minuteLabel, timerAction, button('Azzera timer', 'choice', 'Azzera', () => {
+    clockTimer.deadline = 0;
+    clockTimer.remaining = clockTimer.minutes * 60000;
+    updateClockApp(Date.now());
+  }));
+  const laps = watch.querySelector('.clock-laps');
+  const lapButton = button('Registra giro', 'choice', 'Giro', () => {
+    stopwatch.laps.push(stopwatchElapsed());
+    drawLaps();
+  });
+  const watchAction = button('Avvia cronometro', 'primary-button', '', () => {
+    if (stopwatch.started !== null) {
+      stopwatch.elapsed = stopwatchElapsed();
+      stopwatch.started = null;
+      clearInterval(stopwatch.interval);
+      stopwatch.interval = null;
+    } else {
+      stopwatch.started = performance.now();
+      stopwatch.interval = setInterval(updateStopwatch, 100);
+    }
+    drawWatch();
+  });
+  function drawLaps() {
+    laps.replaceChildren();
+    for (const [index, time] of stopwatch.laps.entries()) {
+      const row = document.createElement('li');
+      row.textContent = 'Giro ' + (index + 1) + ' · ' + durationText(time - (stopwatch.laps[index - 1] ?? 0), true);
+      laps.append(row);
+    }
+  }
+  function drawWatch() {
+    const running = stopwatch.started !== null;
+    watchAction.textContent = running ? 'Pausa' : 'Avvia';
+    watchAction.setAttribute('aria-label', watchAction.textContent + ' cronometro');
+    lapButton.disabled = !running;
+    updateStopwatch();
+    drawLaps();
+  }
+  watch.querySelector('.utility-actions').append(watchAction, lapButton, button('Azzera cronometro', 'choice', 'Azzera', () => {
+    resetStopwatch();
+    drawWatch();
+  }));
+  updateClockApp(Date.now());
+  drawWatch();
+}
+
+let musicTracks = [];
+let musicTrackIndex = -1;
+let musicUrl = null;
+let musicMessage = '';
+
+function updateMusic() {
+  const view = windows.get('music')?.content;
+  if (!view) return;
+  const player = byId('music-player');
+  const track = musicTracks[musicTrackIndex];
+  view.querySelector('.music-title').textContent = track?.name ?? 'Nessun brano selezionato';
+  const action = view.querySelector('.music-play');
+  action.textContent = player.paused ? 'Riproduci' : 'Pausa';
+  action.setAttribute('aria-label', action.textContent);
+  action.disabled = !track;
+  view.querySelector('.music-previous').disabled = musicTrackIndex <= 0;
+  view.querySelector('.music-next').disabled = !track || musicTrackIndex >= musicTracks.length - 1;
+  view.querySelector('.music-status').textContent = musicMessage;
+  const seek = view.querySelector('input');
+  const duration = Number.isFinite(player.duration) ? player.duration : 0;
+  seek.disabled = !duration;
+  seek.max = String(duration || 1);
+  seek.value = String(player.currentTime || 0);
+  view.querySelector('output').textContent = durationText((player.currentTime || 0) * 1000) + ' / ' + durationText(duration * 1000);
+}
+
+function playMusic() {
+  if (!musicUrl) return;
+  const player = byId('music-player');
+  const source = musicUrl;
+  musicMessage = '';
+  player.play().catch((error) => {
+    if (musicUrl !== source || error.name === 'AbortError') return;
+    musicMessage = 'Impossibile riprodurre questo brano. Scegli un altro file audio.';
+    updateMusic();
+  });
+}
+
+function clearMusicSource() {
+  if (!musicUrl) return;
+  const player = byId('music-player');
+  player.pause();
+  player.removeAttribute('src');
+  player.load();
+  URL.revokeObjectURL(musicUrl);
+  musicUrl = null;
+}
+
+function clearMusic() {
+  clearMusicSource();
+  musicTracks = [];
+  musicTrackIndex = -1;
+  musicMessage = '';
+}
+
+function selectMusicTrack(index, play = false) {
+  if (!musicTracks[index]) return;
+  clearMusicSource();
+  musicTrackIndex = index;
+  musicMessage = '';
+  musicUrl = URL.createObjectURL(musicTracks[index]);
+  byId('music-player').src = musicUrl;
+  const view = windows.get('music')?.content;
+  for (const row of view?.querySelectorAll('[data-track]') ?? []) row.setAttribute('aria-pressed', Number(row.dataset.track) === index);
+  if (play) playMusic();
+  updateMusic();
+}
+
+function renderMusic(record) {
+  record.content.innerHTML = '<div class="music-app"><header><span class="music-art" aria-hidden="true"></span><div><h2 class="music-title"></h2><p class="app-hint">Libreria locale</p></div></header><div class="utility-actions"></div><div class="music-progress"><input type="range" step="0.1" min="0" max="1" value="0" aria-label="Posizione nel brano"><output aria-live="off"></output></div><p class="app-hint music-status" role="status"></p><div class="music-tracks" aria-label="Brani"></div></div>';
+  const content = record.content;
+  content.querySelector('.music-art').innerHTML = appIcon('music');
+  const player = byId('music-player');
+  const list = content.querySelector('.music-tracks');
+  for (const [index, track] of musicTracks.entries()) {
+    const row = button(track.name, 'choice', '', () => selectMusicTrack(index, true));
+    row.textContent = track.name;
+    row.dataset.track = String(index);
+    row.setAttribute('aria-pressed', index === musicTrackIndex);
+    list.append(row);
+  }
+  content.querySelector('input').addEventListener('input', (event) => {
+    if (Number.isFinite(player.duration)) player.currentTime = Number(event.target.value);
+  });
+  const controls = content.querySelector('.utility-actions');
+  controls.append(
+    button('Brano precedente', 'choice music-previous', icon('left'), () => selectMusicTrack(musicTrackIndex - 1, true)),
+    button('Riproduci o metti in pausa', 'primary-button music-play', '', () => {
+      if (player.paused) playMusic();
+      else player.pause();
+    }),
+    button('Brano successivo', 'choice music-next', icon('right'), () => selectMusicTrack(musicTrackIndex + 1, true)),
+    button('Scegli brani', 'choice music-picker', 'Scegli brani…', () => byId('music-picker').click())
+  );
+  updateMusic();
+}
+
+function setupMusic() {
+  const player = byId('music-player');
+  const picker = byId('music-picker');
+  picker.addEventListener('change', () => {
+    const files = [...picker.files].filter((file) => file.type.startsWith('audio/') || /\.(mp3|wav|m4a|aac|ogg|opus|flac|webm)$/i.test(file.name));
+    picker.value = '';
+    const record = windows.get('music');
+    if (!record) return;
+    if (!files.length) {
+      musicMessage = 'Scegli uno o più file audio.';
+      updateMusic();
+      return;
+    }
+    musicTracks = files;
+    selectMusicTrack(0);
+    renderMusic(record);
+    record.content.querySelector('.music-play').focus();
+  });
+  for (const event of ['loadedmetadata', 'timeupdate', 'play', 'pause', 'durationchange']) player.addEventListener(event, updateMusic);
+  player.addEventListener('ended', () => {
+    if (musicTrackIndex < musicTracks.length - 1) selectMusicTrack(musicTrackIndex + 1, true);
+    else updateMusic();
+  });
+  player.addEventListener('error', () => {
+    if (!musicUrl) return;
+    musicMessage = 'Formato audio non supportato o file illeggibile.';
+    updateMusic();
+  });
+}
+
+
+'use strict';
+
 let switcherApps = [];
 let switcherIndex = 0;
 let switcherHeld = false;
@@ -2361,6 +2770,7 @@ let spaces = [1, 2, 3];
 let activeSpace = 1;
 
 const glyphs = {
+  music: '<path d="M9 17V6l11-2v11M9 9l11-2"/><ellipse cx="6.5" cy="17.5" rx="2.5" ry="2"/><ellipse cx="17.5" cy="15.5" rx="2.5" ry="2"/>',
   grip: '<path d="M8 6h.1M16 6h.1M8 12h.1M16 12h.1M8 18h.1M16 18h.1" stroke-width="3.2"/>',
   spark: '<path d="M12 2.5c.8 5.1 3 7.3 8.5 9.5-5.5 1.8-7.7 4-8.5 9.5-.9-5.5-3.1-7.7-8.5-9.5C8.9 9.8 11.1 7.6 12 2.5Z"/>',
   cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9 8-4.5M12 12 4 7.5M12 12v9"/>',
@@ -2400,7 +2810,7 @@ function icon(name) {
 
 function appIcon(id) {
   const face = '<svg aria-hidden="true" viewBox="0 0 48 48"><path fill="#d5edfb" d="M26 0h22v48H23c-3-8-4-14-3-21h-6c1-10 6-20 12-27Z"/><path d="M12 16v4m23-4v4m-7-12c-3 5-6 12-6 16h7c-1 7 0 12 1 15M12 29c7 7 16 8 24 1" fill="none" stroke="#174272" stroke-width="2.2" stroke-linecap="round"/></svg>';
-  const symbol = studioIcons[id] ?? { launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system' }[id];
+  const symbol = studioIcons[id] ?? { launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system', calendar: 'calendar', 'clock-app': 'clock', music: 'music' }[id];
   return '<span class="app-icon ' + id + '">' + (id === 'finder' ? face : icon(symbol)) + '</span>';
 }
 
@@ -2457,10 +2867,13 @@ const apps = {
   jarvis: { name: 'JARVIS University OS', size: [980, 596], space: 1, render: renderJarvis },
   photos: { name: 'Foto', size: [860, 550], space: 2, render: renderPhotos },
   projects: { name: 'Banco progetti', size: [700, 435], space: 3, render: renderProjects },
+  calendar: { name: 'Calendario', size: [660, 490], render: renderCalendar },
+  'clock-app': { name: 'Orologio', size: [530, 365], render: renderClockApp },
+  music: { name: 'Musica', size: [550, 430], render: renderMusic },
   preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
   info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
 };
-const launchApps = ['finder', 'notes', 'calculator', 'settings', 'studio', 'jarvis', 'photos', 'projects'];
+const launchApps = ['finder', 'notes', 'calendar', 'clock-app', 'music', 'calculator', 'settings', 'studio', 'jarvis', 'photos', 'projects'];
 const dockApps = ['finder', 'launchpad', 'mission', 'notes', 'calculator', 'settings', 'trash'];
 const configurableDockApps = dockApps.slice(1, -1);
 const dockDragType = 'application/x-laguna-dock';
@@ -2675,6 +3088,8 @@ function closeWindow(record) {
 
 function quitApp(id) {
   if (!runningApps.delete(id)) return;
+  if (id === 'music') clearMusic();
+  if (id === 'clock-app') resetClockApp();
   const record = windows.get(id);
   if (record) removeWindow(record);
   refreshDock();
@@ -4121,7 +4536,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.7</h2><p>Il pulsante <strong>giallo</strong> manda la finestra nel Dock. Fai clic sulla miniatura per ripristinarla.</p><p>Il pulsante <strong>rosso</strong> chiude la finestra e lascia attiva l’app. Per uscire usa il menu con il nome dell’app o il clic destro sulla sua icona nel Dock.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.8</h2><p>Apri <strong>Calendario</strong>, <strong>Orologio</strong> o <strong>Musica</strong> da Launchpad o Spotlight.</p><p>Il pulsante <strong>giallo</strong> manda la finestra nel Dock. Il <strong>rosso</strong> chiude la finestra e lascia attiva l’app. Usa il menu dell’app per uscire.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -4732,6 +5147,7 @@ function renderDockSettings() {
 function setupEvents() {
   setupDockExtras();
   setupHotCorners();
+  setupMusic();
   byId('fullscreen-button').addEventListener('click', toggleFullScreen);
   document.addEventListener('fullscreenchange', () => {
     const label = document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero';
@@ -4866,6 +5282,7 @@ function setupEvents() {
   });
   window.addEventListener('pagehide', (event) => {
     if (!event.persisted) {
+      clearMusic();
       clearPreview();
       releaseQuickLook();
       clearPhotoUrls();
@@ -4904,6 +5321,7 @@ function updateClock() {
   clock.dateTime = now.toISOString();
   clock.textContent = clockFormat.format(now);
   updateWidgetTime(now);
+  updateClockApp(now.getTime());
   if (byId('lock-screen').open) updateLockClock(now);
 }
 
