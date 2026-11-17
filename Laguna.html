@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ChuUf+6YW5RDqLr2fslI/L8RJKH4GWU4efv+ExDefPU='; style-src 'unsafe-inline'; img-src blob: data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-IuJWBxbjp8TRyXqnwJdy+P/wVcBbuoUlZoXW7tFAxgY='; style-src 'unsafe-inline'; img-src blob: data:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.1 · Desktop per EliteBook</title>
+  <title>Laguna 2.7 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -110,7 +110,11 @@ button, h1, h2, p { margin: 0; }
 .desktop-item .file-icon { width: 51px; height: 42px; }
 .desktop-item .drive-icon { width: 46px; height: 39px; margin-block: 2px 1px; }
 #windows { position: absolute; inset: 0; pointer-events: none; }
+#split-preview { position: absolute; z-index: 23; pointer-events: none; border: 2px solid #addaffc9; border-radius: 12px; background: #80baff24; box-shadow: inset 0 0 0 1px #163c70a1; }
+.window.is-split .resize-handle { display: none; }
 .window { position: absolute; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; pointer-events: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 17px 52px #031f3c45, 0 3px 9px #021e322d; }
+.window.genie-flight { z-index: 24 !important; pointer-events: none; transform-origin: top left; }
+.window.genie-flight[hidden] { display: flex !important; }
 .window.is-active { box-shadow: 0 24px 70px #041e365e, 0 4px 14px #031d3545; }
 .window.is-maximized { border-radius: 8px; }
 .titlebar { flex: 0 0 58px; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 15px; background: var(--surface); border-bottom: 1px solid var(--line); user-select: none; touch-action: none; cursor: grab; }
@@ -159,13 +163,16 @@ button, h1, h2, p { margin: 0; }
 .finder-path button:hover { background: var(--hover); }
 .finder-path strong { flex: none; white-space: nowrap; color: var(--ink); font-weight: 650; }
 .finder-path > .glyph { font-size: 11px; }
-.files { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
+.files { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
 .files.list-view { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-block: 10px; }
 .file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; touch-action: manipulation; }
 .file-tile:hover { background: var(--hover); }
 .file-tile.is-selected { background: var(--selected); border-color: var(--line); }
 .file-tile[draggable="true"] { user-select: none; }
 .file-tile.is-drop-target, .sidebar-item.is-drop-target, .space-tile.is-drop-target { background: var(--selected); outline: 2px solid #338cd3; outline-offset: -2px; }
+.files.is-drop-target { box-shadow: inset 0 0 0 2px #338cd3; }
+.file-tile.is-spring-target, .sidebar-item.is-spring-target { outline-style: dashed; }
+.files .finder-drag-source { position: absolute; inset: 0 auto auto 0; width: 1px; height: 1px; min-width: 0; min-height: 0; padding: 0; border: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 .dock-item.is-drop-target .app-icon { transform: translateY(-10px) scale(1.29); outline: 2px solid #8dd5ff; outline-offset: 2px; }
 .file-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
 .file-kind { display: none; color: var(--muted); font-size: 11px; }
@@ -187,8 +194,9 @@ button, h1, h2, p { margin: 0; }
 #dock-reveal { position: fixed; z-index: 24; bottom: 0; left: 50%; width: min(220px, 54vw); height: 18px; transform: translateX(-50%); border: 0; border-radius: 8px 8px 0 0; background: #0c2b3b78; }
 #dock-reveal::after { content: ""; display: block; width: 33px; height: 3px; margin: auto; border-radius: 3px; background: #d8edf6bf; }
 #dock-area[data-autohide="true"] #dock { transition: transform .2s ease; }
-#dock-area[data-autohide="true"][data-revealed="false"]:not(.finder-reveal):not(:hover) #dock:not(:focus-within) { transform: translate(-50%, calc(100% + 12px)); }
+#dock-area[data-autohide="true"][data-revealed="false"]:not(.finder-reveal):not(.download-open):not(.genie-active):not(:hover) #dock:not(:focus-within) { transform: translate(-50%, calc(100% + 12px)); }
 #dock-area[data-autohide="true"]:hover #dock { transition-duration: .1s; }
+#dock-area.genie-active #dock { transition: none; }
 .dock-item { position: relative; flex: none; display: grid; place-items: center; width: 47px; height: 48px; padding: 0; border: 0; border-radius: 11px; background: none; }
 .dock-item[data-dock-drop]::before { content: ""; position: absolute; inset: 4px auto 4px -5px; width: 2px; border-radius: 2px; background: #bcf2ff; pointer-events: none; }
 .dock-item[data-dock-drop="after"]::before { inset-inline: auto -5px; }
@@ -199,6 +207,17 @@ button, h1, h2, p { margin: 0; }
 .dock-item .dock-tooltip { position: absolute; bottom: calc(100% + 17px); left: 50%; transform: translateX(-50%); pointer-events: none; padding: 5px 9px; border: 1px solid #ffffff33; border-radius: 6px; background: #172d37ed; color: white; font-size: 11px; white-space: nowrap; opacity: 0; }
 .dock-item:hover .dock-tooltip, .dock-item:focus-visible .dock-tooltip { opacity: 1; }
 .dock-divider { width: 1px; height: 38px; margin: 0 1px 5px; background: #ffffff46; }
+#dock-minimized { display: flex; flex: 0 1 auto; align-items: flex-end; gap: 7px; min-width: 0; padding: 3px; overflow: auto hidden; scrollbar-width: none; }
+.dock-thumbnail { position: relative; flex: none; width: 45px; height: 35px; margin: 0 0 3px; border: 0; border-radius: 5px; padding: 0; background: transparent; }
+.dock-thumbnail:hover, .dock-thumbnail:focus-visible { background: #ffffff3b; }
+.dock-thumbnail-window { position: absolute; inset: 2px 3px 5px 0; border-radius: 4px; border: 1px solid #ffffff87; background: linear-gradient(#f7faff 0 21%, #8caccc 21% 24%, #dae8f6 24% 100%); box-shadow: 0 2px 6px #13213985; }
+.dock-thumbnail-window::after { content: ""; position: absolute; inset: 35% 16% 24% 14%; background: repeating-linear-gradient(#829fb971 0 1px, transparent 1px 4px); }
+.dock-thumbnail .app-icon { position: absolute; right: 1px; bottom: 1px; width: 17px; height: 17px; }
+.dock-thumbnail .glyph { width: 12px; height: 12px; }
+@media (max-width: 900px) {
+  #dock { overflow: auto hidden; scrollbar-width: none; }
+  #dock-minimized { flex: none; overflow: visible; }
+}
 .app-icon { display: grid; width: 100%; height: 100%; place-items: center; overflow: hidden; border: 1px solid #ffffff5c; border-radius: 24%; color: #fff; box-shadow: inset 0 1px 1px #ffffff59, 0 2px 5px #08233548; }
 .app-icon > .glyph { width: 64%; height: 64%; }
 .app-icon.finder { background: linear-gradient(155deg, #78d8ff, #2b85f4); border: 0; }
@@ -211,6 +230,28 @@ button, h1, h2, p { margin: 0; }
 .app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
 .app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
 .app-icon.info { background: linear-gradient(155deg, #76cbbb, #33758a); }
+.app-icon.downloads { background: linear-gradient(145deg, #ddf1ff, #789fb9); }
+.app-icon.downloads .file-icon { width: 80%; height: 80%; }
+#download-stack { --stack-width: min(288px, calc(100vw - 20px)); position: fixed; z-index: 26; bottom: calc(var(--dock-height) + 2px); left: clamp(calc(var(--stack-width) / 2 + 10px), var(--stack-anchor, 50vw), calc(100vw - var(--stack-width) / 2 - 10px)); transform: translateX(-50%); width: var(--stack-width); max-height: calc(100dvh - var(--dock-height) - var(--menu-height) - 12px); overflow: auto; padding: 11px; border: 1px solid var(--line); border-radius: 17px; background: var(--surface); box-shadow: 0 15px 45px #09192865; }
+#download-stack > header { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+#download-stack h2 { margin: 0; font-size: 15px; }
+#download-stack-items { display: grid; gap: 4px; padding-inline: 4px; }
+.download-stack-item { display: flex; align-items: center; gap: 8px; min-width: 0; margin-inline-end: var(--fan-indent, 0px); padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); font-size: 12px; text-align: start; }
+.download-stack-item:hover, .download-stack-item:focus-visible { background: var(--selected); }
+.download-stack-item:nth-child(1) { --fan-indent: 28px; }
+.download-stack-item:nth-child(2) { --fan-indent: 16px; }
+.download-stack-item:nth-child(3) { --fan-indent: 8px; }
+.download-stack-item .file-icon { width: 27px; height: 24px; flex: none; }
+.download-stack-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#download-stack-empty { margin: 4px; }
+#app-switcher { width: fit-content; max-width: calc(100vw - 24px); padding: 16px; border: 1px solid #e7f0ff50; border-radius: 22px; background: #142239ec; color: #fff; text-align: center; box-shadow: 0 18px 60px #06101f85; }
+#app-switcher::backdrop { background: #09122265; }
+#app-switcher-items { display: flex; gap: 5px; overflow: auto; padding: 4px; }
+.app-switcher-item { flex: 0 0 clamp(48px, 10vw, 72px); aspect-ratio: 1; display: grid; place-items: center; border: 1px solid transparent; border-radius: 12px; padding: 9px; background: transparent; }
+.app-switcher-item .app-icon { width: 100%; height: 100%; max-width: 52px; max-height: 52px; }
+.app-switcher-item[aria-pressed="true"] { border-color: #f4f8ff94; background: #edf5ff22; }
+#app-switcher-selection { margin: 8px 0 3px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+#app-switcher-help { margin: 0; color: #d8e5f7; font-size: 11px; }
 .dock-item.has-items .app-icon.trash { background: linear-gradient(155deg, #f9fbff, #9fbed4); color: #294d67; }
 .dock-item.has-items::before { content: ""; position: absolute; z-index: 1; bottom: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #3189bf; pointer-events: none; }
 
@@ -253,6 +294,10 @@ dialog::backdrop { background: #081f31a1; }
 .settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
 .settings-view legend { padding: 0 4px; font-size: 13px; font-weight: 650; }
 .settings-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.corner-hint { margin: 0 0 8px; }
+.corner-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr)); gap: 10px 16px; }
+.corner-settings label { display: grid; gap: 4px; min-width: 0; font-size: 12px; }
+.corner-settings select { width: 100%; padding: 5px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
 .wallpaper-heading { margin: 8px 0 6px; color: var(--muted); font-size: 11px; font-weight: 650; }
 .wallpaper-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; }
 .wallpaper-option { display: grid; gap: 4px; min-width: 0; padding: 4px; border: 1px solid var(--line); border-radius: 8px; text-align: left; background: var(--panel); }
@@ -475,8 +520,8 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   .traffic { gap: 5px; }
   .files { grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); padding-inline: 7px; }
   .finder-path { padding-inline: 7px; }
-  #dock { height: 58px; gap: 6px; bottom: 7px; padding-inline: 7px; }
-  .dock-item { width: clamp(32px, 11vw, 41px); height: clamp(32px, 11vw, 41px); }
+  #dock { height: 58px; gap: 4px; bottom: 7px; padding-inline: 6px; }
+  .dock-item { width: clamp(32px, 10vw, 41px); height: clamp(32px, 10vw, 41px); }
   .dock-divider { height: 29px; }
 }
 
@@ -500,8 +545,14 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .space-chip { border: 0; border-radius: 6px; background: transparent; color: #eef6ff; padding: 4px 13px; font-size: 11px; font-weight: 650; white-space: nowrap; }
 .space-chip:hover { background: #ffffff21; }
 .space-chip[aria-current="true"] { color: #fff; background: #ffffff34; box-shadow: inset 0 0 0 1px #ffffff21; }
-#space-home { position: absolute; top: clamp(30px, 12vh, 155px); left: clamp(16px, 6vw, 100px); width: min(360px, calc(100% - 38px)); color: #fff; padding: 21px 22px 22px; border: 1px solid #eaf0ff40; border-radius: 23px; background: #101b2b99; box-shadow: 0 18px 54px #07152342; backdrop-filter: blur(18px) saturate(118%); }
+#space-home { position: absolute; top: clamp(30px, 12vh, 155px); left: clamp(16px, 6vw, 100px); width: min(360px, calc(100% - 38px)); max-height: calc(100% - 16px); overflow: auto; color: #fff; padding: 21px 22px 22px; border: 1px solid #eaf0ff40; border-radius: 23px; background: #101b2b99; box-shadow: 0 18px 54px #07152342; backdrop-filter: blur(18px) saturate(118%); }
 #space-home h1 { font-size: clamp(34px, 5vw, 57px); line-height: 1; letter-spacing: -.055em; font-weight: 680; }
+.space-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: grab; touch-action: none; user-select: none; }
+.space-panel-header h1 { min-width: 0; overflow-wrap: anywhere; }
+.space-panel-grip { display: grid; place-items: center; flex: 0 0 34px; height: 36px; padding: 0; border: 1px solid #ffffff35; border-radius: 9px; background: #ffffff1a; color: #f0f7ff; cursor: grab; }
+.space-panel-grip .glyph { width: 17px; height: 17px; }
+.space-panel-grip:hover { background: #ffffff33; }
+#space-home.is-moving :is(.space-panel-header, .space-panel-grip) { cursor: grabbing; }
 #space-home > p { margin: 10px 0 21px; color: #e5edf8; font-size: 13px; line-height: 1.4; }
 .space-actions { display: grid; gap: 7px; }
 .space-action { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border: 1px solid #ffffff25; border-radius: 10px; background: #e9f4ff18; color: #fff; font-size: 12px; font-weight: 650; text-align: left; }
@@ -523,6 +574,18 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .activity-link { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 .activity-link .app-hint { width: 100%; }
 .activity-link .primary-button { text-decoration: none; }
+.jarvis-workspace { height: 100%; min-height: 0; display: flex; flex-direction: column; background: var(--surface); }
+.jarvis-toolbar, .jarvis-address-editor { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.jarvis-toolbar > a { margin-inline-start: auto; text-decoration: none; }
+.jarvis-address-editor input { flex: 1 1 190px; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); font: inherit; font-size: 12px; }
+.jarvis-address-editor .app-hint { flex-basis: 100%; }
+.jarvis-address-editor .app-hint:empty { display: none; }
+.jarvis-view { flex: 1; min-height: 70px; display: grid; background: var(--panel); }
+.jarvis-view iframe { display: block; width: 100%; height: 100%; min-height: 0; border: 0; background: #fff; }
+.jarvis-empty { display: grid; justify-items: center; align-content: center; gap: 9px; padding: 12px; text-align: center; }
+.jarvis-empty .glyph { color: var(--accent); font-size: 28px; }
+.jarvis-empty p { font-size: 12px; color: var(--muted); }
+.jarvis-hint { padding: 5px 10px; border-top: 1px solid var(--line); }
 .photo-library { height: 100%; min-height: 0; display: flex; flex-direction: column; }
 .photo-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
 .photo-empty { display: grid; align-content: center; justify-items: center; gap: 12px; height: 100%; padding: 14px; color: var(--muted); font-size: 13px; }
@@ -546,7 +609,9 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 }
 @media (max-width: 620px) {
   #clock { display: none; }
-  #space-home { top: 18px; }
+  #space-home { top: 18px; padding: 16px; border-radius: 18px; }
+  #space-home h1 { font-size: clamp(24px, 8vw, 40px); }
+  .space-panel-grip { flex-basis: 40px; height: 42px; }
   #desktop-icons { display: none; }
   #app-menu { max-width: 62px; overflow: hidden; text-overflow: ellipsis; }
   #menubar .status-button { padding-inline: 5px; }
@@ -564,8 +629,8 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     <div id="menus">
       <button id="system-menu" class="menu-button system-mark" type="button" data-menu="Sistema" aria-label="Menu di sistema"></button>
       <button id="app-menu" class="menu-button" type="button" data-menu="App">Finder</button>
-      <button class="menu-button optional-menu" type="button" data-menu="File">File</button>
-      <button class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
+      <button id="file-menu" class="menu-button optional-menu" type="button" data-menu="File">File</button>
+      <button id="view-menu" class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
       <button class="menu-button optional-menu" type="button" data-menu="Finestra">Finestra</button>
       <button class="menu-button optional-menu" type="button" data-menu="Aiuto">Aiuto</button>
     </div>
@@ -583,6 +648,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     <div id="widgets" aria-label="Widget della scrivania"></div>
     <div id="desktop-icons"></div>
     <div id="windows"></div>
+    <div id="split-preview" aria-hidden="true" hidden></div>
   </main>
   <dialog id="widget-gallery" aria-labelledby="widget-gallery-title">
     <header class="control-header">
@@ -607,8 +673,22 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   </dialog>
   <div id="dock-area">
     <nav id="dock" aria-label="Dock"></nav>
+    <section id="download-stack" aria-labelledby="download-stack-title" hidden>
+      <header>
+        <h2 id="download-stack-title">Download</h2>
+        <button id="download-stack-finder" class="choice" type="button">Apri nel Finder</button>
+      </header>
+      <div id="download-stack-items"></div>
+      <p id="download-stack-empty" class="app-hint">Trascina un file virtuale sull’icona Download nel Dock.</p>
+    </section>
     <button id="dock-reveal" type="button" aria-label="Mostra Dock" aria-controls="dock" aria-expanded="false" hidden></button>
   </div>
+  <dialog id="app-switcher" aria-labelledby="app-switcher-title">
+    <h2 id="app-switcher-title" class="sr-only">Cambia app</h2>
+    <div id="app-switcher-items"></div>
+    <p id="app-switcher-selection" role="status"></p>
+    <p id="app-switcher-help"></p>
+  </dialog>
   <dialog id="launchpad" aria-label="Launchpad">
     <div class="launch-top">
       <label class="search-field"><span data-icon="search"></span><input id="launch-search" type="search" aria-label="Cerca nel Launchpad" placeholder="Cerca app" autocomplete="off"></label>
@@ -1382,6 +1462,79 @@ const studioSpaces = {
 };
 const studioIcons = { studio: 'calendar', jarvis: 'spark', photos: 'image', projects: 'cube' };
 const studyWeekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+const spacePanelMargin = 8;
+const spacePanelArrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+
+function spacePanelKey(space) {
+  return 'space.panel.' + space;
+}
+
+function readSpacePanelPosition(space) {
+  try {
+    const position = JSON.parse(readValue(spacePanelKey(space), 'null'));
+    return position && Number.isFinite(position.left) && Number.isFinite(position.top) ? position : null;
+  } catch {
+    return null;
+  }
+}
+
+function placeSpacePanel(home, position) {
+  if (!position) {
+    home.style.left = '';
+    home.style.top = '';
+    return;
+  }
+  const right = desktop.clientWidth - home.offsetWidth - spacePanelMargin;
+  const bottom = desktop.clientHeight - home.offsetHeight - spacePanelMargin;
+  const left = Math.round(Math.max(spacePanelMargin, Math.min(right, position.left)));
+  const top = Math.round(Math.max(spacePanelMargin, Math.min(bottom, position.top)));
+  home.style.left = left + 'px';
+  home.style.top = top + 'px';
+  return { left, top };
+}
+
+function positionSpaceHome() {
+  const home = byId('space-home');
+  if (!home.hidden) placeSpacePanel(home, readSpacePanelPosition(activeSpace));
+}
+
+function bindSpacePanelDrag(home, header, grip, space) {
+  let drag = null;
+  const savePosition = (position) => saveActivityValue(spacePanelKey(space), JSON.stringify(position));
+  header.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || drag) return;
+    drag = { pointer: event.pointerId, left: home.offsetLeft, top: home.offsetTop, x: event.clientX, y: event.clientY };
+    header.setPointerCapture(event.pointerId);
+  });
+  header.addEventListener('pointermove', (event) => {
+    if (!drag || drag.pointer !== event.pointerId || space !== activeSpace) return;
+    const moveX = event.clientX - drag.x;
+    const moveY = event.clientY - drag.y;
+    if (!drag.position && Math.hypot(moveX, moveY) < 4) return;
+    home.classList.toggle('is-moving', true);
+    drag.position = placeSpacePanel(home, { left: drag.left + moveX, top: drag.top + moveY });
+  });
+  const finish = (event) => {
+    if (!drag || drag.pointer !== event.pointerId) return;
+    const { position } = drag;
+    drag = null;
+    home.classList.toggle('is-moving', false);
+    if (position) savePosition(position);
+  };
+  for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) header.addEventListener(event, finish);
+  grip.addEventListener('keydown', (event) => {
+    const offset = spacePanelArrows[event.key];
+    if (!offset && event.key !== 'Home') return;
+    event.preventDefault();
+    if (!offset) {
+      savePosition(null);
+      positionSpaceHome();
+      return;
+    }
+    const step = event.shiftKey ? 32 : 8;
+    savePosition(placeSpacePanel(home, { left: home.offsetLeft + offset[0] * step, top: home.offsetTop + offset[1] * step }));
+  });
+}
 
 function renderSpaceHome() {
   const home = byId('space-home');
@@ -1399,10 +1552,17 @@ function renderSpaceHome() {
     nav.append(control);
   }
   home.replaceChildren();
+  home.classList.toggle('is-moving', false);
   home.hidden = !profile;
   if (!profile) return;
+  const header = document.createElement('header');
+  header.className = 'space-panel-header';
   const title = document.createElement('h1');
   title.textContent = profile.name;
+  const grip = button('Sposta riquadro ' + profile.name, 'space-panel-grip', icon('grip'), () => {});
+  grip.title = 'Trascina per spostare · Frecce da tastiera · Home per ripristinare';
+  grip.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home');
+  header.append(title, grip);
   const subtitle = document.createElement('p');
   subtitle.textContent = profile.caption;
   const actions = document.createElement('div');
@@ -1411,7 +1571,9 @@ function renderSpaceHome() {
     const entry = button(label, 'space-action', appIcon(id) + '<span>' + label + '</span>' + icon('right'), () => openWindow(id));
     actions.append(entry);
   }
-  home.append(title, subtitle, actions);
+  home.append(header, subtitle, actions);
+  bindSpacePanelDrag(home, header, grip, activeSpace);
+  positionSpaceHome();
 }
 
 function activityField(label, text, save) {
@@ -1517,12 +1679,93 @@ function toolLink(label, key, placeholder) {
 }
 
 function renderJarvis(record) {
-  const panel = activityPanel('JARVIS University OS');
+  const content = document.createElement('div');
+  content.className = 'jarvis-workspace';
+  const toolbar = document.createElement('div');
+  toolbar.className = 'jarvis-toolbar';
+  const editor = document.createElement('div');
+  editor.className = 'jarvis-address-editor';
+  const field = document.createElement('input');
+  field.type = 'url';
+  field.maxLength = 1500;
+  field.autocomplete = 'off';
+  field.placeholder = 'https://… oppure http://localhost:…';
+  field.setAttribute('aria-label', 'Indirizzo JARVIS');
+  field.value = readValue('study.jarvis', '');
+  const status = document.createElement('p');
+  status.className = 'app-hint';
+  status.setAttribute('role', 'status');
+  const view = document.createElement('div');
+  view.className = 'jarvis-view';
+  const empty = document.createElement('div');
+  empty.className = 'jarvis-empty';
+  empty.innerHTML = icon('spark') + '<strong>JARVIS University OS</strong><p>Inserisci l’indirizzo del tuo sito per aprirlo qui.</p>';
   const help = document.createElement('p');
-  help.className = 'app-hint';
-  help.textContent = 'Inserisci l’indirizzo della tua installazione web di JARVIS. Puoi usare anche un server attivo su questo PC.';
-  panel.append(help, toolLink('JARVIS', 'study.jarvis', 'https://… oppure http://localhost:…'));
-  record.content.replaceChildren(panel);
+  help.className = 'app-hint jarvis-hint';
+  help.textContent = 'Se la pagina non compare, usa Apri in una scheda.';
+  const external = document.createElement('a');
+  external.className = 'choice';
+  external.target = '_blank';
+  external.rel = 'noopener noreferrer';
+  external.textContent = 'Apri in una scheda ↗';
+  let address = webAddress(field.value);
+  const change = button('Cambia indirizzo', 'choice', 'Cambia indirizzo', () => {
+    editor.hidden = !editor.hidden;
+    if (!editor.hidden) {
+      field.focus();
+      field.select();
+    }
+  });
+  const reload = button('Ricarica JARVIS', 'choice', 'Ricarica', () => showJarvis());
+
+  function showJarvis() {
+    record.fileCommands = [
+      [address ? 'Cambia indirizzo…' : 'Imposta indirizzo…', () => { editor.hidden = false; field.focus(); field.select(); }],
+      ['Ricarica JARVIS', () => showJarvis(), !address],
+      ['Apri in una scheda', () => external.click(), !address]
+    ];
+    toolbar.hidden = help.hidden = !address;
+    if (!address) {
+      external.removeAttribute('href');
+      view.replaceChildren(empty);
+      return;
+    }
+    external.href = address;
+    const frame = document.createElement('iframe');
+    frame.title = 'JARVIS University OS';
+    frame.referrerPolicy = 'no-referrer';
+    const sameOrigin = new URL(address).origin === window.location.origin;
+    frame.setAttribute('sandbox', sameOrigin ? 'allow-forms allow-scripts' : 'allow-forms allow-scripts allow-same-origin');
+    frame.src = address;
+    view.replaceChildren(frame);
+  }
+
+  function saveAddress() {
+    const entered = webAddress(field.value);
+    if (!entered) {
+      status.textContent = 'Inserisci un indirizzo HTTP o HTTPS valido.';
+      field.focus();
+      return;
+    }
+    field.value = address = entered;
+    saveActivityValue('study.jarvis', address);
+    status.textContent = '';
+    showJarvis();
+    editor.hidden = true;
+    change.focus();
+  }
+
+  field.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.isComposing) return;
+    event.preventDefault();
+    saveAddress();
+  });
+  toolbar.append(change, reload, external);
+  editor.append(field, button('Salva indirizzo JARVIS', 'primary-button', 'Apri nella finestra', saveAddress), status);
+  editor.hidden = Boolean(address);
+  content.append(toolbar, editor, view, help);
+  showJarvis();
+  record.content.replaceChildren(content);
 }
 
 function renderProjects(record) {
@@ -1580,6 +1823,8 @@ function renderPhotos(record) {
   library.className = 'photo-library';
   const tools = document.createElement('div');
   tools.className = 'photo-tools';
+  record.fileCommands = [];
+  record.viewCommands = [];
   for (const [label, directory] of [['Apri cartella', true], ['Scegli foto', false]]) {
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -1593,6 +1838,7 @@ function renderPhotos(record) {
       record.content.querySelector('.photo-tools button')?.focus();
     });
     tools.append(button(label, directory ? 'primary-button' : 'choice', label + '…', () => picker.click()), picker);
+    record.fileCommands.push([label + '…', () => picker.click()]);
   }
   const help = document.createElement('p');
   help.className = 'app-hint';
@@ -1650,6 +1896,10 @@ function renderPhotos(record) {
   const next = iconButton('Foto successiva', 'right', () => showPhoto(photoSession.selected + 1, true));
   previous.disabled = photoSession.selected === 0;
   next.disabled = photoSession.selected >= photoSession.files.length - 1;
+  record.viewCommands = [
+    ['Foto precedente', () => showPhoto(photoSession.selected - 1, true), previous.disabled],
+    ['Foto successiva', () => showPhoto(photoSession.selected + 1, true), next.disabled]
+  ];
   details.append(previous, fileName, meta, next);
   const start = photoSession.page * photoPageSize;
   for (const [offset, candidate] of photoSession.files.slice(start, start + photoPageSize).entries()) {
@@ -1678,12 +1928,432 @@ function renderPhotos(record) {
 
 'use strict';
 
+let switcherApps = [];
+let switcherIndex = 0;
+let switcherHeld = false;
+
+function downloadStackButton() {
+  return byId('dock').querySelector('[data-app="downloads"]');
+}
+
+function syncDownloadStackButton() {
+  const trigger = downloadStackButton();
+  if (!trigger) return;
+  const panel = byId('download-stack');
+  trigger.setAttribute('aria-expanded', !panel.hidden);
+  if (panel.hidden) return;
+  const rect = trigger.getBoundingClientRect();
+  panel.style.setProperty('--stack-anchor', (rect.left + rect.right) / 2 + 'px');
+}
+
+function renderDownloadStack() {
+  const container = byId('download-stack-items');
+  const entries = folderItems('downloads').slice(-6).reverse();
+  byId('download-stack-empty').hidden = entries.length > 0;
+  container.replaceChildren();
+  for (const id of entries) {
+    const entry = virtualEntries.get(id);
+    const row = button(entry.name, 'download-stack-item', fileIcon(entry.kind === 'folder' ? 'folder' : 'text'), () => {
+      closeDownloadStack();
+      openItem(id);
+    });
+    row.dataset.stackFile = id;
+    row.draggable = true;
+    row.addEventListener('dragstart', (event) => startFinderDrag(event, [id]));
+    row.addEventListener('dragend', endFinderDrag);
+    const label = document.createElement('span');
+    label.textContent = entry.name;
+    row.append(label);
+    container.append(row);
+  }
+}
+
+function closeDownloadStack(restoreFocus = false) {
+  const panel = byId('download-stack');
+  if (panel.hidden) return;
+  panel.hidden = true;
+  byId('dock-area').classList.toggle('download-open', false);
+  syncDownloadStackButton();
+  if (restoreFocus) downloadStackButton()?.focus();
+}
+
+function toggleDownloadStack() {
+  const panel = byId('download-stack');
+  if (!panel.hidden) {
+    closeDownloadStack(true);
+    return;
+  }
+  closeMenu();
+  renderDownloadStack();
+  panel.hidden = false;
+  byId('dock-area').classList.toggle('download-open', true);
+  syncDownloadStackButton();
+  (byId('download-stack-items').querySelector('button') ?? byId('download-stack-finder')).focus();
+}
+
+function selectSwitcherApp(index) {
+  switcherIndex = (index + switcherApps.length) % switcherApps.length;
+  const buttons = [...byId('app-switcher-items').querySelectorAll('button')];
+  buttons.forEach((entry, position) => {
+    entry.setAttribute('aria-pressed', position === switcherIndex);
+    entry.tabIndex = position === switcherIndex ? 0 : -1;
+  });
+  const id = switcherApps[switcherIndex];
+  const record = windows.get(id);
+  byId('app-switcher-selection').textContent = record
+    ? record.title.textContent + ' · ' + spaceName(record.space) + (record.minimized ? ' · Minimizzata' : '')
+    : appName(id) + ' · Nessuna finestra';
+  buttons[switcherIndex].focus({ preventScroll: true });
+  buttons[switcherIndex].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function finishAppSwitcher(activateChoice = false) {
+  const dialog = byId('app-switcher');
+  const id = switcherApps[switcherIndex];
+  switcherHeld = false;
+  switcherApps = [];
+  if (dialog.open) dialog.close();
+  if (!activateChoice || !runningApps.has(id)) return;
+  if (windows.has(id)) {
+    switchSpace(windows.get(id).space);
+    openWindow(id);
+  } else {
+    activate(null, id);
+    byId('app-menu').focus({ preventScroll: true });
+  }
+}
+
+function openAppSwitcher(held = false, direction = 1) {
+  const dialog = byId('app-switcher');
+  if (dialog.open || !runningApps.size || [...document.querySelectorAll('dialog')].some((item) => item.open)) return false;
+  closeMenu();
+  closeDownloadStack();
+  const byWindowOrder = [...windows.values()].sort((first, second) => second.order - first.order);
+  switcherApps = [...byWindowOrder.map(({ id }) => id), ...[...runningApps].filter((id) => !windows.has(id))];
+  switcherHeld = held;
+  const container = byId('app-switcher-items');
+  container.replaceChildren();
+  for (const [index, id] of switcherApps.entries()) {
+    const entry = button(appName(id), 'app-switcher-item', appIcon(id), () => {
+      switcherIndex = index;
+      finishAppSwitcher(true);
+    });
+    entry.dataset.switchApp = id;
+    container.append(entry);
+  }
+  byId('app-switcher-help').textContent = held ? 'Q per scorrere · Rilascia Alt per attivare · Esc per annullare' : 'Frecce per scorrere · Invio per attivare · Esc per annullare';
+  dialog.showModal();
+  const current = switcherApps.indexOf(activeApp);
+  selectSwitcherApp(held ? (current >= 0 ? current + direction : direction < 0 ? switcherApps.length - 1 : 0) : Math.max(0, current));
+  return true;
+}
+
+function setupDockExtras() {
+  const dialog = byId('app-switcher');
+  byId('download-stack-finder').addEventListener('click', () => {
+    closeDownloadStack();
+    showFolder('downloads');
+  });
+  document.addEventListener('pointerdown', (event) => {
+    if (!event.target.closest('#download-stack, [data-app="downloads"]')) closeDownloadStack();
+  }, true);
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    finishAppSwitcher();
+  });
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) finishAppSwitcher();
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.isComposing) return;
+    if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyQ') {
+      const direction = event.shiftKey ? -1 : 1;
+      if (dialog.open) {
+        event.preventDefault();
+        switcherHeld = true;
+        selectSwitcherApp(switcherIndex + direction);
+      } else if (openAppSwitcher(true, direction)) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (dialog.open && ['Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === 'Escape' || event.key === 'Enter') finishAppSwitcher(event.key === 'Enter');
+      else selectSwitcherApp(switcherIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+      return;
+    }
+    if (event.key === 'Escape' && !byId('download-stack').hidden) {
+      event.preventDefault();
+      closeDownloadStack(true);
+    }
+  }, true);
+  window.addEventListener('keyup', (event) => {
+    if (dialog.open && switcherHeld && event.key === 'Alt' && !event.altKey) {
+      event.preventDefault();
+      finishAppSwitcher(true);
+    }
+  }, true);
+  window.addEventListener('blur', () => {
+    leaveHotCorner();
+    if (dialog.open && switcherHeld) finishAppSwitcher();
+  });
+}
+
+
+'use strict';
+
+let genieFlight = null;
+
+function minimizedButton(id) {
+  return byId('dock-minimized')?.querySelector('[data-minimized-window="' + id + '"]');
+}
+
+function refreshMinimizedWindows() {
+  const tray = byId('dock-minimized');
+  const items = [...windows.values()].filter((record) => record.minimized);
+  const signature = JSON.stringify(items.map((record) => [record.id, record.title.textContent]));
+  if (tray.dataset.windows === signature) return;
+  tray.dataset.windows = signature;
+  tray.hidden = !items.length;
+  tray.replaceChildren();
+  for (const record of items) {
+    const title = record.title.textContent;
+    const thumbnail = button('Ripristina ' + title, 'dock-thumbnail',
+      '<span class="dock-thumbnail-window" aria-hidden="true"></span>' + appIcon(record.id), () => {
+        closeDownloadStack();
+        if (windows.get(record.id) === record) openWindow(record.id);
+      });
+    thumbnail.title = title;
+    thumbnail.dataset.minimizedWindow = record.id;
+    tray.append(thumbnail);
+  }
+}
+
+function canAnimateGenie(record) {
+  return !restoringWorkspace && typeof record.element.animate === 'function'
+    && document.documentElement.dataset.motion !== 'reduced'
+    && !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+}
+
+function measureMinimizedWindow(id) {
+  const button = minimizedButton(id);
+  if (!button) return null;
+  const area = byId('dock-area');
+  area.classList.toggle('genie-active', true);
+  button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const rect = button.getBoundingClientRect();
+  area.classList.toggle('genie-active', false);
+  return rect;
+}
+
+function cancelGenie() {
+  if (!genieFlight) return;
+  const { record, animation } = genieFlight;
+  genieFlight = null;
+  record.element.classList.toggle('genie-flight', false);
+  record.element.inert = false;
+  byId('dock-area').classList.toggle('genie-active', false);
+  animation.cancel();
+}
+
+function genieFrames(from, to) {
+  const frames = [];
+  const mix = (first, second, amount) => first + (second - first) * amount;
+  const fromCenter = from.left + from.width / 2;
+  const toCenter = to.left + to.width / 2;
+  for (let frame = 0; frame <= 20; frame += 1) {
+    const time = frame / 20;
+    const topProgress = time ** 1.8;
+    const bottomProgress = 1 - (1 - time) ** 2.35;
+    const top = mix(from.top, to.top, topProgress);
+    const bottom = mix(from.bottom, to.bottom, bottomProgress);
+    const leftEdge = [];
+    const rightEdge = [];
+    // The edge nearest the Dock leads. Each row tapers and follows it.
+    for (let row = 0; row <= 10; row += 1) {
+      const progress = mix(topProgress, bottomProgress, (row / 10) ** 1.5);
+      const center = mix(fromCenter, toCenter, progress);
+      const half = mix(from.width, to.width, progress) / 2;
+      leftEdge.push(center - half);
+      rightEdge.push(center + half);
+    }
+    const left = Math.min(...leftEdge);
+    const width = Math.max(...rightEdge) - left;
+    const point = (x, row) => ((x - left) / width * 100).toFixed(3) + '% ' + (row * 10) + '%';
+    const rightPoints = rightEdge.map(point).reverse();
+    frames.push({
+      transform: 'translate(' + (left - from.left) + 'px, ' + (top - from.top) + 'px) scale('
+        + width / from.width + ', ' + (bottom - top) / from.height + ')',
+      clipPath: 'polygon(' + [...leftEdge.map(point), ...rightPoints].join(', ') + ')'
+    });
+  }
+  return frames;
+}
+
+function animateGenie(record, from, to, restoring = false) {
+  if (!from?.width || !from.height || !to?.width || !to.height) return;
+  const element = record.element;
+  element.classList.toggle('genie-flight', true);
+  element.inert = !restoring;
+  byId('dock-area').classList.toggle('genie-active', true);
+  const animation = element.animate(genieFrames(from, to), {
+    duration: restoring ? 360 : 430,
+    direction: restoring ? 'reverse' : 'normal',
+    easing: 'cubic-bezier(.26, .04, .3, 1)',
+    fill: 'both'
+  });
+  genieFlight = { record, animation };
+  animation.onfinish = () => {
+    if (genieFlight?.animation === animation) cancelGenie();
+  };
+}
+
+
+const hotCornerLabels = {
+  'top-left': 'In alto a sinistra',
+  'top-right': 'In alto a destra',
+  'bottom-left': 'In basso a sinistra',
+  'bottom-right': 'In basso a destra'
+};
+const hotCornerActions = {
+  none: ['Disattivato', null],
+  mission: ['Mission Control', openMission],
+  desktop: ['Mostra scrivania', toggleDesktopPeek],
+  lock: ['Blocca schermo (simulato)', openLockScreen]
+};
+let enteredCorner = null;
+let hotCornerTimer = null;
+let peekActive = false;
+let peekWindow = null;
+
+function renderHotCornerSettings(status) {
+  const group = document.createElement('fieldset');
+  const title = document.createElement('legend');
+  title.textContent = 'Angoli attivi';
+  const hint = document.createElement('p');
+  hint.className = 'app-hint corner-hint';
+  hint.textContent = 'Tieni il puntatore in un angolo di Laguna per circa mezzo secondo.';
+  const rows = document.createElement('div');
+  rows.className = 'corner-settings';
+  for (const [corner, label] of Object.entries(hotCornerLabels)) {
+    const row = document.createElement('label');
+    const caption = document.createElement('span');
+    caption.textContent = label;
+    const select = document.createElement('select');
+    select.dataset.hotCorner = corner;
+    for (const [value, [name]] of Object.entries(hotCornerActions)) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = name;
+      select.append(option);
+    }
+    select.value = hotCornerAction(corner);
+    select.addEventListener('change', () => {
+      cancelHotCorner();
+      status.textContent = writeValue('hot-corner.' + corner, select.value)
+        ? 'Angolo attivo salvato in questo browser.'
+        : 'Angolo attivo applicato a questa sessione.';
+    });
+    row.append(caption, select);
+    rows.append(row);
+  }
+  group.append(title, hint, rows);
+  return group;
+}
+
+function hotCornerAction(corner) {
+  const action = readValue('hot-corner.' + corner, 'none');
+  return Object.hasOwn(hotCornerActions, action) ? action : 'none';
+}
+
+function cancelHotCorner() {
+  if (hotCornerTimer === null) return;
+  clearTimeout(hotCornerTimer);
+  hotCornerTimer = null;
+}
+
+function leaveHotCorner() {
+  cancelHotCorner();
+  enteredCorner = null;
+}
+
+function canTriggerHotCorner() {
+  return !finderDrag.length && !dockDrag && !menuAnchor
+    && ![...document.querySelectorAll('dialog')].some((dialog) => dialog.open);
+}
+
+function onHotCornerPointer(event) {
+  if (event.pointerType === 'touch') {
+    leaveHotCorner();
+    return;
+  }
+  const edge = 10;
+  const { clientX: x, clientY: y } = event;
+  const horizontal = x < edge ? 'left' : x >= innerWidth - edge ? 'right' : '';
+  const vertical = y < edge ? 'top' : y >= innerHeight - edge ? 'bottom' : '';
+  if (!horizontal || !vertical || x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) {
+    leaveHotCorner();
+    return;
+  }
+  if (event.buttons) cancelHotCorner();
+  const corner = vertical + '-' + horizontal;
+  if (corner === enteredCorner) return;
+  cancelHotCorner();
+  enteredCorner = corner;
+  const action = hotCornerActions[hotCornerAction(corner)][1];
+  if (!action || event.buttons || !canTriggerHotCorner()) return;
+  hotCornerTimer = setTimeout(() => {
+    hotCornerTimer = null;
+    if (canTriggerHotCorner()) action();
+  }, 650);
+}
+
+function setupHotCorners() {
+  window.addEventListener('pointermove', onHotCornerPointer);
+  document.documentElement.addEventListener('pointerleave', leaveHotCorner);
+  window.addEventListener('pointercancel', leaveHotCorner);
+  document.addEventListener('dragstart', cancelHotCorner, true);
+}
+
+function clearDesktopPeek() {
+  peekActive = false;
+  peekWindow = null;
+}
+
+function toggleDesktopPeek() {
+  cancelGenie();
+  if (peekActive) {
+    const previous = peekWindow;
+    clearDesktopPeek();
+    syncSpaces();
+    if (previous && !previous.element.hidden && windows.get(previous.id) === previous) {
+      activate(previous);
+      previous.element.focus({ preventScroll: true });
+    } else focusNext('finder');
+    byId('announcement').textContent = 'Finestre ripristinate.';
+    return;
+  }
+  peekWindow = activeWindow;
+  peekActive = true;
+  closeDownloadStack();
+  syncSpaces();
+  activate(null);
+  byId('announcement').textContent = 'Scrivania visibile. Per ripristinare le finestre, usa il menu Vista.';
+}
+
+
+'use strict';
+
 const byId = (id) => document.getElementById(id);
 const desktop = byId('desktop');
 const windows = new Map();
+const runningApps = new Set();
 const memory = new Map();
 const bounds = { margin: 8, minWidth: 280, minHeight: 220 };
 let activeWindow = null;
+let activeApp = 'finder';
 let zIndex = 0;
 let preview = null;
 let fileSelection = 0;
@@ -1691,6 +2361,7 @@ let spaces = [1, 2, 3];
 let activeSpace = 1;
 
 const glyphs = {
+  grip: '<path d="M8 6h.1M16 6h.1M8 12h.1M16 12h.1M8 18h.1M16 18h.1" stroke-width="3.2"/>',
   spark: '<path d="M12 2.5c.8 5.1 3 7.3 8.5 9.5-5.5 1.8-7.7 4-8.5 9.5-.9-5.5-3.1-7.7-8.5-9.5C8.9 9.8 11.1 7.6 12 2.5Z"/>',
   cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9 8-4.5M12 12 4 7.5M12 12v9"/>',
   lock: '<rect x="6" y="10.5" width="12" height="10" rx="2"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5M12 14.5v2"/>',
@@ -1783,7 +2454,7 @@ const apps = {
   calculator: { name: 'Calcolatrice', size: [290, 365], render: renderCalculator },
   settings: { name: 'Impostazioni', size: [560, 500], render: renderSettings },
   studio: { name: 'Orario e appunti', size: [660, 410], space: 1, render: renderStudio },
-  jarvis: { name: 'JARVIS University OS', size: [510, 290], space: 1, render: renderJarvis },
+  jarvis: { name: 'JARVIS University OS', size: [980, 596], space: 1, render: renderJarvis },
   photos: { name: 'Foto', size: [860, 550], space: 2, render: renderPhotos },
   projects: { name: 'Banco progetti', size: [700, 435], space: 3, render: renderProjects },
   preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
@@ -1847,7 +2518,7 @@ function setDockVisibility() {
 }
 
 function appName(id) {
-  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino' }[id];
+  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino', downloads: 'Download' }[id];
 }
 
 function launch(id) {
@@ -1876,11 +2547,27 @@ function fit(rect) {
   };
 }
 
+const splitSides = ['left', 'right'];
+
+function canSplitWindows() {
+  return desktop.clientWidth >= bounds.minWidth * 2 + bounds.margin * 3;
+}
+
+function splitRect(side) {
+  const margin = bounds.margin;
+  const width = Math.floor((desktop.clientWidth - margin * 3) / 2);
+  return {
+    left: side === 'left' ? margin : width + margin * 2,
+    top: margin, width, height: desktop.clientHeight - margin * 2
+  };
+}
+
 function position(record) {
   const margin = bounds.margin;
   const rect = record.maximized
     ? { left: margin, top: margin, width: desktop.clientWidth - margin * 2, height: desktop.clientHeight - margin * 2 }
-    : record.rect;
+    : record.split && canSplitWindows() ? splitRect(record.split) : record.rect;
+  record.element.classList.toggle('is-split', Boolean(record.split && canSplitWindows()));
   const fitted = fit(rect);
   for (const [key, value] of Object.entries(fitted)) record.element.style[key] = value + 'px';
 }
@@ -1888,19 +2575,28 @@ function position(record) {
 function refreshDock() {
   const dock = byId('dock');
   const pinned = dockPrefs.order.filter((id) => !dockPrefs.unpinned.includes(id));
-  const running = dockPrefs.order.filter((id) => dockPrefs.unpinned.includes(id) && windows.has(id));
-  const visible = ['finder', ...pinned, ...running, 'trash'];
+  const fixed = ['finder', ...pinned];
+  const running = [...runningApps].filter((id) => !fixed.includes(id));
+  const visible = [...fixed, ...running, 'downloads', 'trash'];
   const existing = [...dock.querySelectorAll('[data-app]')].map((entry) => entry.dataset.app);
   if (visible.join() !== existing.join()) renderDock(visible);
   setDockVisibility();
   for (const entry of byId('dock').querySelectorAll('[data-app]')) {
-    entry.classList.toggle('is-open', windows.has(entry.dataset.app));
+    const id = entry.dataset.app;
+    entry.classList.toggle('is-open', runningApps.has(id));
+    if (Object.hasOwn(apps, id)) entry.setAttribute('aria-label', appName(id) + (runningApps.has(id) ? ' · In esecuzione' : ''));
     if (entry.dataset.app === 'trash') entry.classList.toggle('has-items', folderItems('trash').length > 0);
+  }
+  refreshMinimizedWindows();
+  if (!byId('download-stack').hidden) {
+    syncDownloadStackButton();
+    if (!finderDrag.length) renderDownloadStack();
   }
 }
 
-function activate(record) {
+function activate(record, app = record?.id ?? 'finder') {
   activeWindow = record;
+  activeApp = app;
   byId('widgets').dataset.inactive = String(Boolean(record));
   if (record) {
     if (++zIndex > 20) {
@@ -1915,25 +2611,26 @@ function activate(record) {
     record.element.style.zIndex = record.order;
   }
   for (const item of windows.values()) item.element.classList.toggle('is-active', item === record);
-  byId('app-menu').textContent = record ? appName(record.id) : 'Finder';
+  byId('app-menu').textContent = appName(activeApp);
+  updateAppMenus(record);
   saveWorkspace();
 }
 
-function focusNext(fallbackId) {
+function focusNext(fallbackId, fallbackApp = 'finder') {
   const remaining = [...windows.values()].filter((record) => !record.element.hidden);
   const next = remaining.sort((first, second) => second.order - first.order)[0];
-  activate(next ?? null);
+  activate(next ?? null, next?.id ?? fallbackApp);
   if (next) {
     next.element.focus({ preventScroll: true });
   } else {
     const dockButton = byId('dock').querySelector('[data-app="' + fallbackId + '"]');
-    (dockButton ?? byId('app-menu')).focus();
+    (minimizedButton(fallbackId) ?? dockButton ?? byId('app-menu')).focus();
   }
 }
 
 function syncSpaces() {
   for (const record of windows.values()) {
-    record.element.hidden = Boolean(record.minimized || record.space !== activeSpace);
+    record.element.hidden = Boolean(peekActive || record.minimized || record.space !== activeSpace);
   }
   desktop.setAttribute('aria-label', spaceName(activeSpace));
   desktop.dataset.space = String(spaces.indexOf(activeSpace) + 1);
@@ -1941,6 +2638,9 @@ function syncSpaces() {
 
 function switchSpace(id) {
   if (!spaces.includes(id) || activeSpace === id) return;
+  cancelGenie();
+  clearDesktopPeek();
+  closeDownloadStack();
   activeSpace = id;
   syncSpaces();
   syncWallpaper();
@@ -1951,7 +2651,9 @@ function switchSpace(id) {
   activate(next ?? null);
 }
 
-function closeWindow(record) {
+function removeWindow(record) {
+  if (genieFlight?.record === record) cancelGenie();
+  if (record.id === 'finder' && finderDrag.length) endFinderDrag();
   if (record.id === 'photos') clearPhotoUrls();
   if (record.id === 'preview') {
     clearPreview();
@@ -1959,41 +2661,125 @@ function closeWindow(record) {
   }
   record.element.remove();
   windows.delete(record.id);
+}
+
+function closeWindow(record) {
+  if (!record || windows.get(record.id) !== record) return;
+  removeWindow(record);
   refreshDock();
-  focusNext(record.id);
+  if (activeWindow === record) {
+    activate(null, record.id);
+    byId('app-menu').focus({ preventScroll: true });
+  } else saveWorkspace();
+}
+
+function quitApp(id) {
+  if (!runningApps.delete(id)) return;
+  const record = windows.get(id);
+  if (record) removeWindow(record);
+  refreshDock();
+  if (activeApp === id) focusNext(id);
+  else {
+    saveWorkspace();
+    if (document.activeElement && !document.activeElement.isConnected) byId('app-menu').focus({ preventScroll: true });
+  }
 }
 
 function minimize(record) {
+  if (!record || record.minimized || record.element.hidden) return;
+  cancelGenie();
+  const from = canAnimateGenie(record) ? record.element.getBoundingClientRect() : null;
   record.minimized = true;
-  record.element.hidden = true;
-  focusNext(record.id);
+  syncSpaces();
+  refreshDock();
+  if (from) animateGenie(record, from, measureMinimizedWindow(record.id));
+  if (activeWindow === record) focusNext(record.id, record.id);
+  else saveWorkspace();
 }
 
-function toggleMaximize(record) {
-  record.maximized = !record.maximized;
+function setWindowLayout(record, { maximized = false, split = null } = {}) {
+  record.maximized = maximized;
+  record.split = split;
   record.element.classList.toggle('is-maximized', record.maximized);
-  const label = record.maximized ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
+  const label = record.maximized || record.split ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
   record.maxButton.setAttribute('aria-label', label);
   record.maxButton.title = label;
   position(record);
   saveWorkspace();
 }
 
+function toggleMaximize(record) {
+  setWindowLayout(record, { maximized: !record.maximized && !record.split });
+}
+
+function tileWindow(record, side) {
+  if (!record || !splitSides.includes(side) || !canSplitWindows()) return;
+  for (const item of windows.values()) {
+    if (item !== record && item.space === record.space && item.split === side) setWindowLayout(item);
+  }
+  setWindowLayout(record, { split: side });
+}
+
+function arrangeStudyWindows() {
+  if (!canSplitWindows()) return;
+  for (const id of ['jarvis', 'studio']) {
+    const existing = windows.get(id);
+    if (existing) existing.space = 1;
+  }
+  switchSpace(1);
+  tileWindow(openWindow('jarvis', false), 'left');
+  tileWindow(openWindow('studio'), 'right');
+}
+
+function edgeSplit(event) {
+  if (!canSplitWindows()) return null;
+  const rect = desktop.getBoundingClientRect();
+  if (event.clientY < rect.top || event.clientY > rect.bottom) return null;
+  if (event.clientX <= rect.left + 20) return 'left';
+  if (event.clientX >= rect.right - 20) return 'right';
+  return null;
+}
+
+function showSplitPreview(side) {
+  const overlay = byId('split-preview');
+  overlay.hidden = !side;
+  if (!side) return;
+  for (const [key, value] of Object.entries(splitRect(side))) overlay.style[key] = value + 'px';
+}
+
 function beginGeometry(event, record, handle, edge) {
-  if (event.button !== 0 || record.maximized || (!edge && event.target.closest('button'))) return;
-  const origin = fit(record.rect);
+  if (event.button !== 0 || record.maximized || (edge && record.split) || (!edge && event.target.closest('button'))) return;
+  let origin = fit(record.rect);
   const startX = event.clientX;
   const startY = event.clientY;
   const pointer = event.pointerId;
+  const dockedRect = record.split && canSplitWindows() ? splitRect(record.split) : null;
+  let pendingSplit = null;
+  let moved = false;
   handle.setPointerCapture(pointer);
   function move(update) {
     if (update.pointerId !== pointer) return;
     const offsetX = update.clientX - startX;
     const offsetY = update.clientY - startY;
+    if (!moved) {
+      if (!edge && Math.hypot(offsetX, offsetY) < 5) return;
+      moved = true;
+      if (dockedRect) {
+        const desktopRect = desktop.getBoundingClientRect();
+        const fraction = Math.max(0, Math.min(1, (startX - desktopRect.left - dockedRect.left) / dockedRect.width));
+        origin = { ...origin, left: startX - desktopRect.left - origin.width * fraction, top: dockedRect.top };
+      }
+      if (record.split) {
+        record.rect = fit(origin);
+        setWindowLayout(record);
+      }
+    }
     const next = { ...origin };
     if (!edge) {
       next.left += offsetX;
       next.top += offsetY;
+      pendingSplit = edgeSplit(update);
+      showSplitPreview(pendingSplit);
     } else {
       if (edge !== 'bottom') {
         next.width = Math.min(origin.width + offsetX, desktop.clientWidth - origin.left - bounds.margin);
@@ -2005,18 +2791,30 @@ function beginGeometry(event, record, handle, edge) {
     record.rect = fit(next);
     position(record);
   }
-  handle.addEventListener('pointermove', move);
-  handle.addEventListener('lostpointercapture', () => {
+  function finish(update = {}) {
+    if (update.pointerId !== undefined && update.pointerId !== pointer) return;
     handle.removeEventListener('pointermove', move);
-    saveWorkspace();
-  }, { once: true });
+    handle.removeEventListener('pointerup', finish);
+    handle.removeEventListener('lostpointercapture', finish);
+    showSplitPreview(null);
+    if (update.type === 'pointerup' && pendingSplit) tileWindow(record, pendingSplit);
+    else saveWorkspace();
+  }
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', finish);
+  handle.addEventListener('lostpointercapture', finish);
 }
 
 function openWindow(id, focus = true) {
+  clearDesktopPeek();
+  cancelGenie();
   let record = windows.get(id);
+  const wasMinimized = record?.minimized;
+  const dockRect = wasMinimized && canAnimateGenie(record) ? measureMinimizedWindow(id) : null;
+  runningApps.add(id);
   if (record) {
     record.minimized = false;
-    if (id === 'settings' && record.space !== activeSpace) {
+    if (id === 'settings' && !wasMinimized && record.space !== activeSpace) {
       record.space = activeSpace;
       renderSettings(record);
     }
@@ -2056,6 +2854,16 @@ function openWindow(id, focus = true) {
       titlebar.querySelector('.traffic').append(control);
       record.maxButton = control;
     }
+    record.maxButton.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      toggleMenu(record.maxButton, false, windowLayoutMenu(record), { left: event.clientX, top: event.clientY + 6 });
+    });
+    record.maxButton.addEventListener('keydown', (event) => {
+      if (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+      event.preventDefault();
+      const rect = record.maxButton.getBoundingClientRect();
+      toggleMenu(record.maxButton, true, windowLayoutMenu(record), { left: rect.left, top: rect.bottom + 6 });
+    });
     element.addEventListener('pointerdown', () => {
       if (activeWindow !== record) activate(record);
     });
@@ -2082,6 +2890,7 @@ function openWindow(id, focus = true) {
   syncSpaces();
   activate(record);
   refreshDock();
+  if (dockRect) animateGenie(record, record.element.getBoundingClientRect(), dockRect, true);
   if (focus) record.element.focus({ preventScroll: true });
   return record;
 }
@@ -2115,6 +2924,9 @@ const finder = {
 const tabLimit = 12;
 const finderDragType = 'application/x-laguna-items';
 let finderDrag = [];
+let finderDragSource = null;
+let springHover = null;
+const springDelay = 650;
 const fixedFolders = ['desktop', 'documents', 'downloads', 'images', 'trash', 'local'];
 const limitBytes = 256 * 1024;
 const limitEntries = 240;
@@ -2453,6 +3265,7 @@ function renderFinder(record) {
   record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-tabs" aria-label="Schede Finder"></nav><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
   const sidebar = record.content.querySelector('.finder-sidebar');
   const grid = record.content.querySelector('.files');
+  bindFinderDrop(grid, currentFolder);
   grid.addEventListener('click', (event) => {
     if (event.target === grid) selectFinderItem(null, grid);
   });
@@ -2508,7 +3321,7 @@ function renderFinder(record) {
       const folder = folders[id];
       const entry = button(folder.name, 'sidebar-item', icon(folder.icon) + '<span>' + folder.name + '</span>', () => goToFolder(id));
       entry.dataset.folder = id;
-      if (id !== 'local') bindFinderDrop(entry, id);
+      if (id !== 'local') bindFinderDrop(entry, id, true);
       sidebar.append(entry);
     }
   }
@@ -2569,26 +3382,70 @@ function renderFinderTabs(container) {
   container.append(add);
 }
 
-function bindFinderDrop(element, destination) {
+function clearSpringHover(target = null) {
+  if (!springHover || (target && springHover.element !== target)) return;
+  clearTimeout(springHover.timer);
+  springHover.element.classList.toggle('is-spring-target', false);
+  springHover = null;
+}
+
+function validFinderDrop(destination) {
+  return finderDrag.length && (destination === 'trash' || (canWriteFolder(destination)
+    && finderDrag.every((id) => !insideFolder(destination, id))));
+}
+
+function queueSpringOpen(element, destination) {
+  const finderWindow = windows.get('finder');
+  if (!finderWindow || finderWindow.element.hidden || destination === currentFolder() || !canWriteFolder(destination)) return;
+  clearSpringHover();
+  element.classList.toggle('is-spring-target', true);
+  const timer = setTimeout(() => {
+    clearSpringHover(element);
+    element.classList.toggle('is-drop-target', false);
+    if (element.isConnected && !finderWindow.element.hidden && validFinderDrop(destination)) {
+      goToFolder(destination);
+      finderWindow.content.querySelector('.files').scrollTop = 0;
+    }
+  }, springDelay);
+  springHover = { element, timer };
+}
+
+function bindFinderDrop(element, target, spring = false) {
+  const targetFolder = typeof target === 'function' ? target : () => target;
   const isDrag = (event) => finderDrag.length && event.dataTransfer.types.includes(finderDragType);
   element.addEventListener('dragover', (event) => {
-    if (!isDrag(event) || finderDrag.includes(destination)) return;
+    if (!isDrag(event)) return;
+    event.stopPropagation();
+    const destination = targetFolder();
+    if (!validFinderDrop(destination)) {
+      clearSpringHover();
+      return;
+    }
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     element.classList.toggle('is-drop-target', true);
+    if (springHover?.element !== element) {
+      clearSpringHover();
+      if (spring) queueSpringOpen(element, destination);
+    }
   });
   element.addEventListener('dragleave', (event) => {
-    if (!event.relatedTarget || !element.contains(event.relatedTarget)) element.classList.toggle('is-drop-target', false);
+    if (!event.relatedTarget || !element.contains(event.relatedTarget)) {
+      element.classList.toggle('is-drop-target', false);
+      clearSpringHover(element);
+    }
   });
   element.addEventListener('drop', (event) => {
     if (!isDrag(event)) return;
-    event.preventDefault();
     event.stopPropagation();
-    element.classList.toggle('is-drop-target', false);
+    const destination = targetFolder();
+    if (!validFinderDrop(destination)) return;
+    event.preventDefault();
     const ids = finderDrag;
-    finderDrag = [];
+    element.classList.toggle('is-drop-target', false);
+    endFinderDrag();
     if (destination === 'trash') sendToTrash(ids);
-    else if (destination !== currentFolder()) {
+    else if (ids.some((id) => virtualEntries.get(id)?.parent !== destination)) {
       const error = moveEntries(ids, destination);
       showFinderMessage(error || 'Elementi spostati in ' + folderInfo(destination).name + '.');
     }
@@ -2599,14 +3456,28 @@ function bindFinderDrag(tile, id, grid) {
   tile.draggable = true;
   tile.addEventListener('dragstart', (event) => {
     if (!finder.selection.has(id)) selectFinderItem(id, grid);
-    finderDrag = [...finder.selection].filter((item) => virtualEntries.has(item));
-    event.dataTransfer.setData(finderDragType, id);
-    event.dataTransfer.effectAllowed = 'move';
+    startFinderDrag(event, [...finder.selection].filter((item) => virtualEntries.has(item)), tile);
   });
-  tile.addEventListener('dragend', () => {
-    finderDrag = [];
-    for (const target of document.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
-  });
+  tile.addEventListener('dragend', endFinderDrag);
+}
+
+function startFinderDrag(event, ids, source = null) {
+  clearSpringHover();
+  finderDrag = ids;
+  finderDragSource = source;
+  event.dataTransfer.setData(finderDragType, ids[0]);
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function endFinderDrag() {
+  const source = finderDragSource;
+  const finderWindow = windows.get('finder');
+  const parked = source?.classList.contains('finder-drag-source');
+  clearSpringHover();
+  finderDrag = [];
+  finderDragSource = null;
+  for (const target of document.querySelectorAll('.is-drop-target')) target.classList.toggle('is-drop-target', false);
+  if (parked && finderWindow) updateFinder(finderWindow);
 }
 
 function updateFinder(record) {
@@ -2642,8 +3513,15 @@ function updateFinder(record) {
   path.append(current);
   const grid = surface.querySelector('.files');
   grid.classList.toggle('list-view', finder.view === 'list');
-  grid.replaceChildren();
+  const parked = finderDragSource && [...grid.children].includes(finderDragSource) ? finderDragSource : null;
+  if (parked) {
+    parked.classList.toggle('finder-drag-source', true);
+    parked.tabIndex = -1;
+    parked.setAttribute('aria-hidden', 'true');
+    for (const child of [...grid.children]) if (child !== parked) child.remove();
+  } else grid.replaceChildren();
   for (const itemId of items) {
+    if (parked?.dataset.item === itemId) continue;
     const item = virtualEntries.get(itemId) ?? folders[itemId];
     const isFolder = item.kind === 'folder' || fixedFolders.includes(itemId);
     const kind = isFolder ? 'Cartella' : item.kind === 'import' ? 'File importato' : 'Documento';
@@ -2663,7 +3541,7 @@ function updateFinder(record) {
     tile.addEventListener('dblclick', (event) => {
       if (!event.ctrlKey && !event.metaKey && !event.shiftKey) openItem(itemId);
     });
-    if (isFolder && canWriteFolder(itemId)) bindFinderDrop(tile, itemId);
+    if (isFolder && canWriteFolder(itemId)) bindFinderDrop(tile, itemId, true);
     if (id !== 'trash' && virtualEntries.has(itemId)) bindFinderDrag(tile, itemId, grid);
     grid.append(tile);
   }
@@ -2876,7 +3754,11 @@ function showPreview(data) {
 }
 
 function renderPreview(record) {
-  if (!preview) return;
+  if (!preview) {
+    record.content.innerHTML = '<div class="preview-view"><p class="app-hint">Scegli un file da Windows per visualizzarlo in sola lettura.</p></div>';
+    record.content.querySelector('.preview-view').append(button('Apri un file da Windows', 'primary-button', 'Scegli file…', () => byId('file-picker').click()));
+    return;
+  }
   record.title.textContent = preview.name;
   const content = document.createElement('div');
   content.className = 'preview-view';
@@ -3094,6 +3976,7 @@ function applyPreference(key, value) {
     layer.style.backgroundImage = personal ? 'url("' + personal + '")' : '';
   }
   document.documentElement.dataset[key] = value;
+  if (key === 'motion' && value === 'reduced') cancelGenie();
 }
 
 function chooseWallpaper(key, status, group) {
@@ -3233,11 +4116,12 @@ function renderSettings(record) {
     content.append(group);
   }
   content.append(renderDockSettings());
+  content.append(renderHotCornerSettings(status));
   record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.1</h2><p>Passa tra <strong>Università</strong>, <strong>Foto</strong> e <strong>Progetti</strong> dalla barra in alto. Laguna ricorda appunti, orari, sfondi e finestre in questo browser.</p><p>Apri <strong>Modifica widget</strong> nel menu di sistema per scegliere i widget. Trascina l’angolo inferiore destro per cambiarne la misura.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.7</h2><p>Il pulsante <strong>giallo</strong> manda la finestra nel Dock. Fai clic sulla miniatura per ripristinarla.</p><p>Il pulsante <strong>rosso</strong> chiude la finestra e lascia attiva l’app. Per uscire usa il menu con il nome dell’app o il clic destro sulla sua icona nel Dock.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -3600,29 +4484,60 @@ function toggleFullScreen() {
   });
 }
 
+const finderViewCommands = [
+  ['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }],
+  ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }],
+  ['Ordina per nome', () => sortFinder('name')],
+  ['Ordina per tipo', () => sortFinder('kind')],
+  ['Ordine originale', () => sortFinder('default')]
+];
+
+function windowLayoutMenu(record) {
+  const canTile = Boolean(record) && canSplitWindows();
+  return [
+    ['Affianca a sinistra', () => tileWindow(record, 'left'), !canTile || record?.split === 'left'],
+    ['Affianca a destra', () => tileWindow(record, 'right'), !canTile || record?.split === 'right'],
+    [record?.maximized || record?.split ? 'Ripristina dimensioni' : 'Ingrandisci finestra', () => toggleMaximize(record), !record]
+  ];
+}
+
+function updateAppMenus(record) {
+  const id = activeApp;
+  byId('file-menu').hidden = id !== 'finder' && !record?.fileCommands?.length;
+  byId('view-menu').textContent = id === 'photos' ? 'Foto' : 'Vista';
+}
+
 function menuItems(name) {
   const current = activeWindow;
   const record = windows.get('finder');
+  const id = activeApp;
+  const running = runningApps.has(id);
+  const fileCommands = id === 'finder'
+    ? [...finderActions(), ['Apri un file da Windows…', () => byId('file-picker').click()]]
+    : current?.fileCommands ?? [];
+  const viewCommands = id === 'finder' ? finderViewCommands : current?.viewCommands ?? [];
   const items = {
     Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Launchpad', openLaunchpad], ['Blocca schermo', openLockScreen]],
-    App: [['Apri Finder', () => openWindow('finder')], ['Apri Launchpad', openLaunchpad], ['Chiudi finestra attiva', () => closeWindow(current), !current]],
-    File: [
-      ...(current?.id === 'finder' ? finderActions() : []),
-      ['Apri un file da Windows…', () => byId('file-picker').click()]
+    App: [
+      ...(id === 'finder' ? [['Apri Finder', () => openWindow('finder')]] : fileCommands),
+      ...(!current && running && id !== 'finder' ? [['Riapri finestra', () => openWindow(id)]] : []),
+      ['Apri Launchpad', openLaunchpad],
+      ['Chiudi finestra attiva', () => closeWindow(current), !current],
+      ...(running ? [['Esci da ' + appName(id), () => quitApp(id)]] : [])
     ],
+    File: fileCommands,
     Vista: [
-      ['Finder a icone', () => { openWindow('finder'); setFinderView('grid'); }],
-      ['Finder a elenco', () => { openWindow('finder'); setFinderView('list'); }],
-      ['Ordina per nome', () => sortFinder('name')],
-      ['Ordina per tipo', () => sortFinder('kind')],
-      ['Ordine originale', () => sortFinder('default')],
+      ...viewCommands,
+      [peekActive ? 'Ripristina finestre' : 'Mostra scrivania', toggleDesktopPeek],
       [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]
     ],
     Finestra: [
+      ['Cambia app…', () => openAppSwitcher(), !runningApps.size],
       ['Mission Control', openMission],
-      ['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit],
+      ['Affianca JARVIS e appunti', arrangeStudyWindows, !canSplitWindows()],
+      ...(id === 'finder' ? [['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit]] : []),
       ['Riduci a icona', () => minimize(current), !current],
-      [current?.maximized ? 'Ripristina dimensioni' : 'Ingrandisci', () => toggleMaximize(current), !current],
+      ...windowLayoutMenu(current),
       ...[...windows.values()].map((item) => [
         item === record ? 'Finder · ' + folderInfo(currentFolder()).name : item.title.textContent,
         () => openWindow(item.id)
@@ -3686,32 +4601,49 @@ function renderDock(visible) {
   const dock = byId('dock');
   dock.replaceChildren();
   for (const id of visible) {
-    if (id === 'trash') {
+    if (id === 'downloads') {
       const divider = document.createElement('span');
       divider.className = 'dock-divider';
       divider.setAttribute('aria-hidden', 'true');
       dock.append(divider);
+      const minimized = document.createElement('div');
+      minimized.setAttribute('id', 'dock-minimized');
+      minimized.setAttribute('role', 'group');
+      minimized.setAttribute('aria-label', 'Finestre minimizzate');
+      minimized.hidden = true;
+      dock.append(minimized);
     }
     const name = appName(id);
-    const entry = button(name, 'dock-item', appIcon(id) + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>', () => launch(id));
+    const artwork = id === 'downloads' ? '<span class="app-icon downloads">' + fileIcon('folder') + '</span>' : appIcon(id);
+    const entry = button(name, 'dock-item', artwork + '<span class="dock-tooltip" aria-hidden="true">' + name + '</span>',
+      id === 'downloads' ? toggleDownloadStack : () => { closeDownloadStack(); launch(id); });
     entry.dataset.app = id;
+    if (id === 'downloads') {
+      entry.setAttribute('aria-controls', 'download-stack');
+      entry.setAttribute('aria-expanded', 'false');
+      bindFinderDrop(entry, 'downloads');
+    }
     if (id === 'trash') bindFinderDrop(entry, 'trash');
-    if (configurableDockApps.includes(id)) bindDockItem(entry, id);
+    if (Object.hasOwn(apps, id) || configurableDockApps.includes(id)) bindDockItem(entry, id);
     dock.append(entry);
   }
 }
 
 function bindDockItem(entry, id) {
+  const configurable = configurableDockApps.includes(id);
   const pinned = () => !dockPrefs.unpinned.includes(id);
   const showOptions = (keyboard, point) => {
+    const rect = entry.getBoundingClientRect();
     const choices = [
-      [pinned() ? 'Rimuovi dal Dock' : 'Mantieni nel Dock', () => pinDockApp(id)],
+      ...(configurable ? [[pinned() ? 'Rimuovi dal Dock' : 'Mantieni nel Dock', () => pinDockApp(id)]] : []),
+      ...(runningApps.has(id) ? [['Esci da ' + appName(id), () => quitApp(id)]] : []),
       ['Impostazioni Dock…', () => {
         const settings = openWindow('settings');
         settings.content.querySelector('[data-dock-autohide]')?.focus();
       }]
     ];
     toggleMenu(entry, keyboard, choices, point);
+    menuPopover.style.top = Math.max(6, rect.top - menuPopover.offsetHeight - 6) + 'px';
   };
   entry.dataset.dockMenu = '';
   entry.setAttribute('aria-controls', 'menu-popover');
@@ -3726,6 +4658,7 @@ function bindDockItem(entry, id) {
     const rect = entry.getBoundingClientRect();
     showOptions(true, { left: rect.left, top: rect.top - 80 });
   });
+  if (!configurable) return;
   entry.draggable = true;
   entry.addEventListener('dragstart', (event) => {
     if (!pinned()) {
@@ -3797,6 +4730,8 @@ function renderDockSettings() {
 }
 
 function setupEvents() {
+  setupDockExtras();
+  setupHotCorners();
   byId('fullscreen-button').addEventListener('click', toggleFullScreen);
   document.addEventListener('fullscreenchange', () => {
     const label = document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero';
@@ -3888,6 +4823,7 @@ function setupEvents() {
   }
   launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
   document.addEventListener('pointerdown', (event) => {
+    cancelHotCorner();
     if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu], [data-dock-menu], [data-widget-menu]')) closeMenu();
     if (dockRevealed && !event.target.closest('#dock-area, #menu-popover')) {
       dockRevealed = false;
@@ -3898,7 +4834,7 @@ function setupEvents() {
     if (!event.target.closest('.window, .desktop-item')) activate(null);
   });
   document.addEventListener('keydown', (event) => {
-    if (event.isComposing || lockScreen.open) return;
+    if (event.isComposing || lockScreen.open || byId('app-switcher').open) return;
     if (event.code === 'Space' && event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
       event.preventDefault();
       if (!event.repeat) toggleSpotlight();
@@ -3919,9 +4855,14 @@ function setupEvents() {
     buttons[(index + direction + buttons.length) % buttons.length]?.focus();
   });
   window.addEventListener('resize', () => {
+    leaveHotCorner();
+    cancelGenie();
     closeMenu();
+    syncDownloadStackButton();
+    showSplitPreview(null);
     for (const record of windows.values()) position(record);
     positionWidgets();
+    positionSpaceHome();
   });
   window.addEventListener('pagehide', (event) => {
     if (!event.persisted) {
@@ -3950,6 +4891,7 @@ function updateLockClock(now) {
 function openLockScreen() {
   const lockScreen = byId('lock-screen');
   if (lockScreen.open) return;
+  cancelGenie();
   closeMenu();
   updateLockClock(new Date());
   lockScreen.showModal();
@@ -3972,10 +4914,11 @@ function saveWorkspace() {
   if (restoringWorkspace) return;
   const state = [...windows.values()].filter(({ id }) => restorableApps.includes(id))
     .sort((first, second) => first.order - second.order)
-    .map(({ id, rect, minimized, maximized, space }) => ({ id, rect, minimized, maximized, space }));
+    .map(({ id, rect, minimized, maximized, split, space }) => ({ id, rect, minimized, maximized, split, space }));
   writeValue('workspace.v1', JSON.stringify({
     windows: state, spaces, activeSpace, folder: currentFolder(), view: finder.view, sort: finder.sort,
-    tabs: finder.tabs.map((tab) => tab.history[tab.index]), activeTab: finder.activeTab
+    tabs: finder.tabs.map((tab) => tab.history[tab.index]), activeTab: finder.activeTab,
+    runningApps: [...runningApps], activeApp: !activeWindow && runningApps.has(activeApp) ? activeApp : null
   }));
 }
 
@@ -3998,20 +4941,26 @@ function restoreWorkspace() {
       spaces = [...new Set([1, 2, 3, ...savedSpaces])].slice(0, spaceLimit);
     }
     activeSpace = spaces.includes(state.activeSpace) ? state.activeSpace : spaces[0];
+    if (Array.isArray(state.runningApps)) {
+      for (const id of state.runningApps) if (Object.hasOwn(apps, id)) runningApps.add(id);
+    }
     for (const item of state.windows) {
       if (!restorableApps.includes(item?.id) || windows.has(item.id)) continue;
       const record = openWindow(item.id, false);
       record.space = spaces.includes(item.space) ? item.space : spaces[0];
       if (['left', 'top', 'width', 'height'].every((key) => Number.isFinite(item.rect?.[key]))) record.rect = item.rect;
-      if (item.maximized) toggleMaximize(record);
-      else position(record);
+      setWindowLayout(record, {
+        maximized: item.maximized === true,
+        split: !item.maximized && splitSides.includes(item.split) ? item.split : null
+      });
       if (item.minimized) {
         record.minimized = true;
       }
     }
     syncSpaces();
     const visible = [...windows.values()].filter((item) => !item.element.hidden);
-    activate(visible.at(-1) ?? null);
+    if (runningApps.has(state.activeApp) && !visible.some((record) => record.id === state.activeApp)) activate(null, state.activeApp);
+    else activate(visible.at(-1) ?? null);
   } catch {
     openWindow('finder', false);
   }

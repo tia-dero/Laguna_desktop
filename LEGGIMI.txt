@@ -1,60 +1,88 @@
-LAGUNA 2.6
+LAGUNA 2.7
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-- Online: https://tia-dero.github.io/Laguna_desktop/
-- Offline: scarica lo ZIP del repository, estrailo e apri index.html
-  in Edge o Chrome. Puoi usare Avvia.cmd nella stessa cartella.
-- Per un'icona su Windows, fai clic destro su Avvia.cmd e scegli
-  Mostra altre opzioni > Invia a > Desktop (crea collegamento).
-- Premi F11 o usa Schermo intero nella barra per occupare il display.
-  Chiudi la scheda o la finestra del browser per tornare a Windows.
+1. Estrai lo ZIP di Laguna 2.7 e metti i file in una cartella stabile.
+2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
+3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
+   scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
+   Lascia Avvia.cmd accanto a Laguna.html.
+4. Premi F11 o usa Schermo intero nella barra di Laguna. Chiudi la scheda
+   o la finestra del browser per tornare a Windows.
 
-SCRIVANIE
-- Università: apri Orario e appunti, scegli un giorno e annota le lezioni.
+LE TRE SCRIVANIE
+- Università. Apri Orario e appunti, scegli un giorno e scrivi le lezioni.
   Apri JARVIS University OS per vedere il sito in una finestra di Laguna.
-  Se serve, usa Cambia indirizzo per impostare l'indirizzo HTTP o HTTPS.
-  Se il sito non si vede nella finestra, usa Apri in una scheda.
-- Foto: scegli la cartella della Nikon o più file dal PC. Laguna mostra
-  miniature e anteprime per JPEG, PNG, WebP, AVIF, GIF e BMP. Per vedere
-  un RAW Nikon NEF o NRW, apri una copia JPEG. I file sono in sola lettura.
-  Riapri la cartella per riprendere dall'ultima foto selezionata.
-- Progetti: tieni note di stampa 3D e di codice, apri l'anteprima locale
-  dei file supportati o visita il repository che hai salvato. Per avviare
-  Cura, Esplora file o VS Code usa le icone di Windows.
+  Se serve, usa Cambia indirizzo e inserisci un indirizzo HTTP o HTTPS.
+  Se il browser o il sito impediscono la visualizzazione nella finestra,
+  usa Apri in una scheda. Per localhost avvia prima il server JARVIS.
+- Foto. Scegli una cartella o più file JPEG, PNG, WebP, AVIF, GIF o BMP.
+  Usa le miniature o i pulsanti freccia. I RAW Nikon NEF e NRW appaiono
+  nell'elenco. Per vederli in anteprima, apri una copia JPEG.
+- Progetti. Registra filamento, impostazioni e prove di stampa o apri il
+  selettore per vedere le informazioni di un file. Nella sezione Codice
+  salva il tuo collegamento al repository e tieni traccia delle idee.
 
-Passa tra le tre scrivanie dalla barra in alto. Mission Control gestisce
-anche scrivanie aggiuntive e spostamento delle finestre. Ogni scrivania
-ha il suo sfondo e ricorda le finestre quando usi lo stesso browser e
-lo stesso indirizzo o percorso di apertura.
-Trascina il titolo o la maniglia a puntini per spostare un riquadro.
-Da tastiera seleziona la maniglia e usa le frecce, oppure premi Home per
-ripristinare la posizione iniziale.
+PASSA TRA LE SCRIVANIE
+Clicca Università, Foto o Progetti al centro della barra. Mission Control
+gestisce anche le scrivanie aggiuntive e lo spostamento delle finestre.
+Trascina il titolo o la maniglia a puntini per spostare ciascun riquadro.
+Da tastiera seleziona la maniglia e usa le frecce. Home ripristina la
+posizione iniziale. Ogni riquadro ricorda la propria posizione.
+Laguna ricorda finestre, sfondi, orario, appunti e collegamenti nello
+stesso browser e percorso di apertura. Puoi cambiare sfondo per ciascuna
+scrivania da Impostazioni. Le foto restano in sola lettura sul PC.
+Quando riapri Laguna, scegli di nuovo la cartella: Laguna ricorda il
+nome dell'ultima foto aperta.
 
-COMANDI
-- Tieni premuto Alt e premi Q per scorrere tra le app aperte. Rilascia
-  Alt per attivare quella scelta. Oppure usa Finestra > Cambia app.
-- L'icona Download del Dock apre la pila dei file virtuali. Apri un file
-  con un clic, oppure trascinalo in un'altra cartella del Finder.
-- I menu seguono la finestra attiva, con azioni di Finder, JARVIS e Foto.
-- Finestra > Affianca JARVIS e appunti apre entrambi in Università.
-  Trascina una finestra verso un bordo per affiancarla, oppure fai clic
-  destro sul pulsante verde. Un clic sul verde ripristina la misura.
-- Finder: doppio clic per aprire, Spazio per l'anteprima, + per una scheda.
-  Clic destro o Azioni Finder per gestire gli elementi virtuali.
-- Tieni un file virtuale sopra una cartella del Finder per aprirla senza
-  rilasciarlo. Ripeti sulle sottocartelle e lascia il file a destinazione.
-  Lo spostamento riguarda solo i file virtuali di Laguna.
-- In Impostazioni > Angoli attivi assegna a ciascun angolo Mission Control,
-  Mostra scrivania o Blocca schermo. Gli angoli partono disattivati.
-  Tieni il puntatore nell'angolo per circa mezzo secondo. Per rivedere
-  le finestre, esci e rientra nell'angolo o usa Vista > Ripristina finestre.
-- Spotlight: Ctrl + Spazio. Widget: menu di sistema > Modifica widget.
-  Scegli fra otto widget, inclusi Note rapide, Timer, Orario, Progetti
-  e Convertitore mm/cm/pollici. Trascina l'angolo in basso a destra
-  per ridimensionare, oppure selezionalo con Tab e usa le frecce.
-  Il clic destro offre i formati predefiniti. Le misure vengono salvate.
-- Dock: clic per aprire, trascina le icone fissate per riordinarle.
-  Per la scomparsa automatica usa Impostazioni > Dock.
-- Sfondo: Impostazioni > Sfondo apre la galleria della scrivania attiva.
-- Blocco simulato: menu di sistema > Blocca schermo. Premi Invio per uscire.
+ALTRE FUNZIONI
+Il pulsante giallo minimizza la finestra con l'Effetto Genio. Fai clic
+sulla miniatura a destra nel Dock per ripristinarla nella sua scrivania
+con le stesse dimensioni e posizione. Impostazioni > Animazioni >
+Ridotte disattiva l'effetto.
+
+Il pulsante rosso chiude la finestra e lascia attiva l'app. Il puntino
+sotto l'icona resta acceso. Fai clic sull'icona per riaprire una finestra,
+oppure scegli Esci dal menu dell'app o con il clic destro nel Dock.
+
+Tieni premuto Alt, premi Q per scorrere tra le app aperte e rilascia
+Alt per attivare quella selezionata. Maiusc inverte la direzione.
+Puoi anche usare Finestra > Cambia app. Se il cursore è dentro il sito
+JARVIS, fai clic sulla barra di Laguna prima di usare la scorciatoia.
+L'icona Download nel Dock apre la pila dei file virtuali. Puoi aprirli,
+trascinarli nel Finder o trascinare un file virtuale sull'icona.
+
+Nel Finder, tieni un file virtuale sopra una cartella per aprirla senza
+rilasciare il file. Ripeti sulle sottocartelle e rilascia a destinazione.
+Il trascinamento sposta solo gli elementi virtuali di Laguna.
+
+In Impostazioni > Angoli attivi puoi assegnare a ciascun angolo Mission
+Control, Mostra scrivania o Blocca schermo. Gli angoli partono disattivati.
+Tieni il puntatore nell'angolo per circa mezzo secondo. Per rivedere le
+finestre, esci e rientra nell'angolo o usa Vista > Ripristina finestre.
+
+I menu seguono la finestra attiva. Finder mostra le azioni sui file,
+JARVIS permette di cambiare indirizzo e ricaricare la pagina, Foto
+mostra i comandi per aprire le immagini e sfogliarle.
+
+Apri Finestra > Affianca JARVIS e appunti per usare entrambi sulla
+scrivania Università. Per affiancare altre finestre, trascina il titolo
+verso il bordo sinistro o destro e rilascia quando vedi l'anteprima.
+Puoi anche fare clic destro sul pulsante verde per scegliere il lato.
+Un clic sul verde ripristina la misura precedente.
+
+Per aggiungere widget, scegli Modifica widget dal menu di sistema.
+La galleria include Orologio, Calendario, Promemoria, Note rapide, Timer,
+Orario, Progetti e Convertitore mm/cm/pollici. Trascina l'angolo in basso
+a destra per ridimensionare liberamente, oppure selezionalo con Tab e
+usa le frecce. Il clic destro offre i formati predefiniti. Le misure
+vengono ricordate per ciascuna scrivania.
+
+Finder, Dock, Spotlight (Ctrl + Spazio), widget, Mission Control e blocco
+simulato restano disponibili. Per il blocco usa il menu di sistema e
+premi Invio per tornare alla scrivania. Finder > File locali apre file
+di Windows in sola lettura.
+
+Per avviare Cura, Esplora file o VS Code usa le icone di Windows. Laguna
+apre i collegamenti web salvati nel browser. Le funzioni offline usano
+solo il tuo computer. Un sito web come JARVIS richiede il suo server attivo.
