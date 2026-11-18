@@ -1,8 +1,8 @@
-LAGUNA 3.0.3
+LAGUNA 3.0.4
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.3 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.4 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -51,6 +51,13 @@ Fai clic su Applicazioni nella barra in alto oppure usa Spotlight.
   Usa Scarica copia per ottenere un file separato. L'originale resta intatto.
 
 ALTRE FUNZIONI
+Nel Finder, Ctrl+C copia i file e le cartelle virtuali selezionati.
+Apri la cartella di destinazione e premi Ctrl+V. Ctrl+Z annulla
+l'ultima operazione sui file virtuali durante la sessione.
+Nelle app di testo, Ctrl+C, Ctrl+V e Ctrl+Z usano i comandi del browser.
+Ctrl+F cerca per nome nella cartella del Finder, nel testo quando
+stai scrivendo o in Spotlight negli altri casi.
+
 Il pulsante giallo minimizza la finestra con l'Effetto Genio. Fai clic
 sulla miniatura a destra nel Dock per ripristinarla nella sua scrivania
 con le stesse dimensioni e posizione. Impostazioni > Animazioni >
