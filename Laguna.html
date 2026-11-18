@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0V1mHhfrdzFn2NOdEqKmqlYW/wvrHTEXXorJ9kOSnCc='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-M9VCgBH85syjwnGnhKlWkfFUuBKjG47vVuxXNMFEnBM='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.1 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -590,27 +590,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 #desktop-shortcuts { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; }
 .desktop-shortcut { display: flex; align-items: center; gap: 6px; padding-inline: 8px; color: #f0f6ff; font-size: 12px; }
 .desktop-shortcut .glyph { width: 15px; height: 15px; }
-#space-home { position: absolute; top: clamp(16px, 6vh, 62px); left: clamp(12px, 4vw, 56px); width: min(366px, calc(100% - 26px)); max-height: calc(100% - 16px); overflow: auto; color: #fff; padding: 16px; border: 1px solid #eaf0ff40; border-radius: 19px; background: #101b2bc7; box-shadow: 0 18px 54px #07152342; backdrop-filter: blur(18px) saturate(118%); }
-#space-home h1 { font-size: 22px; line-height: 1.15; letter-spacing: -.025em; font-weight: 670; }
-.space-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: grab; touch-action: none; user-select: none; }
-.space-panel-header h1 { min-width: 0; overflow-wrap: anywhere; }
-.desktop-panel-controls { display: flex; align-items: center; gap: 5px; }
-.desktop-panel-close { color: white; cursor: pointer; }
-.desktop-panel-close:hover { background: #ffffff24; }
-#space-home.is-raised { z-index: 22; }
-.space-panel-grip { display: grid; place-items: center; flex: 0 0 34px; height: 36px; padding: 0; border: 1px solid #ffffff35; border-radius: 9px; background: #ffffff1a; color: #f0f7ff; cursor: grab; }
-.space-panel-grip .glyph { width: 17px; height: 17px; }
-.space-panel-grip:hover { background: #ffffff33; }
-#space-home.is-moving :is(.space-panel-header, .space-panel-grip) { cursor: grabbing; }
-.desktop-shortcut-group { margin-top: 12px; }
-.desktop-shortcut-group h2 { margin-bottom: 5px; color: #d2e1f3; font-size: 12px; font-weight: 600; }
-.space-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.space-action { display: flex; align-items: center; gap: 7px; min-width: 0; min-height: 40px; padding: 6px 7px; border: 1px solid #ffffff25; border-radius: 9px; background: #e9f4ff18; color: #fff; font-size: 12px; font-weight: 650; text-align: left; }
-.space-action:hover { background: #edf4ff34; border-color: #ffffff42; }
-.space-action > span:nth-child(2) { flex: 1; overflow-wrap: anywhere; }
-.space-action > .app-icon { flex: 0 0 24px; height: 24px; }
-.desktop-widget-link { display: flex; align-items: center; gap: 7px; margin-top: 12px; padding: 6px 9px; border: 1px solid #ffffff25; border-radius: 7px; background: #ffffff10; color: #f0f6ff; font-size: 12px; }
-.desktop-widget-link:hover { background: #ffffff24; }
 .app-icon.studio { background: linear-gradient(155deg, #ff8077, #c74148); }
 .app-icon.jarvis { background: linear-gradient(155deg, #5967dd, #243574); }
 .app-icon.photos { background: linear-gradient(155deg, #c26f9c, #6252b0); }
@@ -664,8 +643,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 }
 @media (max-width: 620px) {
   #clock { display: none; }
-  #space-home { top: 18px; padding: 16px; border-radius: 18px; }
-  .space-panel-grip { flex-basis: 34px; height: 36px; }
   #desktop-icons { display: none; }
   #app-menu { max-width: 62px; overflow: hidden; text-overflow: ellipsis; }
   #menubar .status-button { padding-inline: 5px; }
@@ -689,7 +666,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
       <button class="menu-button optional-menu" type="button" data-menu="Aiuto">Aiuto</button>
     </div>
     <nav id="desktop-shortcuts" aria-label="Comandi della scrivania">
-      <button id="desktop-panel-toggle" class="menu-button desktop-shortcut" type="button" aria-label="Accesso rapido" title="Accesso rapido" aria-controls="space-home" aria-expanded="true"><span data-icon="desktop"></span><span>Accesso rapido</span></button>
       <button id="desktop-apps-button" class="menu-button desktop-shortcut" type="button" aria-label="Applicazioni" title="Applicazioni" aria-haspopup="dialog"><span data-icon="grid"></span><span>Applicazioni</span></button>
       <button id="desktop-windows-button" class="menu-button desktop-shortcut" type="button" aria-label="Mission Control" title="Mission Control" aria-haspopup="dialog"><span data-icon="mission"></span><span>Finestre</span></button>
     </nav>
@@ -702,7 +678,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   </header>
   <div id="menu-popover" hidden></div>
   <main id="desktop" aria-label="Scrivania del simulatore">
-    <section id="space-home" aria-label="Strumenti della scrivania"></section>
     <div id="widgets" aria-label="Widget della scrivania"></div>
     <div id="desktop-icons"></div>
     <div id="windows"></div>
@@ -882,12 +857,10 @@ function findWidgetPosition(candidate, others = widgetEntries, keepPosition = fa
   const right = desktop.clientWidth - width - margin;
   const bottom = desktop.clientHeight - height - margin;
   const occupied = others.map(widgetBounds);
-  for (const id of ['space-home', 'desktop-icons']) {
-    const element = byId(id);
-    if (!element.hidden && element.offsetWidth && element.offsetHeight) occupied.push({
-      left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight
-    });
-  }
+  const icons = byId('desktop-icons');
+  if (icons.offsetWidth && icons.offsetHeight) occupied.push({
+    left: icons.offsetLeft, top: icons.offsetTop, width: icons.offsetWidth, height: icons.offsetHeight
+  });
   const fits = (left, top) => occupied.every((entry) => left + width + 8 <= entry.left
     || entry.left + entry.width + 8 <= left || top + height + 8 <= entry.top || entry.top + entry.height + 8 <= top);
   if (keepPosition) {
@@ -1540,140 +1513,8 @@ function setupWidgets() {
 
 'use strict';
 
-const desktopGroups = [
-  ['Università', [['studio', 'Orario e appunti'], ['jarvis', 'JARVIS']]],
-  ['Foto e progetti', [['photos', 'Foto Nikon'], ['projects', 'Banco progetti']]],
-  ['Strumenti', [['finder', 'Finder'], ['reminders', 'Promemoria'], ['notes', 'Note'], ['calendar', 'Calendario']]]
-];
 const studioIcons = { studio: 'calendar', jarvis: 'spark', photos: 'image', projects: 'cube' };
 const studyWeekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-const spacePanelMargin = 8;
-const spacePanelArrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
-
-function readSpacePanelPosition() {
-  try {
-    const position = JSON.parse(readValue('desktop.panel.position', readValue('space.panel.' + legacySpace, 'null')));
-    return position && Number.isFinite(position.left) && Number.isFinite(position.top) ? position : null;
-  } catch {
-    return null;
-  }
-}
-
-function placeSpacePanel(home, position) {
-  if (!position) {
-    home.style.left = '';
-    home.style.top = '';
-    return;
-  }
-  const right = desktop.clientWidth - home.offsetWidth - spacePanelMargin;
-  const bottom = desktop.clientHeight - home.offsetHeight - spacePanelMargin;
-  const left = Math.round(Math.max(spacePanelMargin, Math.min(right, position.left)));
-  const top = Math.round(Math.max(spacePanelMargin, Math.min(bottom, position.top)));
-  home.style.left = left + 'px';
-  home.style.top = top + 'px';
-  return { left, top };
-}
-
-function positionSpaceHome() {
-  const home = byId('space-home');
-  if (!home.hidden) placeSpacePanel(home, readSpacePanelPosition());
-}
-
-function bindSpacePanelDrag(home, header, grip) {
-  let drag = null;
-  const savePosition = (position) => saveActivityValue('desktop.panel.position', JSON.stringify(position));
-  header.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || drag || event.target?.closest('.desktop-panel-close')) return;
-    drag = { pointer: event.pointerId, left: home.offsetLeft, top: home.offsetTop, x: event.clientX, y: event.clientY };
-    header.setPointerCapture(event.pointerId);
-  });
-  header.addEventListener('pointermove', (event) => {
-    if (!drag || drag.pointer !== event.pointerId) return;
-    const moveX = event.clientX - drag.x;
-    const moveY = event.clientY - drag.y;
-    if (!drag.position && Math.hypot(moveX, moveY) < 4) return;
-    home.classList.toggle('is-moving', true);
-    drag.position = placeSpacePanel(home, { left: drag.left + moveX, top: drag.top + moveY });
-  });
-  const finish = (event) => {
-    if (!drag || drag.pointer !== event.pointerId) return;
-    const { position } = drag;
-    drag = null;
-    home.classList.toggle('is-moving', false);
-    if (position) savePosition(position);
-  };
-  for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) header.addEventListener(event, finish);
-  grip.addEventListener('keydown', (event) => {
-    const offset = spacePanelArrows[event.key];
-    if (!offset && event.key !== 'Home') return;
-    event.preventDefault();
-    if (!offset) {
-      savePosition(null);
-      positionSpaceHome();
-      return;
-    }
-    const step = event.shiftKey ? 32 : 8;
-    savePosition(placeSpacePanel(home, { left: home.offsetLeft + offset[0] * step, top: home.offsetTop + offset[1] * step }));
-  });
-}
-
-function renderSpaceHome() {
-  const home = byId('space-home');
-  const header = document.createElement('header');
-  header.className = 'space-panel-header';
-  const title = document.createElement('h1');
-  title.textContent = 'Accesso rapido';
-  const grip = button('Sposta Accesso rapido', 'space-panel-grip', icon('grip'), () => {});
-  grip.title = 'Trascina per spostare · Frecce da tastiera · Home per ripristinare';
-  grip.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown Home');
-  const controls = document.createElement('div');
-  controls.className = 'desktop-panel-controls';
-  const close = iconButton('Nascondi Accesso rapido', 'close', () => {
-    setDesktopPanel(false);
-    writeValue('desktop.panel.visible', 'false');
-    byId('desktop-panel-toggle').focus();
-  });
-  close.classList.toggle('desktop-panel-close', true);
-  controls.append(grip, close);
-  header.append(title, controls);
-  home.replaceChildren(header);
-  for (const [label, shortcuts] of desktopGroups) {
-    const group = document.createElement('section');
-    group.className = 'desktop-shortcut-group';
-    const heading = document.createElement('h2');
-    heading.textContent = label;
-    const actions = document.createElement('div');
-    actions.className = 'space-actions';
-    for (const [id, text] of shortcuts) {
-      const entry = button(appName(id), 'space-action', appIcon(id) + '<span>' + text + '</span>', () => openWindow(id));
-      entry.dataset.shortcut = id;
-      actions.append(entry);
-    }
-    group.append(heading, actions);
-    home.append(group);
-  }
-  const widgets = button('Modifica widget', 'desktop-widget-link', icon('sliders') + '<span>Widget</span>', openWidgetGallery);
-  home.append(widgets);
-  bindSpacePanelDrag(home, header, grip);
-  setDesktopPanel(readValue('desktop.panel.visible', 'true') !== 'false');
-}
-
-function setDesktopPanel(visible) {
-  const home = byId('space-home');
-  home.hidden = !visible;
-  home.classList.toggle('is-raised', false);
-  byId('desktop-panel-toggle').setAttribute('aria-expanded', visible);
-  positionSpaceHome();
-}
-
-function showDesktopPanel() {
-  setDesktopPanel(true);
-  const home = byId('space-home');
-  home.classList.toggle('is-raised', true);
-  home.querySelector('[data-shortcut]')?.focus({ preventScroll: true });
-  writeValue('desktop.panel.visible', 'true');
-}
-
 function activityField(label, text, save) {
   const field = document.createElement('textarea');
   field.setAttribute('aria-label', label);
@@ -2989,7 +2830,6 @@ let legacySpace = 1;
 const glyphs = {
   contacts: '<rect x="5" y="4" width="14" height="16" rx="2"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16c.5-2.8 6.5-2.8 7 0m3.5-8h2m-2 4h2m-2 4h2"/>',
   music: '<path d="M9 17V6l11-2v11M9 9l11-2"/><ellipse cx="6.5" cy="17.5" rx="2.5" ry="2"/><ellipse cx="17.5" cy="15.5" rx="2.5" ry="2"/>',
-  grip: '<path d="M8 6h.1M16 6h.1M8 12h.1M16 12h.1M8 18h.1M16 18h.1" stroke-width="3.2"/>',
   spark: '<path d="M12 2.5c.8 5.1 3 7.3 8.5 9.5-5.5 1.8-7.7 4-8.5 9.5-.9-5.5-3.1-7.7-8.5-9.5C8.9 9.8 11.1 7.6 12 2.5Z"/>',
   cube: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 9 8-4.5M12 12 4 7.5M12 12v9"/>',
   lock: '<rect x="6" y="10.5" width="12" height="10" rx="2"/><path d="M8.5 10.5V7a3.5 3.5 0 0 1 7 0v3.5M12 14.5v2"/>',
@@ -3425,7 +3265,6 @@ function beginGeometry(event, record, handle, edge) {
 }
 
 function openWindow(id, focus = true) {
-  byId('space-home').classList.toggle('is-raised', false);
   clearDesktopPeek();
   cancelGenie();
   let record = windows.get(id);
@@ -4734,7 +4573,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0</h2><p>Apri Università, Foto e Progetti da <strong>Accesso rapido</strong>. La barra in alto apre anche <strong>Applicazioni</strong> e <strong>Finestre</strong>.</p><p>Trascina il riquadro Accesso rapido per spostarlo. Chiudilo con la × o riportalo in primo piano dalla barra in alto.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.1</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti. <strong>Finestre</strong> apre Mission Control.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -5067,7 +4906,6 @@ function buildDesktop() {
   byId('settings-button').innerHTML = icon('sliders');
   byId('fullscreen-button').innerHTML = icon('full');
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
-  byId('desktop-panel-toggle').addEventListener('click', showDesktopPanel);
   byId('desktop-apps-button').addEventListener('click', openLaunchpad);
   byId('desktop-windows-button').addEventListener('click', openMission);
   const icons = byId('desktop-icons');
@@ -5321,7 +5159,6 @@ function setupEvents() {
   launchpad.querySelector('[data-close-overlay]').addEventListener('click', () => launchpad.close());
   document.addEventListener('pointerdown', (event) => {
     cancelHotCorner();
-    if (!event.target.closest('#space-home, #desktop-panel-toggle')) byId('space-home').classList.toggle('is-raised', false);
     if (!event.target.closest('#menu-popover, [data-menu], [data-finder-menu], [data-dock-menu], [data-widget-menu]')) closeMenu();
     if (dockRevealed && !event.target.closest('#dock-area, #menu-popover')) {
       dockRevealed = false;
@@ -5365,7 +5202,6 @@ function setupEvents() {
     showSplitPreview(null);
     for (const record of windows.values()) position(record);
     positionWidgets();
-    positionSpaceHome();
   });
   window.addEventListener('pagehide', (event) => {
     if (!event.persisted) {
@@ -5486,7 +5322,6 @@ setInterval(updateClock, 1000);
 restoreWorkspace();
 restoringWorkspace = false;
 syncWallpaper();
-renderSpaceHome();
 refreshDock();
 setupWidgets();
 saveWorkspace();
