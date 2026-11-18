@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-MI/KKbz5kaq8XgvJsWjq6+Kyp9f+J/7BnJeDFCPtjME='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-t18ZJ8ePNrt1TLeavDfnM0WiA9NHKdqT2b+eh4TdGoo='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.6 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.7 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -394,6 +394,14 @@ dialog::backdrop { background: #081f31a1; }
 .preview-view { display: flex; flex-direction: column; gap: 12px; }
 .preview-view pre { margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 "Cascadia Mono", "Consolas", monospace; }
 .preview-view img { align-self: center; max-width: 100%; max-height: calc(100% - 32px); object-fit: contain; }
+.preview-player { display: block; width: 100%; }
+video.preview-player { flex: 1; min-height: 0; background: #131820; border-radius: 8px; }
+.sheet-preview { overflow: auto; min-height: 0; max-height: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.sheet-preview table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+.sheet-preview :is(td, th) { padding: 5px 9px; border: 1px solid var(--line); white-space: pre-wrap; overflow-wrap: anywhere; min-width: 96px; max-width: 250px; text-align: start; }
+.sheet-preview th { background: var(--sidebar); color: var(--muted); font-weight: 600; }
+.sheet-preview th:first-child { min-width: 2.4em; text-align: end; }
+.sheet-preview thead { position: sticky; top: 0; }
 .pdf-view { padding: 0; gap: 0; }
 .pdf-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 8px; padding: 7px 10px; border-bottom: 1px solid var(--line); }
 .pdf-controls .app-hint { flex: 1; overflow-wrap: anywhere; }
@@ -3189,6 +3197,201 @@ function handleKeyboardShortcuts(event) {
 
 'use strict';
 
+const officePartLimit = 8 * 1024 * 1024;
+const sheetRowLimit = 100;
+const sheetColumnLimit = 20;
+
+async function readOfficeArchive(blob) {
+  const endSize = 22;
+  const tailOffset = Math.max(0, blob.size - endSize - 65535);
+  const tail = new DataView(await blob.slice(tailOffset).arrayBuffer());
+  let marker = tail.byteLength - endSize;
+  for (; marker >= 0; marker -= 1) {
+    if (tail.getUint32(marker, true) === 0x06054b50
+      && marker + endSize + tail.getUint16(marker + 20, true) === tail.byteLength) break;
+  }
+  if (marker < 0 || tail.getUint32(marker + 4, true) !== 0) throw new Error('Archivio Office non valido');
+  const size = tail.getUint32(marker + 12, true);
+  const offset = tail.getUint32(marker + 16, true);
+  if (size > officePartLimit || offset + size > tailOffset + marker) throw new Error('Indice Office non valido');
+  const directory = new DataView(await blob.slice(offset, offset + size).arrayBuffer());
+  const names = new Map();
+  const decoder = new TextDecoder();
+  for (let index = 0; index < size;) {
+    if (index + 46 > size || directory.getUint32(index, true) !== 0x02014b50) throw new Error('Indice Office incompleto');
+    const length = directory.getUint16(index + 28, true);
+    const next = index + 46 + length + directory.getUint16(index + 30, true) + directory.getUint16(index + 32, true);
+    if (next > size) throw new Error('Indice Office incompleto');
+    const name = decoder.decode(new Uint8Array(directory.buffer, index + 46, length));
+    names.set(name, {
+      flags: directory.getUint16(index + 8, true),
+      method: directory.getUint16(index + 10, true),
+      compressed: directory.getUint32(index + 20, true),
+      size: directory.getUint32(index + 24, true),
+      offset: directory.getUint32(index + 42, true)
+    });
+    index = next;
+  }
+  return { blob, names, directoryOffset: offset };
+}
+
+async function readOfficePart(archive, name) {
+  const entry = archive.names.get(name);
+  if (!entry) return null;
+  if (entry.flags & 1 || entry.size > officePartLimit || entry.offset + 30 > archive.directoryOffset) throw new Error('Sezione Office non supportata');
+  const header = new DataView(await archive.blob.slice(entry.offset, entry.offset + 30).arrayBuffer());
+  if (header.getUint32(0, true) !== 0x04034b50) throw new Error('Sezione Office illeggibile');
+  const start = entry.offset + 30 + header.getUint16(26, true) + header.getUint16(28, true);
+  if (start + entry.compressed > archive.directoryOffset) throw new Error('Sezione Office incompleta');
+  const part = archive.blob.slice(start, start + entry.compressed);
+  if (entry.method === 0 && entry.size === part.size) return part.text();
+  if (entry.method !== 8) throw new Error('Compressione Office non supportata');
+  const reader = part.stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  const decoder = new TextDecoder();
+  let length = 0;
+  let text = '';
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > entry.size) throw new Error('Sezione Office più grande del previsto');
+      text += decoder.decode(value, { stream: true });
+    }
+    if (length !== entry.size) throw new Error('Sezione Office incompleta');
+    return text + decoder.decode();
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+function officeElements(node, name) {
+  return [...node.getElementsByTagNameNS('*', name)];
+}
+
+async function readOfficeXml(archive, name) {
+  const text = await readOfficePart(archive, name);
+  if (text === null) return null;
+  if (/<!DOCTYPE/i.test(text)) throw new Error('XML Office non supportato');
+  const xml = new DOMParser().parseFromString(text, 'application/xml');
+  if (officeElements(xml, 'parsererror').length) throw new Error('XML Office illeggibile');
+  return xml;
+}
+
+async function readWordPreview(archive) {
+  const xml = await readOfficeXml(archive, 'word/document.xml');
+  if (!xml) throw new Error('Documento Word mancante');
+  const paragraphs = officeElements(xml, 'p');
+  const sections = [];
+  let length = 0;
+  for (const paragraph of paragraphs) {
+    const text = officeElements(paragraph, '*').map((item) => {
+      if (item.localName === 't') return item.textContent;
+      if (item.localName === 'tab') return '\t';
+      return ['br', 'cr'].includes(item.localName) ? '\n' : '';
+    }).join('');
+    sections.push(text.slice(0, limitBytes - length));
+    length += text.length + 1;
+    if (length >= limitBytes) break;
+  }
+  return { text: sections.join('\n'), partial: length >= limitBytes };
+}
+
+async function findFirstSheet(archive) {
+  const workbook = await readOfficeXml(archive, 'xl/workbook.xml');
+  const sheets = workbook ? officeElements(workbook, 'sheet') : [];
+  const relations = await readOfficeXml(archive, 'xl/_rels/workbook.xml.rels');
+  const links = relations ? officeElements(relations, 'Relationship') : [];
+  for (const sheet of sheets) {
+    const id = [...sheet.attributes].find((attribute) => attribute.localName === 'id')?.value;
+    const link = links.find((entry) => entry.getAttribute('Id') === id && /\/worksheet$/.test(entry.getAttribute('Type') ?? ''));
+    const target = link?.getAttribute('Target');
+    if (!target || link.getAttribute('TargetMode') === 'External') continue;
+    const url = new URL(target, 'https://office.invalid/xl/workbook.xml');
+    const path = url.pathname.slice(1);
+    if (url.origin === 'https://office.invalid' && archive.names.has(path)) return { path, name: sheet.getAttribute('name') || 'Primo foglio' };
+  }
+  const path = [...archive.names.keys()].find((name) => /^xl\/worksheets\/sheet\d+\.xml$/.test(name));
+  return path ? { path, name: 'Primo foglio' } : null;
+}
+
+function sheetColumn(reference, fallback) {
+  const letters = reference?.match(/^[A-Z]+(?=\d+$)/)?.[0];
+  if (!letters) return fallback;
+  return [...letters].reduce((index, letter) => index * 26 + letter.charCodeAt(0) - 64, 0) - 1;
+}
+
+async function readSpreadsheetPreview(archive) {
+  const sheet = await findFirstSheet(archive);
+  if (!sheet) throw new Error('Foglio Excel mancante');
+  const xml = await readOfficeXml(archive, sheet.path);
+  const shares = await readOfficeXml(archive, 'xl/sharedStrings.xml');
+  const strings = shares ? officeElements(shares, 'si').map((entry) => officeElements(entry, 't').map((text) => text.textContent).join('')) : [];
+  const grid = [];
+  let width = 0;
+  let partial = false;
+  const sheetData = officeElements(xml, 'sheetData')[0];
+  if (!sheetData) return { name: sheet.name, grid, width, partial };
+  for (const [index, row] of officeElements(sheetData, 'row').entries()) {
+    const number = Number(row.getAttribute('r')) || index + 1;
+    if (!Number.isInteger(number) || number < 1 || number > sheetRowLimit) { partial = true; continue; }
+    const values = [];
+    for (const [fallback, cell] of officeElements(row, 'c').entries()) {
+      const column = sheetColumn(cell.getAttribute('r'), fallback);
+      if (column >= sheetColumnLimit) { partial = true; continue; }
+      const type = cell.getAttribute('t');
+      const raw = officeElements(cell, 'v')[0]?.textContent ?? '';
+      values[column] = type === 's' ? strings[Number(raw)] ?? ''
+        : type === 'inlineStr' ? officeElements(cell, 't').map((text) => text.textContent).join('')
+        : type === 'b' && raw !== '' ? raw === '1' ? 'VERO' : 'FALSO' : raw;
+      width = Math.max(width, column + 1);
+    }
+    grid[number - 1] = values;
+  }
+  return { name: sheet.name, grid, width, partial };
+}
+
+function renderSheetPreview(sheet, container) {
+  if (!sheet.width) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'sheet-preview';
+  const table = document.createElement('table');
+  table.setAttribute('aria-label', sheet.name);
+  const head = document.createElement('tr');
+  head.append(document.createElement('th'));
+  for (let column = 0; column < sheet.width; column += 1) {
+    const cell = document.createElement('th');
+    cell.setAttribute('scope', 'col');
+    cell.textContent = String.fromCharCode(65 + column);
+    head.append(cell);
+  }
+  const header = document.createElement('thead');
+  header.append(head);
+  const rows = document.createElement('tbody');
+  for (const [index, values] of sheet.grid.entries()) {
+    const row = document.createElement('tr');
+    const number = document.createElement('th');
+    number.setAttribute('scope', 'row');
+    number.textContent = index + 1;
+    row.append(number);
+    for (let column = 0; column < sheet.width; column += 1) {
+      const cell = document.createElement('td');
+      cell.textContent = values?.[column] ?? '';
+      row.append(cell);
+    }
+    rows.append(row);
+  }
+  table.append(header, rows);
+  wrap.append(table);
+  container.append(wrap);
+}
+
+
+'use strict';
+
 const byId = (id) => document.getElementById(id);
 const desktop = byId('desktop');
 const windows = new Map();
@@ -3771,6 +3974,14 @@ const limitStorage = 2 * 1024 * 1024;
 const rasterType = /^image\/(png|jpeg|gif|webp|bmp|avif)$/;
 const pdfType = 'application/pdf';
 const textExtension = /\.(txt|md|log|csv|json)$/i;
+const previewTextExtension = /\.(tsv|xml|html?|css|js|mjs|ts|py|java|c|cpp|h|sql|ini|yaml|yml|gcode)$/i;
+const previewMimeTypes = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', avif: 'image/avif',
+  gif: 'image/gif', bmp: 'image/bmp', svg: 'image/svg+xml',
+  mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4', aac: 'audio/aac', flac: 'audio/flac',
+  ogg: 'audio/ogg', oga: 'audio/ogg', opus: 'audio/ogg',
+  mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', ogv: 'video/ogg'
+};
 let finderNotice = '';
 let finderMessage = '';
 let importDestination = null;
@@ -4064,12 +4275,33 @@ async function virtualFilePreview(id) {
 }
 
 async function describeFilePreview(data, blob, type) {
+  data.source = blob;
+  const extension = data.name.split('.').at(-1).toLowerCase();
+  const mime = type.startsWith('audio/') || type.startsWith('video/') || rasterType.test(type)
+    ? type : Object.hasOwn(previewMimeTypes, extension) ? previewMimeTypes[extension] : type;
   if (isPdfFile({ name: data.name, type })) {
     if (await blob.slice(0, 5).text() === '%PDF-') data.pdf = blob.slice(0, undefined, pdfType);
     else data.description += ' · PDF illeggibile';
-  } else if (rasterType.test(type) && blob.size <= maxFinderImportBytes) {
-    data.image = blob;
-  } else if (type.startsWith('text/') || textExtension.test(data.name)) {
+  } else if (['docx', 'xlsx'].includes(extension)) {
+    try {
+      const archive = await readOfficeArchive(blob);
+      if (extension === 'docx') {
+        const word = await readWordPreview(archive);
+        data.text = word.text;
+        data.description += word.partial ? ' · Anteprima parziale del testo Word' : ' · Testo Word';
+      } else {
+        data.sheet = await readSpreadsheetPreview(archive);
+        data.description += ' · ' + data.sheet.name + (data.sheet.partial ? ' · Prime 100 righe e 20 colonne' : '');
+        if (!data.sheet.width) data.description += ' · Nessuna cella da mostrare';
+      }
+    } catch {
+      data.description += ' · Anteprima Office non disponibile';
+    }
+  } else if ((rasterType.test(mime) || mime === 'image/svg+xml') && blob.size <= maxFinderImportBytes) {
+    data.image = blob.type === mime ? blob : blob.slice(0, undefined, mime);
+  } else if (mime.startsWith('audio/') || mime.startsWith('video/')) {
+    data.media = { kind: mime.startsWith('audio/') ? 'audio' : 'video', blob: blob.type === mime ? blob : blob.slice(0, undefined, mime) };
+  } else if (type.startsWith('text/') || textExtension.test(data.name) || previewTextExtension.test(data.name)) {
     data.text = await blob.slice(0, limitBytes).text();
     if (blob.size > limitBytes) data.description += ' · Anteprima dei primi 256 KiB';
   } else {
@@ -4666,6 +4898,7 @@ async function openQuickLook() {
 function renderQuickLookFile(data, content, detail) {
   detail.textContent = data.description;
   if (data.pdf) detail.textContent += ' · Seleziona Apri per visualizzare il PDF.';
+  if (data.media) detail.textContent += ' · Seleziona Apri per riprodurre il file.';
   if (data.image) {
     quickLookUrl = URL.createObjectURL(data.image);
     const image = document.createElement('img');
@@ -4676,6 +4909,8 @@ function renderQuickLookFile(data, content, detail) {
       detail.textContent = 'Immagine illeggibile.';
     });
     content.append(image);
+  } else if (data.sheet?.width) {
+    renderSheetPreview(data.sheet, content);
   } else if (data.text !== undefined) {
     const body = document.createElement('pre');
     body.textContent = data.text || 'Documento vuoto';
@@ -4711,6 +4946,8 @@ function renderPreview(record) {
   description.textContent = preview.description;
   content.append(description);
   const id = preview.id;
+  const { source, name } = preview;
+  const saveCopy = source ? () => downloadBlob(source, name) : null;
   if (isVisibleEntry(id) && virtualEntries.get(id)?.kind === 'text') {
     const editor = document.createElement('textarea');
     editor.className = 'document-editor';
@@ -4744,6 +4981,19 @@ function renderPreview(record) {
     content.append(editor, controls);
   } else if (preview.pdf) {
     renderPreviewPdf(record, content, description);
+  } else if (preview.media) {
+    const player = document.createElement(preview.media.kind);
+    preview.url ??= URL.createObjectURL(preview.media.blob);
+    player.className = 'preview-player';
+    player.controls = true;
+    player.preload = 'metadata';
+    player.setAttribute('aria-label', name);
+    player.addEventListener('error', () => {
+      description.textContent = 'Il browser non riesce a riprodurre questo file.';
+      if (saveCopy) content.append(button('Scarica copia', 'choice', 'Scarica copia', saveCopy));
+    }, { once: true });
+    player.src = preview.url;
+    content.append(player);
   } else if (preview.image) {
     const image = document.createElement('img');
     preview.url ??= URL.createObjectURL(preview.image);
@@ -4754,13 +5004,17 @@ function renderPreview(record) {
     });
     image.src = preview.url;
     content.append(image);
+  } else if (preview.sheet?.width) {
+    renderSheetPreview(preview.sheet, content);
   } else if (preview.text !== undefined) {
     const text = document.createElement('pre');
     text.textContent = preview.text;
     content.append(text);
+  } else if (saveCopy) {
+    content.append(button('Scarica copia', 'choice', 'Scarica copia', saveCopy));
   }
-  if (id && !preview.pdf && virtualEntries.get(id)?.kind === 'import') {
-    record.fileCommands.push(['Esporta copia…', () => exportEntry(id)]);
+  if (saveCopy && !preview.pdf) {
+    record.fileCommands.push([id ? 'Esporta copia…' : 'Scarica copia…', saveCopy]);
   }
   record.content.replaceChildren(content);
   if (activeWindow === record) updateAppMenus(record);
@@ -5093,7 +5347,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.6</h2><p>Nel Finder usa <strong>File → Importa copia da Windows…</strong> per salvare file fino a 50 MB nel browser.</p><p>Il pulsante verde porta la finestra a tutto schermo, dietro al Dock. Premi di nuovo il verde o <kbd>Esc</kbd> per ripristinarla.</p><p><kbd>Ctrl+F</kbd> apre la ricerca. <kbd>F11</kbd> usa lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.7</h2><p>Nel Finder fai doppio clic su un file importato per aprirlo in <strong>Anteprima</strong>. Puoi leggere testo, Word ed Excel e riprodurre i file audio e video supportati dal browser.</p><p>Il pulsante verde porta la finestra a tutto schermo, dietro al Dock. Premi di nuovo il verde o <kbd>Esc</kbd> per ripristinarla.</p><p><kbd>Ctrl+F</kbd> apre la ricerca. <kbd>F11</kbd> usa lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
