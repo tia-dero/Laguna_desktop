@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-M9VCgBH85syjwnGnhKlWkfFUuBKjG47vVuxXNMFEnBM='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tGP0GTSveycN8Bi/BqpksGnX82JSNOifmyji50A2ySY='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.1 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.2 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -224,7 +224,6 @@ button, h1, h2, p { margin: 0; }
 .app-icon.finder { background: linear-gradient(155deg, #78d8ff, #2b85f4); border: 0; }
 .app-icon.finder > svg { width: 100%; height: 100%; }
 .app-icon.launchpad { background: linear-gradient(145deg, #e6effc, #99a9c6 57%, #7687aa); color: #2b4169; }
-.app-icon.mission { background: linear-gradient(155deg, #79c9ed, #597dbb 55%, #34496e); }
 .app-icon.notes { background: linear-gradient(#ffd460 0 24%, #fff6d9 25%, #fffdf4 100%); color: #9a6a19; }
 .app-icon.calculator { background: linear-gradient(155deg, #566273, #222b39); color: #ffe0a4; }
 .app-icon.settings { background: linear-gradient(155deg, #e9eef3, #9eacbe 65%, #798b9f); color: #304050; }
@@ -396,17 +395,6 @@ dialog::backdrop { background: #081f31a1; }
 #finder-dialog-error:empty { display: none; }
 #finder-dialog-error:not(:empty) { color: #ad4545; }
 #finder-form footer { display: flex; justify-content: flex-end; gap: 8px; }
-#mission { width: min(900px, calc(100% - 26px)); max-height: 82vh; padding: 15px; border-color: #ffffff45; border-radius: 16px; background: #183744e8; color: #fff; box-shadow: 0 22px 70px #03182587; }
-.mission-header { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 10px; }
-.mission-header h2 { font-size: 15px; }
-.mission-header button { color: #e9f7ff; }
-#mission-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
-.mission-tile { display: grid; gap: 8px; padding: 7px; background: none; border: 1px solid transparent; border-radius: 10px; text-align: left; font-size: 12px; overflow-wrap: anywhere; }
-.mission-tile:hover, .mission-tile:focus-visible { background: #ffffff18; border-color: #ffffff45; }
-.mission-preview { display: grid; grid-template-rows: 25px 1fr; min-width: 0; height: 100px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; box-shadow: 0 7px 16px #041c3444; }
-.mission-titlebar { display: block; padding: 6px 5px 4px 30px; border-bottom: 1px solid var(--line); font-size: 9px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; background: radial-gradient(circle at 8px 11px, #f46d64 2px, transparent 2.5px), radial-gradient(circle at 15px 11px, #eac150 2px, transparent 2.5px), radial-gradient(circle at 22px 11px, #56c37c 2px, transparent 2.5px); }
-.mission-content { display: grid; place-items: center; background: var(--panel); }
-.mission-content .app-icon { width: 38px; height: 38px; }
 
 #quicklook { width: min(700px, calc(100% - 25px)); max-height: 82vh; border-radius: 14px; box-shadow: 0 20px 65px #05182772; }
 .quicklook-header, .control-header { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--line); }
@@ -667,7 +655,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     </div>
     <nav id="desktop-shortcuts" aria-label="Comandi della scrivania">
       <button id="desktop-apps-button" class="menu-button desktop-shortcut" type="button" aria-label="Applicazioni" title="Applicazioni" aria-haspopup="dialog"><span data-icon="grid"></span><span>Applicazioni</span></button>
-      <button id="desktop-windows-button" class="menu-button desktop-shortcut" type="button" aria-label="Mission Control" title="Mission Control" aria-haspopup="dialog"><span data-icon="mission"></span><span>Finestre</span></button>
     </nav>
     <div id="status-bar">
       <button id="fullscreen-button" class="menu-button status-button" type="button" aria-label="Schermo intero" title="Schermo intero"></button>
@@ -760,13 +747,6 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
       <button class="icon-button" type="button" id="control-close" aria-label="Chiudi Centro di Controllo"><span data-icon="close"></span></button>
     </header>
     <div id="control-options"></div>
-  </dialog>
-  <dialog id="mission" aria-labelledby="mission-title">
-    <header class="mission-header">
-      <h2 id="mission-title">Mission Control</h2>
-      <button class="icon-button" type="button" id="mission-close" aria-label="Chiudi Mission Control"><span data-icon="close"></span></button>
-    </header>
-    <div id="mission-grid"></div>
   </dialog>
   <dialog id="lock-screen" aria-labelledby="lock-title" aria-describedby="lock-hint">
     <div class="lock-clock">
@@ -2687,7 +2667,6 @@ const hotCornerLabels = {
 };
 const hotCornerActions = {
   none: ['Disattivato', null],
-  mission: ['Mission Control', openMission],
   desktop: ['Mostra scrivania', toggleDesktopPeek],
   lock: ['Blocca schermo (simulato)', openLockScreen]
 };
@@ -2841,7 +2820,6 @@ const glyphs = {
   sliders: '<path d="M4 7h5m4 0h7M4 17h9m4 0h3"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/>',
   more: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.1m3.9 0h.1m3.9 0h.1" stroke-width="2.5"/>',
   grid: '<rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/><rect x="14" y="14" width="6" height="6" rx="1.4"/>',
-  mission: '<rect x="3" y="4" width="11" height="7" rx="1.3"/><rect x="10" y="14" width="11" height="6" rx="1.3"/><path d="M17 6h4v5M3 14v5h4"/>',
   list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h1m-1 6h1m-1 6h1"/>',
   left: '<path d="m14 6-6 6 6 6"/>',
   right: '<path d="m10 6 6 6-6 6"/>',
@@ -2869,7 +2847,7 @@ function icon(name) {
 function appIcon(id) {
   const face = '<svg aria-hidden="true" viewBox="0 0 48 48"><path fill="#d5edfb" d="M26 0h22v48H23c-3-8-4-14-3-21h-6c1-10 6-20 12-27Z"/><path d="M12 16v4m23-4v4m-7-12c-3 5-6 12-6 16h7c-1 7 0 12 1 15M12 29c7 7 16 8 24 1" fill="none" stroke="#174272" stroke-width="2.2" stroke-linecap="round"/></svg>';
   const symbol = studioIcons[id] ?? {
-    launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings',
+    launchpad: 'grid', notes: 'notes', calculator: 'calculator', settings: 'settings',
     preview: 'preview', trash: 'trash', info: 'system', calendar: 'calendar', 'clock-app': 'clock', music: 'music',
     reminders: 'checklist', contacts: 'contacts', textedit: 'document'
   }[id];
@@ -2940,7 +2918,7 @@ const apps = {
 };
 const launchApps = ['calendar', 'clock-app', 'music', 'reminders', 'contacts', 'textedit',
   'finder', 'notes', 'calculator', 'settings', 'studio', 'jarvis', 'photos', 'projects'];
-const dockApps = ['finder', 'launchpad', 'mission', 'notes', 'calculator', 'settings', 'trash'];
+const dockApps = ['finder', 'launchpad', 'notes', 'calculator', 'settings', 'trash'];
 const configurableDockApps = dockApps.slice(1, -1);
 const dockDragType = 'application/x-laguna-dock';
 let dockPrefs = readDockPrefs();
@@ -2997,14 +2975,12 @@ function setDockVisibility() {
 }
 
 function appName(id) {
-  return apps[id]?.name ?? { launchpad: 'Launchpad', mission: 'Mission Control', trash: 'Cestino', downloads: 'Download' }[id];
+  return apps[id]?.name ?? { launchpad: 'Launchpad', trash: 'Cestino', downloads: 'Download' }[id];
 }
 
 function launch(id) {
   if (id === 'launchpad') {
     openLaunchpad();
-  } else if (id === 'mission') {
-    openMission();
   } else if (id === 'trash') {
     showFolder('trash');
   } else {
@@ -4573,14 +4549,13 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.1</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti. <strong>Finestre</strong> apre Mission Control.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.2</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
 const launchSearch = byId('launch-search');
 const spotlight = byId('spotlight');
 const spotlightSearch = byId('spotlight-search');
-const mission = byId('mission');
 const controlCenter = byId('control-center');
 let searchResults = [];
 let selectedResult = 0;
@@ -4619,7 +4594,7 @@ function noResults(message) {
   return empty;
 }
 
-const appSearch = [...launchApps, 'launchpad', 'mission'].map((id) => ({
+const appSearch = [...launchApps, 'launchpad'].map((id) => ({
     name: appName(id), detail: 'App', art: appIcon(id), open: () => launch(id)
 }));
 
@@ -4696,7 +4671,6 @@ function toggleSpotlight() {
   }
   closeMenu();
   if (launchpad.open) launchpad.close();
-  if (mission.open) mission.close();
   if (quickLook.open) quickLook.close();
   if (controlCenter.open) controlCenter.close();
   if (byId('finder-dialog').open) return;
@@ -4760,36 +4734,6 @@ function toggleControlCenter() {
   controlCenter.showModal();
   byId('settings-button').setAttribute('aria-expanded', 'true');
   byId('control-options').querySelector('button')?.focus();
-}
-
-function renderMission() {
-  const grid = byId('mission-grid');
-  grid.replaceChildren();
-  const ordered = [...windows.values()].sort((first, second) => second.order - first.order);
-  for (const record of ordered) {
-    const label = record.title.textContent + (record.minimized ? ' · Minimizzata' : '');
-    const tile = button(label, 'mission-tile', '<span class="mission-preview"><span class="mission-titlebar"></span><span class="mission-content"></span></span><span class="mission-label"></span>', () => {
-      mission.close();
-      openWindow(record.id);
-    });
-    tile.dataset.app = record.id;
-    tile.querySelector('.mission-titlebar').textContent = record.title.textContent;
-    tile.querySelector('.mission-content').innerHTML = appIcon(record.id);
-    tile.querySelector('.mission-label').textContent = label;
-    grid.append(tile);
-  }
-  if (!ordered.length) grid.append(noResults('Nessuna finestra aperta'));
-}
-
-function openMission() {
-  if (mission.open) return;
-  closeMenu();
-  closeDownloadStack();
-  if (spotlight.open) spotlight.close();
-  if (launchpad.open) launchpad.close();
-  renderMission();
-  mission.showModal();
-  (byId('mission-grid').querySelector('button') ?? byId('mission-close')).focus();
 }
 
 const menuPopover = byId('menu-popover');
@@ -4862,7 +4806,6 @@ function menuItems(name) {
     ],
     Finestra: [
       ['Cambia app…', () => openAppSwitcher(), !runningApps.size],
-      ['Mission Control', openMission],
       ['Affianca JARVIS e appunti', arrangeStudyWindows, !canSplitWindows()],
       ...(id === 'finder' ? [['Nuova scheda Finder', () => { openWindow('finder'); newFinderTab(); }, finder.tabs.length >= tabLimit]] : []),
       ['Riduci a icona', () => minimize(current), !current],
@@ -4907,7 +4850,6 @@ function buildDesktop() {
   byId('fullscreen-button').innerHTML = icon('full');
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
   byId('desktop-apps-button').addEventListener('click', openLaunchpad);
-  byId('desktop-windows-button').addEventListener('click', openMission);
   const icons = byId('desktop-icons');
   const applications = button('Applicazioni', 'desktop-item', appIcon('launchpad') + '<span>Applicazioni</span>', openLaunchpad);
   applications.setAttribute('aria-haspopup', 'dialog');
@@ -5119,7 +5061,6 @@ function setupEvents() {
   byId('import-picker').addEventListener('change', importVirtualFile);
   byId('wallpaper-picker').addEventListener('change', importWallpaper);
   byId('finder-dialog-cancel').addEventListener('click', () => byId('finder-dialog').close());
-  byId('mission-close').addEventListener('click', () => mission.close());
   byId('finder-form').addEventListener('submit', (event) => {
     event.preventDefault();
     const error = finderSubmit?.();
@@ -5144,7 +5085,7 @@ function setupEvents() {
     }
     if (event.key === 'Enter') runResult(selectedResult);
   });
-  for (const dialog of [launchpad, spotlight, mission, quickLook, controlCenter]) {
+  for (const dialog of [launchpad, spotlight, quickLook, controlCenter]) {
     dialog.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape' || event.isComposing) return;
       event.preventDefault();
