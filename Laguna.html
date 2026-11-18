@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yBmPvm1aAeK8hrrWS0TjzLcWbU5nC5tMJGf+tV+RTUI='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-/vj7Nqr4Xg8EsedXZmciMstr+mqZbsGT+h1klc3U6Y8='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 2.8 · Desktop per EliteBook</title>
+  <title>Laguna 2.9 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -109,6 +109,7 @@ button, h1, h2, p { margin: 0; }
 .desktop-item:hover, .desktop-item:focus-visible { background: #ffffff22; border-color: #ffffff3b; }
 .desktop-item .file-icon { width: 51px; height: 42px; }
 .desktop-item .drive-icon { width: 46px; height: 39px; margin-block: 2px 1px; }
+.desktop-item .app-icon { width: 43px; height: 43px; }
 #windows { position: absolute; inset: 0; pointer-events: none; }
 #split-preview { position: absolute; z-index: 23; pointer-events: none; border: 2px solid #addaffc9; border-radius: 12px; background: #80baff24; box-shadow: inset 0 0 0 1px #163c70a1; }
 .window.is-split .resize-handle { display: none; }
@@ -230,6 +231,9 @@ button, h1, h2, p { margin: 0; }
 .app-icon.calendar { background: linear-gradient(#e84954 0 24%, #fff2f2 24%); color: #a63442; }
 .app-icon.clock-app { background: linear-gradient(155deg, #394153, #131722); color: #fff3ca; }
 .app-icon.music { background: linear-gradient(155deg, #ff6884, #df2853 72%, #ab2048); color: #fff; }
+.app-icon.reminders { background: linear-gradient(155deg, #ffffff, #e9f0fa); color: #2367b5; }
+.app-icon.contacts { background: linear-gradient(155deg, #c59164, #885938); color: #fff3df; }
+.app-icon.textedit { background: linear-gradient(155deg, #fff, #e5edf5); color: #415e7a; }
 .app-icon.preview { background: linear-gradient(155deg, #7edebd, #2b8a88); }
 .app-icon.trash { background: linear-gradient(155deg, #f3fbff, #b5d1dd); color: #537084; }
 .app-icon.info { background: linear-gradient(155deg, #76cbbb, #33758a); }
@@ -260,7 +264,7 @@ button, h1, h2, p { margin: 0; }
 
 dialog { color: var(--ink); padding: 0; border: 1px solid var(--line); background: var(--surface); }
 dialog::backdrop { background: #081f31a1; }
-#launchpad { width: min(760px, calc(100% - 28px)); max-height: calc(100% - 60px); padding: 18px 24px 29px; border-color: #ffffff47; border-radius: 20px; background: #163942f2; color: #fff; box-shadow: 0 25px 80px #00152388; }
+#launchpad { width: min(760px, calc(100% - 28px)); max-height: calc(100% - 60px); padding: 18px 24px 29px; overflow: auto; border-color: #ffffff47; border-radius: 20px; background: #163942f2; color: #fff; box-shadow: 0 25px 80px #00152388; }
 .launch-top { display: flex; justify-content: center; position: relative; padding: 4px 30px 17px; }
 .launch-top .search-field { width: min(280px, 100%); padding: 9px 12px; background: #ffffff19; border: 1px solid #ffffff28; border-radius: 8px; }
 .search-field { display: flex; align-items: center; gap: 10px; }
@@ -327,6 +331,21 @@ dialog::backdrop { background: #081f31a1; }
 .music-status:empty, .timer-status:empty, .calendar-agenda [role="status"]:empty { display: none; }
 .music-tracks { display: grid; gap: 5px; }
 .music-tracks button { min-width: 0; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.contacts-app, .textedit-app, .reminders-panel { display: grid; align-content: start; gap: 12px; padding: 15px; }
+.contacts-app { grid-template-columns: repeat(auto-fit, minmax(min(100%, 215px), 1fr)); }
+.contacts-app section, .contact-form, .contacts-list { display: grid; align-content: start; gap: 8px; }
+.contacts-app h2 { font-size: 17px; }
+.contacts-app label, .textedit-app label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; }
+.contacts-app input, .textedit-app input, .textedit-app textarea { min-width: 0; padding: 7px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--surface); font-size: 13px; }
+.contact-row { display: grid; gap: 3px; text-align: left; overflow-wrap: anywhere; }
+.contact-row small { color: var(--muted); }
+.contacts-list { max-height: 280px; overflow: auto; }
+.textedit-app { min-height: 100%; grid-template-rows: auto auto minmax(130px, 1fr) auto; }
+.textedit-app textarea { width: 100%; resize: none; line-height: 1.5; }
+.reminders-panel { --widget-accent: var(--accent); --widget-rule: var(--line); --widget-secondary: var(--muted); --widget-base: var(--panel); }
+.reminders-panel .widget-reminder-title { display: none; }
+.reminders-panel .widget-reminder-toggle { padding-block: 8px; font-size: 14px; }
+.reminders-panel .widget-reminder-add input { font-size: 13px; }
 .settings-view, .info-view { display: grid; align-content: start; gap: 15px; }
 .settings-view { height: auto; min-height: 100%; }
 .settings-view fieldset { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; }
@@ -727,7 +746,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
     <p id="app-switcher-selection" role="status"></p>
     <p id="app-switcher-help"></p>
   </dialog>
-  <dialog id="launchpad" aria-label="Launchpad">
+  <dialog id="launchpad" aria-label="Applicazioni · Launchpad">
     <div class="launch-top">
       <label class="search-field"><span data-icon="search"></span><input id="launch-search" type="search" aria-label="Cerca nel Launchpad" placeholder="Cerca app" autocomplete="off"></label>
       <button class="icon-button overlay-close" type="button" data-close-overlay aria-label="Chiudi Launchpad"><span data-icon="close"></span></button>
@@ -1193,9 +1212,10 @@ function renderWidgetCalendar(content, { focus = null, preview = false } = {}) {
   if (focus) content.querySelector(focus)?.focus();
 }
 
-function saveWidgetReminders() {
+function saveWidgetReminders(origin) {
   const stored = writeValue('reminders.v1', JSON.stringify(widgetReminders));
   if (!stored) byId('announcement').textContent = 'Promemoria disponibili in questa sessione.';
+  refreshReminderViews(origin);
 }
 
 function renderWidgetReminders(content, { focusIndex = null, preview = false } = {}) {
@@ -1214,14 +1234,14 @@ function renderWidgetReminders(content, { focusIndex = null, preview = false } =
     const toggle = button(reminder.text, 'widget-reminder-toggle', '', () => {
       reminder.done = !reminder.done;
       toggle.setAttribute('aria-pressed', reminder.done);
-      saveWidgetReminders();
+      saveWidgetReminders(content);
     });
     toggle.textContent = reminder.text;
     toggle.dataset.reminder = String(index);
     toggle.setAttribute('aria-pressed', reminder.done);
     row.append(toggle, iconButton('Rimuovi ' + reminder.text, 'close', () => {
       widgetReminders.splice(index, 1);
-      saveWidgetReminders();
+      saveWidgetReminders(content);
       renderWidgetReminders(content, { focusIndex: Math.min(index, widgetReminders.length - 1) });
     }));
     list.append(row);
@@ -1235,7 +1255,7 @@ function renderWidgetReminders(content, { focusIndex = null, preview = false } =
     const text = field.value.trim();
     if (!text || widgetReminders.length >= 40) return;
     widgetReminders.push({ text, done: false });
-    saveWidgetReminders();
+    saveWidgetReminders(content);
     renderWidgetReminders(content, { focusIndex: -1 });
     const updatedList = content.querySelector('.widget-reminder-list');
     updatedList.scrollTop = updatedList.scrollHeight;
@@ -1490,6 +1510,7 @@ function setupWidgets() {
     toggleMenu(byId('system-menu'), false, [['Modifica widget…', openWidgetGallery]], { left: event.clientX, top: event.clientY });
   });
   renderWidgets();
+  refreshReminderViews();
 }
 
 
@@ -2337,6 +2358,167 @@ function setupMusic() {
 
 'use strict';
 
+function renderRemindersApp(record) {
+  const panel = document.createElement('div');
+  panel.className = 'reminders-panel';
+  renderWidgetReminders(panel);
+  record.content.replaceChildren(panel);
+}
+
+function refreshReminderViews(origin = null) {
+  const app = windows.get('reminders')?.content.querySelector('.reminders-panel');
+  const widget = byId('widgets').querySelector('[data-widget="reminders"]')?.querySelector('.widget-body');
+  for (const panel of [app, widget]) {
+    if (panel && panel !== origin) renderWidgetReminders(panel);
+  }
+}
+
+function readContacts() {
+  try {
+    const entries = JSON.parse(readValue('contacts.v1', '[]'));
+    return Array.isArray(entries) ? entries.filter((entry) => typeof entry?.name === 'string'
+      && typeof entry.phone === 'string' && typeof entry.email === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function renderContacts(record) {
+  record.content.innerHTML = '<div class="contacts-app"><section><label>Trova un contatto <input type="search" aria-label="Trova un contatto" autocomplete="off"></label><div class="contacts-list" aria-label="Contatti"></div></section><section><h2 class="contact-heading">Nuovo contatto</h2><form class="contact-form"><label>Nome <input type="text" maxlength="100" required autocomplete="off"></label><label>Telefono <input type="tel" maxlength="70" autocomplete="off"></label><label>Email <input type="email" maxlength="160" autocomplete="off"></label><div class="utility-actions"><button type="submit" class="primary-button">Salva</button></div></form><p class="app-hint" role="status"></p></section></div>';
+  const content = record.content;
+  const contacts = readContacts();
+  let editing = -1;
+  const search = content.querySelector('input');
+  const list = content.querySelector('.contacts-list');
+  const form = content.querySelector('form');
+  const [name, phone, email] = form.querySelectorAll('input');
+  const status = content.querySelector('[role="status"]');
+  const fresh = button('Nuovo contatto', 'choice', 'Nuovo', () => {
+    edit(-1);
+    status.textContent = '';
+    name.focus();
+  });
+  const remove = button('Elimina contatto', 'choice', 'Elimina', () => {
+    contacts.splice(editing, 1);
+    finish('Contatto eliminato.');
+  });
+  form.querySelector('.utility-actions').append(fresh, remove);
+  function drawList() {
+    const query = normalize(search.value);
+    list.replaceChildren();
+    let any = false;
+    const sorted = contacts.map((entry, index) => ({ entry, index })).sort((a, b) => a.entry.name.localeCompare(b.entry.name, 'it'));
+    for (const { entry, index } of sorted) {
+      if (!normalize([entry.name, entry.phone, entry.email].join(' ')).includes(query)) continue;
+      any = true;
+      const row = button(entry.name, 'choice contact-row', '<strong></strong><small></small>', () => {
+        edit(index);
+        status.textContent = '';
+        name.focus();
+      });
+      row.querySelector('strong').textContent = entry.name;
+      row.querySelector('small').textContent = entry.phone || entry.email;
+      row.dataset.contact = String(index);
+      row.setAttribute('aria-pressed', editing === index);
+      list.append(row);
+    }
+    if (!any) list.append(noResults(query ? 'Nessun contatto trovato.' : 'Nessun contatto salvato.'));
+  }
+  function edit(index) {
+    const entry = contacts[index];
+    editing = index;
+    content.querySelector('.contact-heading').textContent = entry ? 'Modifica contatto' : 'Nuovo contatto';
+    name.value = entry?.name ?? '';
+    phone.value = entry?.phone ?? '';
+    email.value = entry?.email ?? '';
+    remove.hidden = !entry;
+    fresh.hidden = !entry;
+    drawList();
+  }
+  function finish(message) {
+    const saved = writeValue('contacts.v1', JSON.stringify(contacts));
+    edit(-1);
+    status.textContent = saved ? message : 'Modifica disponibile per questa sessione.';
+    name.focus();
+  }
+  search.addEventListener('input', drawList);
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const entry = { name: name.value.trim(), phone: phone.value.trim(), email: email.value.trim() };
+    if (!entry.name) {
+      status.textContent = 'Inserisci un nome.';
+      name.focus();
+      return;
+    }
+    contacts[editing < 0 ? contacts.length : editing] = entry;
+    finish('Contatto salvato.');
+  });
+  search.value = '';
+  edit(-1);
+}
+
+function readTextDraft() {
+  try {
+    const draft = JSON.parse(readValue('textedit.draft', '{}'));
+    if (typeof draft?.name === 'string' && typeof draft.text === 'string') return draft;
+  } catch {}
+  return { name: 'Senza titolo.txt', text: '' };
+}
+
+function renderTextEdit(record) {
+  record.content.innerHTML = '<div class="textedit-app"><div class="utility-actions"></div><label>Nome della copia <input type="text" maxlength="120" aria-label="Nome della copia"></label><textarea aria-label="Testo del documento" spellcheck="true"></textarea><input type="file" accept=".txt,.md,.csv,.log,.json" hidden><p class="app-hint" role="status"></p></div>';
+  const content = record.content;
+  const [name, picker] = content.querySelectorAll('input');
+  const editor = content.querySelector('textarea');
+  const status = content.querySelector('[role="status"]');
+  const draft = readTextDraft();
+  name.value = draft.name;
+  editor.value = draft.text;
+  editor.maxLength = limitBytes;
+  let revision = 0;
+  function saveDraft() {
+    revision += 1;
+    const stored = writeValue('textedit.draft', JSON.stringify({ name: name.value, text: editor.value }));
+    status.textContent = stored ? 'Bozza salvata nel browser.' : 'Bozza disponibile per questa sessione.';
+  }
+  name.addEventListener('input', saveDraft);
+  editor.addEventListener('input', saveDraft);
+  picker.addEventListener('change', async () => {
+    const file = picker.files[0];
+    picker.value = '';
+    if (!file) return;
+    if (!textExtension.test(file.name) || file.size > limitBytes) {
+      status.textContent = 'Scegli un file di testo di massimo 256 KB.';
+      return;
+    }
+    if (editor.value && !window.confirm('Sostituire la bozza attuale con il file selezionato?')) return;
+    const pending = ++revision;
+    try {
+      const text = await file.text();
+      if (pending !== revision || windows.get('textedit') !== record) return;
+      name.value = file.name;
+      editor.value = text;
+      saveDraft();
+      editor.focus();
+    } catch {
+      if (pending === revision) status.textContent = 'Impossibile leggere il file.';
+    }
+  });
+  content.querySelector('.utility-actions').append(
+    button('Apri un file di testo', 'choice', 'Apri testo…', () => picker.click()),
+    button('Scarica una copia', 'primary-button', 'Scarica copia', () => {
+      const cleaned = name.value.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').trim().replace(/\.+$/, '');
+      const filename = cleaned || 'Senza titolo';
+      const textName = textExtension.test(filename) ? filename : filename + '.txt';
+      downloadBlob(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }), textName);
+      status.textContent = 'Copia preparata per il download.';
+    })
+  );
+}
+
+
+'use strict';
+
 let switcherApps = [];
 let switcherIndex = 0;
 let switcherHeld = false;
@@ -2770,6 +2952,7 @@ let spaces = [1, 2, 3];
 let activeSpace = 1;
 
 const glyphs = {
+  contacts: '<rect x="5" y="4" width="14" height="16" rx="2"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16c.5-2.8 6.5-2.8 7 0m3.5-8h2m-2 4h2m-2 4h2"/>',
   music: '<path d="M9 17V6l11-2v11M9 9l11-2"/><ellipse cx="6.5" cy="17.5" rx="2.5" ry="2"/><ellipse cx="17.5" cy="15.5" rx="2.5" ry="2"/>',
   grip: '<path d="M8 6h.1M16 6h.1M8 12h.1M16 12h.1M8 18h.1M16 18h.1" stroke-width="3.2"/>',
   spark: '<path d="M12 2.5c.8 5.1 3 7.3 8.5 9.5-5.5 1.8-7.7 4-8.5 9.5-.9-5.5-3.1-7.7-8.5-9.5C8.9 9.8 11.1 7.6 12 2.5Z"/>',
@@ -2810,7 +2993,11 @@ function icon(name) {
 
 function appIcon(id) {
   const face = '<svg aria-hidden="true" viewBox="0 0 48 48"><path fill="#d5edfb" d="M26 0h22v48H23c-3-8-4-14-3-21h-6c1-10 6-20 12-27Z"/><path d="M12 16v4m23-4v4m-7-12c-3 5-6 12-6 16h7c-1 7 0 12 1 15M12 29c7 7 16 8 24 1" fill="none" stroke="#174272" stroke-width="2.2" stroke-linecap="round"/></svg>';
-  const symbol = studioIcons[id] ?? { launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings', preview: 'preview', trash: 'trash', info: 'system', calendar: 'calendar', 'clock-app': 'clock', music: 'music' }[id];
+  const symbol = studioIcons[id] ?? {
+    launchpad: 'grid', mission: 'mission', notes: 'notes', calculator: 'calculator', settings: 'settings',
+    preview: 'preview', trash: 'trash', info: 'system', calendar: 'calendar', 'clock-app': 'clock', music: 'music',
+    reminders: 'checklist', contacts: 'contacts', textedit: 'document'
+  }[id];
   return '<span class="app-icon ' + id + '">' + (id === 'finder' ? face : icon(symbol)) + '</span>';
 }
 
@@ -2870,10 +3057,14 @@ const apps = {
   calendar: { name: 'Calendario', size: [660, 490], render: renderCalendar },
   'clock-app': { name: 'Orologio', size: [530, 365], render: renderClockApp },
   music: { name: 'Musica', size: [550, 430], render: renderMusic },
+  reminders: { name: 'Promemoria', size: [450, 390], render: renderRemindersApp },
+  contacts: { name: 'Contatti', size: [620, 450], render: renderContacts },
+  textedit: { name: 'TextEdit', size: [620, 455], render: renderTextEdit },
   preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
   info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
 };
-const launchApps = ['finder', 'notes', 'calendar', 'clock-app', 'music', 'calculator', 'settings', 'studio', 'jarvis', 'photos', 'projects'];
+const launchApps = ['calendar', 'clock-app', 'music', 'reminders', 'contacts', 'textedit',
+  'finder', 'notes', 'calculator', 'settings', 'studio', 'jarvis', 'photos', 'projects'];
 const dockApps = ['finder', 'launchpad', 'mission', 'notes', 'calculator', 'settings', 'trash'];
 const configurableDockApps = dockApps.slice(1, -1);
 const dockDragType = 'application/x-laguna-dock';
@@ -3624,9 +3815,13 @@ function entryBlob(entry) {
 function exportEntry(id) {
   const entry = virtualEntries.get(id);
   if (!entry || entry.kind === 'folder') return;
-  const url = URL.createObjectURL(entryBlob(entry));
+  downloadBlob(entryBlob(entry), entry.name);
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
   const download = document.createElement('a');
-  download.download = entry.name;
+  download.download = name;
   download.href = url;
   document.body.append(download);
   download.click();
@@ -4536,7 +4731,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.8</h2><p>Apri <strong>Calendario</strong>, <strong>Orologio</strong> o <strong>Musica</strong> da Launchpad o Spotlight.</p><p>Il pulsante <strong>giallo</strong> manda la finestra nel Dock. Il <strong>rosso</strong> chiude la finestra e lascia attiva l’app. Usa il menu dell’app per uscire.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 2.9</h2><p>Apri <strong>Applicazioni</strong> dalla scrivania per vedere Calendario, Orologio, Musica, Promemoria, Contatti e TextEdit.</p><p>Il pulsante <strong>giallo</strong> manda la finestra nel Dock. Il <strong>rosso</strong> chiude la finestra e lascia attiva l’app. Usa il menu dell’app per uscire.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -4932,7 +5127,7 @@ function menuItems(name) {
     : current?.fileCommands ?? [];
   const viewCommands = id === 'finder' ? finderViewCommands : current?.viewCommands ?? [];
   const items = {
-    Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Launchpad', openLaunchpad], ['Blocca schermo', openLockScreen]],
+    Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Applicazioni', openLaunchpad], ['Blocca schermo', openLockScreen]],
     App: [
       ...(id === 'finder' ? [['Apri Finder', () => openWindow('finder')]] : fileCommands),
       ...(!current && running && id !== 'finder' ? [['Riapri finestra', () => openWindow(id)]] : []),
@@ -4993,6 +5188,9 @@ function buildDesktop() {
   byId('fullscreen-button').innerHTML = icon('full');
   for (const element of document.querySelectorAll('[data-icon]')) element.innerHTML = icon(element.dataset.icon);
   const icons = byId('desktop-icons');
+  const applications = button('Applicazioni', 'desktop-item', appIcon('launchpad') + '<span>Applicazioni</span>', openLaunchpad);
+  applications.setAttribute('aria-haspopup', 'dialog');
+  icons.append(applications);
   for (const [label, art, action] of [
     ['Disco virtuale', 'drive', () => showFolder('desktop')],
     ['Documenti', 'folder', () => showFolder('documents')]
