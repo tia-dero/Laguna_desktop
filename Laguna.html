@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-a1gugpFCrRAVxflNzgBf/TB7xilsxhH7LAaIoTdiuf0='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mIw3UgcZGG2xkdstUH5IPu9tkYW8/jdBOb6FEls1UCk='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.3 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.4 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -164,6 +164,13 @@ button, h1, h2, p { margin: 0; }
 .finder-path button:hover { background: var(--hover); }
 .finder-path strong { flex: none; white-space: nowrap; color: var(--ink); font-weight: 650; }
 .finder-path > .glyph { font-size: 11px; }
+.inline-search { display: flex; flex: none; align-items: center; gap: 5px; min-width: 0; }
+.inline-search input[type="search"] { flex: 1; min-width: 0; height: 30px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--surface); font-size: 13px; }
+.inline-search .icon-button { flex: none; width: 27px; height: 27px; }
+.finder-search { padding: 5px 10px; border-bottom: 1px solid var(--line); }
+.editor-search { flex-wrap: wrap; }
+.editor-search .app-hint { flex: 0 0 auto; white-space: nowrap; }
+.textedit-app:has(.editor-search:not([hidden])) { grid-template-rows: repeat(3, auto) minmax(130px, 1fr) auto; }
 .files { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); align-content: start; gap: 9px; flex: 1; overflow: auto; padding: 21px 17px; }
 .files.list-view { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-block: 10px; }
 .file-tile { display: grid; min-width: 0; justify-items: center; align-content: start; gap: 9px; padding: 10px 5px; border: 1px solid transparent; border-radius: 9px; background: none; text-align: center; touch-action: manipulation; }
@@ -2793,6 +2800,253 @@ function toggleDesktopPeek() {
 
 'use strict';
 
+let finderClipboard = [];
+const finderUndo = [];
+const textSearches = new WeakMap();
+
+function copyableFinderItems() {
+  return [...finder.selection].filter((id) => virtualEntries.has(id) && isVisibleEntry(id));
+}
+
+function copyFinderSelection() {
+  const ids = copyableFinderItems();
+  if (!ids.length) {
+    showFinderMessage('Seleziona un file o una cartella virtuale da copiare.');
+    return;
+  }
+  function snapshot(id) {
+    const entry = virtualEntries.get(id);
+    return { id, entry, children: entry.kind === 'folder' ? folderItems(id).map(snapshot) : [] };
+  }
+  finderClipboard = ids.map(snapshot);
+  showFinderMessage(ids.length === 1 ? 'Elemento copiato.' : ids.length + ' elementi copiati.');
+}
+
+function finderCopyName(entry, names) {
+  if (!names.has(normalize(entry.name))) return entry.name;
+  const lastDot = entry.kind === 'folder' ? -1 : entry.name.lastIndexOf('.');
+  const extension = lastDot > 0 && entry.name.length - lastDot <= 16 ? entry.name.slice(lastDot) : '';
+  const stem = extension ? entry.name.slice(0, -extension.length) : entry.name;
+  for (let number = 1; ; number += 1) {
+    const suffix = number === 1 ? ' copia' : ' copia ' + number;
+    const name = stem.slice(0, 120 - suffix.length - extension.length) + suffix + extension;
+    if (!names.has(normalize(name))) return name;
+  }
+}
+
+function pasteFinderSelection() {
+  const destination = currentFolder();
+  if (!finderClipboard.length) {
+    showFinderMessage('Copia prima un elemento virtuale nel Finder.');
+    return;
+  }
+  if (!canWriteFolder(destination) || finderClipboard.some(({ id }) => insideFolder(destination, id))) {
+    showFinderMessage('Scegli un’altra cartella per incollare gli elementi.');
+    return;
+  }
+  const entries = new Map(virtualEntries);
+  const names = new Set(folderItems(destination).map((id) => normalize(folderInfo(id).name)));
+  function duplicate(node, parent, name = node.entry.name) {
+    const id = newFinderId(entries);
+    entries.set(id, { ...node.entry, parent, name });
+    for (const child of node.children) duplicate(child, id);
+  }
+  for (const node of finderClipboard) {
+    const name = finderCopyName(node.entry, names);
+    names.add(normalize(name));
+    duplicate(node, destination, name);
+  }
+  const error = persistEntries(entries);
+  showFinderMessage(error || (finderClipboard.length === 1 ? 'Elemento incollato.' : finderClipboard.length + ' elementi incollati.'));
+}
+
+function undoFinderChange() {
+  const previous = finderUndo.at(-1);
+  if (!previous) {
+    showFinderMessage('Nessuna operazione da annullare.');
+    return;
+  }
+  const before = virtualEntries.get(preview?.id);
+  const error = persistEntries(previous, 'skip');
+  if (!error) {
+    finderUndo.pop();
+    syncPreviewAfterUndo(before);
+  }
+  showFinderMessage(error || 'Ultima operazione annullata.');
+}
+
+function syncPreviewAfterUndo(before) {
+  const id = preview?.id;
+  const record = windows.get('preview');
+  if (!id || !record) return;
+  if (!isVisibleEntry(id)) {
+    closeWindow(record);
+    return;
+  }
+  const restored = virtualEntries.get(id);
+  if (before === restored) return;
+  const editor = record.content.querySelector('textarea');
+  if (editor && editor.value !== before?.text) {
+    preview.text = restored.text;
+    preview.name = restored.name;
+    record.title.textContent = restored.name;
+    return;
+  }
+  clearPreview();
+  preview = virtualPreview(id);
+  renderPreview(record);
+}
+
+function makeFinderSearch(record) {
+  const panel = document.createElement('div');
+  panel.className = 'inline-search finder-search';
+  panel.hidden = true;
+  panel.setAttribute('role', 'search');
+  panel.setAttribute('aria-label', 'Cerca nella cartella');
+  const input = makeSearchInput('Cerca nella cartella');
+  const close = () => {
+    panel.hidden = true;
+    setFinderQuery('');
+    record.actions.focus();
+  };
+  input.addEventListener('input', () => setFinderQuery(input.value));
+  input.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || event.isComposing) return;
+    event.preventDefault();
+    close();
+  });
+  panel.append(input, iconButton('Chiudi ricerca', 'close', close));
+  record.search = { panel, input };
+  return panel;
+}
+
+function makeSearchInput(label) {
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.autocomplete = 'off';
+  input.maxLength = 180;
+  input.setAttribute('aria-label', label);
+  input.placeholder = label + '…';
+  return input;
+}
+
+function setFinderQuery(value) {
+  const record = windows.get('finder');
+  finder.query = value;
+  record.search.input.value = value;
+  finderMessage = '';
+  updateFinder(record);
+}
+
+function focusFinderSearch(record = windows.get('finder')) {
+  if (!record) record = openWindow('finder');
+  closeMenu();
+  record.search.panel.hidden = false;
+  record.search.input.focus();
+  record.search.input.select();
+}
+
+function openEditorSearch(field) {
+  let search = textSearches.get(field);
+  if (!search) {
+    const panel = document.createElement('div');
+    panel.className = 'inline-search editor-search';
+    panel.setAttribute('role', 'search');
+    panel.setAttribute('aria-label', 'Cerca nel testo');
+    const input = makeSearchInput('Cerca nel testo');
+    const status = document.createElement('span');
+    status.className = 'app-hint';
+    status.setAttribute('role', 'status');
+    function find(direction = 0) {
+      const query = input.value;
+      if (!query) {
+        status.textContent = '';
+        return;
+      }
+      const literal = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const results = [...field.value.matchAll(new RegExp(literal, 'giu'))];
+      if (!results.length) {
+        status.textContent = 'Nessun risultato';
+        return;
+      }
+      const current = results.findIndex((match) => match.index === field.selectionStart
+        && match.index + match[0].length === field.selectionEnd);
+      const index = current === -1 ? (direction < 0 ? results.length - 1 : 0)
+        : (current + direction + results.length) % results.length;
+      const match = results[index];
+      if (direction) field.focus({ preventScroll: true });
+      field.setSelectionRange(match.index, match.index + match[0].length);
+      status.textContent = (index + 1) + ' di ' + results.length;
+    }
+    const close = () => {
+      panel.hidden = true;
+      field.focus();
+    };
+    input.addEventListener('input', () => find());
+    input.addEventListener('keydown', (event) => {
+      if (event.isComposing || !['Enter', 'Escape'].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === 'Escape') close();
+      else find(event.shiftKey ? -1 : 1);
+    });
+    panel.append(input, status,
+      iconButton('Risultato precedente', 'left', () => find(-1)),
+      iconButton('Risultato successivo', 'right', () => find(1)),
+      iconButton('Chiudi ricerca nel testo', 'close', close));
+    field.before(panel);
+    search = { panel, input };
+    textSearches.set(field, search);
+  }
+  search.panel.hidden = false;
+  search.input.focus();
+  search.input.select();
+}
+
+function handleKeyboardShortcuts(event) {
+  if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
+  const key = event.key?.toLowerCase();
+  if (!['c', 'v', 'z', 'f'].includes(key)) return;
+  if (key === 'f' && spotlight.open) {
+    event.preventDefault();
+    spotlightSearch.focus();
+    spotlightSearch.select();
+    return;
+  }
+  if ([...document.querySelectorAll('dialog')].some((dialog) => dialog.open)) return;
+  const inFinder = activeWindow?.id === 'finder' && !activeWindow.element.hidden;
+  if (key === 'f') {
+    event.preventDefault();
+    if (event.repeat) return;
+    closeMenu();
+    if (inFinder) focusFinderSearch(activeWindow);
+    else {
+      const editor = event.target?.tagName === 'TEXTAREA'
+        ? event.target : activeWindow?.content.querySelector('textarea');
+      if (editor) openEditorSearch(editor);
+      else toggleSpotlight();
+    }
+    return;
+  }
+  if (!inFinder) return;
+  const target = event.target;
+  if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) return;
+  event.preventDefault();
+  if (event.repeat) return;
+  const record = activeWindow;
+  if (key === 'c') {
+    const grid = record.content.querySelector('.files');
+    const focused = target?.closest?.('[data-item]');
+    if (!finder.selection.size && focused && grid.contains(focused)) selectFinderItem(focused.dataset.item, grid);
+    copyFinderSelection();
+  }
+  else if (key === 'v') pasteFinderSelection();
+  else undoFinderChange();
+  if (!record.element.contains(document.activeElement)) record.actions.focus();
+}
+
+
+'use strict';
+
 const byId = (id) => document.getElementById(id);
 const desktop = byId('desktop');
 const windows = new Map();
@@ -3091,7 +3345,10 @@ function syncWindowVisibility() {
 
 function removeWindow(record) {
   if (genieFlight?.record === record) cancelGenie();
-  if (record.id === 'finder' && finderDrag.length) endFinderDrag();
+  if (record.id === 'finder') {
+    if (finderDrag.length) endFinderDrag();
+    finder.query = '';
+  }
   if (record.id === 'photos') clearPhotoUrls();
   if (record.id === 'preview') {
     clearPreview();
@@ -3347,6 +3604,7 @@ const finder = {
   sort: 'default',
   selection: new Set(),
   anchor: null,
+  query: '',
   get tab() { return this.tabs[this.activeTab]; },
   get selected() { return this.selection.size === 1 ? this.selection.values().next().value : null; }
 };
@@ -3437,7 +3695,8 @@ function folderItems(id) {
 const finderCollator = new Intl.Collator('it', { numeric: true, sensitivity: 'base' });
 
 function displayItems() {
-  const items = folderItems(currentFolder());
+  const query = normalize(finder.query);
+  const items = folderItems(currentFolder()).filter((id) => !query || normalize(folderInfo(id).name).includes(query));
   if (finder.sort === 'default') return items;
   return items.sort((first, second) => {
     const firstItem = folderInfo(first);
@@ -3457,9 +3716,14 @@ function sortFinder(sort) {
   saveWorkspace();
 }
 
-function persistEntries(entries) {
+function persistEntries(entries, history = 'record') {
   const serialized = JSON.stringify([...entries]);
   if (entries.size > limitEntries || serialized.length > limitStorage) return 'Il disco virtuale è pieno. Esporta o elimina alcuni elementi.';
+  if (history === 'clear') finderUndo.length = 0;
+  else if (history === 'record') {
+    finderUndo.push(virtualEntries);
+    if (finderUndo.length > 12) finderUndo.shift();
+  }
   virtualEntries = entries;
   finderNotice = writeValue('finder.v1', serialized) ? '' : 'Modifiche disponibili fino alla chiusura della pagina';
   const record = windows.get('finder');
@@ -3488,16 +3752,20 @@ function nameError(name, parent, except) {
   return taken ? 'In questa cartella esiste già un elemento con questo nome.' : '';
 }
 
+function newFinderId(entries) {
+  let id;
+  do {
+    id = 'elemento-' + Date.now().toString(36) + '-' + (++nextEntry).toString(36);
+  } while (entries.has(id));
+  return id;
+}
+
 function addEntry(entry) {
   if (!canWriteFolder(entry.parent)) return 'Questa posizione non è più disponibile.';
   const error = nameError(entry.name, entry.parent);
   if (error) return error;
   const entries = new Map(virtualEntries);
-  let id;
-  do {
-    id = 'elemento-' + Date.now().toString(36) + '-' + (++nextEntry).toString(36);
-  } while (entries.has(id));
-  entries.set(id, entry);
+  entries.set(newFinderId(entries), entry);
   return persistEntries(entries);
 }
 
@@ -3523,7 +3791,7 @@ function moveEntries(ids, destination) {
 function emptyTrash() {
   const trashed = [...virtualEntries].filter(([, entry]) => entry.trashed).map(([id]) => id);
   const entries = new Map([...virtualEntries].filter(([id]) => !trashed.some((root) => insideFolder(id, root))));
-  return persistEntries(entries);
+  return persistEntries(entries, 'clear');
 }
 
 function currentFolder() {
@@ -3533,6 +3801,9 @@ function currentFolder() {
 function resetFinderSelection() {
   finder.selection.clear();
   finder.anchor = null;
+  finder.query = '';
+  const input = windows.get('finder')?.search?.input;
+  if (input) input.value = '';
   finderMessage = '';
 }
 
@@ -3698,6 +3969,7 @@ function renderFinder(record) {
   record.content.innerHTML = '<div class="finder-body"><nav class="finder-sidebar" aria-label="Cartelle Finder"></nav><div class="finder-main"><nav class="finder-tabs" aria-label="Schede Finder"></nav><nav class="finder-path" aria-label="Percorso corrente"></nav><div class="files"></div><footer class="finder-footer"><span></span><span></span></footer></div></div>';
   const sidebar = record.content.querySelector('.finder-sidebar');
   const grid = record.content.querySelector('.files');
+  grid.before(makeFinderSearch(record));
   bindFinderDrop(grid, currentFolder);
   grid.addEventListener('click', (event) => {
     if (event.target === grid) selectFinderItem(null, grid);
@@ -3717,7 +3989,7 @@ function renderFinder(record) {
       if (!finder.selection.has(id)) selectFinderItem(id, grid);
       openQuickLook();
     } else if (event.key.toLowerCase() === 'a' && modifier) {
-      finder.selection = new Set(folderItems(currentFolder()));
+      finder.selection = new Set(displayItems());
       updateSelection(grid);
     } else if (arrows.includes(event.key)) {
       const columns = getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length;
@@ -3768,7 +4040,7 @@ function updateSelection(grid) {
     tile.setAttribute('aria-pressed', selected);
   }
   const status = windows.get('finder').content.querySelector('.finder-footer').children[0];
-  const count = folderItems(currentFolder()).length;
+  const count = displayItems().length;
   status.textContent = finder.selection.size
     ? finder.selection.size + (finder.selection.size === 1 ? ' selezionato' : ' selezionati')
     : count + (count === 1 ? ' elemento' : ' elementi');
@@ -3982,10 +4254,11 @@ function updateFinder(record) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
     empty.innerHTML = icon(folder.icon ?? 'folder') + '<h2></h2><p></p>';
-    empty.querySelector('h2').textContent = id === 'local' ? 'Apri un file da Windows' : 'Nessun elemento';
+    const noMatches = id !== 'local' && normalize(finder.query);
+    empty.querySelector('h2').textContent = noMatches ? 'Nessun risultato' : id === 'local' ? 'Apri un file da Windows' : 'Nessun elemento';
     empty.querySelector('p').textContent = id === 'local'
       ? 'Scegli un singolo file per visualizzarne un’anteprima in sola lettura. Il file resta sul dispositivo.'
-      : folder.empty ?? 'Usa il menu Azioni Finder per aggiungere un elemento.';
+      : noMatches ? 'Prova un altro nome.' : folder.empty ?? 'Usa il menu Azioni Finder per aggiungere un elemento.';
     if (id === 'local') {
       empty.append(button('Scegli file', 'primary-button', 'Scegli file…', () => byId('file-picker').click()));
     }
@@ -4000,8 +4273,8 @@ function updateFinder(record) {
 function showFinderMessage(message) {
   finderMessage = message;
   byId('announcement').textContent = message;
-  const record = windows.get('finder');
-  if (record) updateFinder(record);
+  const footer = windows.get('finder')?.content.querySelector('.finder-footer');
+  if (footer) footer.children[0].textContent = message;
 }
 
 let finderSubmit = null;
@@ -4086,14 +4359,22 @@ function finderActions() {
   const folder = currentFolder();
   const entry = virtualEntries.get(id);
   const selected = [...finder.selection].filter((item) => virtualEntries.has(item));
-  if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()]];
+  const search = ['Cerca in questa cartella…', () => focusFinderSearch()];
+  const undo = ['Annulla ultima operazione', undoFinderChange, !finderUndo.length];
+  if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()], undo];
   if (folder === 'trash') return [
     ['Ripristina', () => restoreEntry(id), !entry],
+    search,
+    undo,
     ['Svuota il Cestino…', confirmEmptyTrash, !folderItems('trash').length]
   ];
   return [
     ['Apri', () => openItem(id), !id],
     ['Anteprima rapida', openQuickLook, !finder.selection.size],
+    search,
+    ['Copia elementi', copyFinderSelection, !copyableFinderItems().length],
+    ['Incolla elementi', pasteFinderSelection, !finderClipboard.length],
+    undo,
     ['Apri in una nuova scheda', () => newFinderTab(id), !canWriteFolder(id) || finder.tabs.length >= tabLimit],
     ['Nuova cartella…', () => nameEntry(null, 'folder')],
     ['Nuovo documento di testo…', () => nameEntry(null, 'text')],
@@ -4549,7 +4830,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.3</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.4</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p>Nel Finder usa <kbd>Ctrl+C</kbd>, <kbd>Ctrl+V</kbd> e <kbd>Ctrl+Z</kbd> per copiare, incollare o annullare. <kbd>Ctrl+F</kbd> apre la ricerca.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -5116,6 +5397,7 @@ function setupEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.isComposing || lockScreen.open || byId('app-switcher').open) return;
+    handleKeyboardShortcuts(event);
     if (event.code === 'Space' && event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
       event.preventDefault();
       if (!event.repeat) toggleSpotlight();
