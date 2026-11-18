@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mIw3UgcZGG2xkdstUH5IPu9tkYW8/jdBOb6FEls1UCk='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Zy8im+sQX8rDk9MirxXsHMm0YCGgbIrIX2ZhpqpG5sI='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.4 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.5 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -383,6 +383,11 @@ dialog::backdrop { background: #081f31a1; }
 .preview-view { display: flex; flex-direction: column; gap: 12px; }
 .preview-view pre { margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 "Cascadia Mono", "Consolas", monospace; }
 .preview-view img { align-self: center; max-width: 100%; max-height: calc(100% - 32px); object-fit: contain; }
+.pdf-view { padding: 0; gap: 0; }
+.pdf-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 8px; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.pdf-controls .app-hint { flex: 1; overflow-wrap: anywhere; }
+.pdf-controls .choice { text-decoration: none; white-space: nowrap; }
+.pdf-view iframe { flex: 1; width: 100%; min-height: 0; border: 0; background: var(--surface); }
 .calculator-view { height: 100%; min-height: 270px; display: grid; grid-template-rows: auto 1fr; gap: 8px; padding: 11px; }
 .calculator-view output { display: block; text-align: right; overflow: hidden; padding: 8px 12px; border-radius: 7px; background: var(--sidebar); font-size: 29px; font-variant-numeric: tabular-nums; }
 .calculator-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
@@ -656,6 +661,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
       <button id="system-menu" class="menu-button system-mark" type="button" data-menu="Sistema" aria-label="Menu di sistema"></button>
       <button id="app-menu" class="menu-button" type="button" data-menu="App">Finder</button>
       <button id="file-menu" class="menu-button optional-menu" type="button" data-menu="File">File</button>
+      <button id="edit-menu" class="menu-button optional-menu" type="button" data-menu="Modifica" hidden>Modifica</button>
       <button id="view-menu" class="menu-button optional-menu" type="button" data-menu="Vista">Vista</button>
       <button class="menu-button optional-menu" type="button" data-menu="Finestra">Finestra</button>
       <button class="menu-button optional-menu" type="button" data-menu="Aiuto">Aiuto</button>
@@ -1751,6 +1757,7 @@ function renderPhotos(record) {
   tools.className = 'photo-tools';
   record.fileCommands = [];
   record.viewCommands = [];
+  record.viewMenuLabel = 'Foto';
   for (const [label, directory] of [['Apri cartella', true], ['Scegli foto', false]]) {
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -1884,18 +1891,23 @@ function renderCalendar(record, focus = null, message = '') {
   view.querySelector('h2').textContent = calendarMonthFormat.format(calendarDay);
   view.querySelector('h3').textContent = calendarDayFormat.format(calendarDay);
   const actions = view.querySelector('.utility-actions');
+  record.viewCommands = [];
   for (const [step, label, sign] of [[-1, 'Mese precedente', 'left'], [1, 'Mese successivo', 'right']]) {
-    const control = iconButton(label, sign, () => {
+    const move = () => {
       calendarDay = new Date(year, month + step, 1, 12);
       renderCalendar(record, '[data-month="' + step + '"]');
-    });
+    };
+    const control = iconButton(label, sign, move);
+    record.viewCommands.push([label, move]);
     control.dataset.month = String(step);
     actions.append(control);
   }
-  const todayButton = button('Vai a oggi', 'choice', 'Oggi', () => {
+  const showToday = () => {
     calendarDay = new Date();
     renderCalendar(record, '[data-day="' + calendarKey(calendarDay) + '"]');
-  });
+  };
+  const todayButton = button('Vai a oggi', 'choice', 'Oggi', showToday);
+  record.viewCommands.push(['Vai a oggi', showToday]);
   actions.children[0].after(todayButton);
   const dates = view.querySelector('.calendar-app-days');
   for (const name of ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']) {
@@ -2166,6 +2178,8 @@ function renderMusic(record) {
   const content = record.content;
   content.querySelector('.music-art').innerHTML = appIcon('music');
   const player = byId('music-player');
+  const pickMusic = () => byId('music-picker').click();
+  record.fileCommands = [['Scegli brani…', pickMusic]];
   const list = content.querySelector('.music-tracks');
   for (const [index, track] of musicTracks.entries()) {
     const row = button(track.name, 'choice', '', () => selectMusicTrack(index, true));
@@ -2185,7 +2199,7 @@ function renderMusic(record) {
       else player.pause();
     }),
     button('Brano successivo', 'choice music-next', icon('right'), () => selectMusicTrack(musicTrackIndex + 1, true)),
-    button('Scegli brani', 'choice music-picker', 'Scegli brani…', () => byId('music-picker').click())
+    button('Scegli brani', 'choice music-picker', 'Scegli brani…', pickMusic)
   );
   updateMusic();
 }
@@ -2227,6 +2241,7 @@ function renderRemindersApp(record) {
   const panel = document.createElement('div');
   panel.className = 'reminders-panel';
   renderWidgetReminders(panel);
+  record.editCommands = [['Nuovo promemoria', () => panel.querySelector('input').focus()]];
   record.content.replaceChildren(panel);
 }
 
@@ -2320,6 +2335,7 @@ function renderContacts(record) {
   });
   search.value = '';
   edit(-1);
+  record.editCommands = [['Trova un contatto…', () => search.focus()], ['Nuovo contatto', () => fresh.click()]];
 }
 
 function readTextDraft() {
@@ -2369,15 +2385,19 @@ function renderTextEdit(record) {
       if (pending === revision) status.textContent = 'Impossibile leggere il file.';
     }
   });
+  const openText = () => picker.click();
+  const downloadText = () => {
+    const cleaned = name.value.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').trim().replace(/\.+$/, '');
+    const filename = cleaned || 'Senza titolo';
+    const textName = textExtension.test(filename) ? filename : filename + '.txt';
+    downloadBlob(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }), textName);
+    status.textContent = 'Copia preparata per il download.';
+  };
+  record.fileCommands = [['Apri testo…', openText], ['Scarica copia…', downloadText]];
+  record.editCommands = editorMenuCommands(editor);
   content.querySelector('.utility-actions').append(
-    button('Apri un file di testo', 'choice', 'Apri testo…', () => picker.click()),
-    button('Scarica una copia', 'primary-button', 'Scarica copia', () => {
-      const cleaned = name.value.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').trim().replace(/\.+$/, '');
-      const filename = cleaned || 'Senza titolo';
-      const textName = textExtension.test(filename) ? filename : filename + '.txt';
-      downloadBlob(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }), textName);
-      status.textContent = 'Copia preparata per il download.';
-    })
+    button('Apri un file di testo', 'choice', 'Apri testo…', openText),
+    button('Scarica una copia', 'primary-button', 'Scarica copia', downloadText)
   );
 }
 
@@ -2553,6 +2573,7 @@ function setupDockExtras() {
   window.addEventListener('blur', () => {
     leaveHotCorner();
     if (dialog.open && switcherHeld) finishAppSwitcher();
+    setTimeout(activateFocusedFrame, 0);
   });
 }
 
@@ -3002,6 +3023,13 @@ function openEditorSearch(field) {
   search.input.select();
 }
 
+function editorMenuCommands(editor) {
+  return [
+    ['Seleziona tutto', () => { editor.focus(); editor.select(); }],
+    ['Cerca nel testo…', () => openEditorSearch(editor)]
+  ];
+}
+
 function handleKeyboardShortcuts(event) {
   if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.defaultPrevented) return;
   const key = event.key?.toLowerCase();
@@ -3167,7 +3195,7 @@ const apps = {
   reminders: { name: 'Promemoria', size: [450, 390], render: renderRemindersApp },
   contacts: { name: 'Contatti', size: [620, 450], render: renderContacts },
   textedit: { name: 'TextEdit', size: [620, 455], render: renderTextEdit },
-  preview: { name: 'Anteprima', size: [525, 365], render: renderPreview },
+  preview: { name: 'Anteprima', size: [675, 485], render: renderPreview },
   info: { name: 'Informazioni su Laguna', size: [460, 323], render: renderInfo }
 };
 const launchApps = ['calendar', 'clock-app', 'music', 'reminders', 'contacts', 'textedit',
@@ -3304,6 +3332,7 @@ function refreshDock() {
 }
 
 function activate(record, app = record?.id ?? 'finder') {
+  if (activeApp !== app) closeMenu();
   activeWindow = record;
   activeApp = app;
   byId('widgets').dataset.inactive = String(Boolean(record));
@@ -3323,6 +3352,13 @@ function activate(record, app = record?.id ?? 'finder') {
   byId('app-menu').textContent = appName(activeApp);
   updateAppMenus(record);
   saveWorkspace();
+}
+
+function activateFocusedFrame() {
+  const frame = document.activeElement;
+  if (frame?.tagName !== 'IFRAME' || [...document.querySelectorAll('dialog')].some((dialog) => dialog.open)) return;
+  const record = [...windows.values()].find((candidate) => !candidate.element.hidden && candidate.element.contains(frame));
+  if (record && activeWindow !== record) activate(record);
 }
 
 function focusNext(fallbackId, fallbackApp = 'finder') {
@@ -3619,6 +3655,7 @@ const limitBytes = 256 * 1024;
 const limitEntries = 240;
 const limitStorage = 2 * 1024 * 1024;
 const rasterType = /^image\/(png|jpeg|gif|webp|bmp|avif)$/;
+const pdfType = 'application/pdf';
 const textExtension = /\.(txt|md|log|csv|json)$/i;
 let finderNotice = '';
 let finderMessage = '';
@@ -3886,6 +3923,8 @@ function virtualPreview(id) {
   const data = { id, name: item.name, description: 'Documento virtuale · Finder' };
   if (item.kind === 'text') {
     data.text = item.text;
+  } else if (isPdfFile(item) && atob(item.base64.slice(0, 8)).startsWith('%PDF-')) {
+    data.pdf = entryBlob(item).slice(0, undefined, pdfType);
   } else if (rasterType.test(item.type)) {
     data.url = URL.createObjectURL(entryBlob(item));
   } else if (item.type.startsWith('text/') || textExtension.test(item.name)) {
@@ -3894,6 +3933,10 @@ function virtualPreview(id) {
     data.description += ' · Usa Esporta per scaricare una copia';
   }
   return data;
+}
+
+function isPdfFile(file) {
+  return file.type === pdfType || /\.pdf$/i.test(file.name);
 }
 
 function decodeBytes(base64) {
@@ -4354,27 +4397,34 @@ function confirmEmptyTrash() {
   finderDialog('Svuotare il Cestino?', message, emptyTrash, 'Svuota');
 }
 
-function finderActions() {
+function finderEditCommands() {
+  const folder = currentFolder();
+  return [
+    ['Annulla ultima operazione', undoFinderChange, !finderUndo.length],
+    ['Copia elementi', copyFinderSelection, !copyableFinderItems().length],
+    ['Incolla elementi', pasteFinderSelection, !finderClipboard.length || !canWriteFolder(folder)]
+  ];
+}
+
+function finderActions({ includeEditing = true } = {}) {
   const id = finder.selected;
   const folder = currentFolder();
   const entry = virtualEntries.get(id);
   const selected = [...finder.selection].filter((item) => virtualEntries.has(item));
   const search = ['Cerca in questa cartella…', () => focusFinderSearch()];
-  const undo = ['Annulla ultima operazione', undoFinderChange, !finderUndo.length];
-  if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()], undo];
+  const edits = includeEditing ? finderEditCommands() : [];
+  if (folder === 'local') return [['Apri file in sola lettura…', () => byId('file-picker').click()], ...edits.slice(0, 1)];
   if (folder === 'trash') return [
     ['Ripristina', () => restoreEntry(id), !entry],
     search,
-    undo,
+    ...edits.slice(0, 1),
     ['Svuota il Cestino…', confirmEmptyTrash, !folderItems('trash').length]
   ];
   return [
     ['Apri', () => openItem(id), !id],
     ['Anteprima rapida', openQuickLook, !finder.selection.size],
     search,
-    ['Copia elementi', copyFinderSelection, !copyableFinderItems().length],
-    ['Incolla elementi', pasteFinderSelection, !finderClipboard.length],
-    undo,
+    ...edits,
     ['Apri in una nuova scheda', () => newFinderTab(id), !canWriteFolder(id) || finder.tabs.length >= tabLimit],
     ['Nuova cartella…', () => nameEntry(null, 'folder')],
     ['Nuovo documento di testo…', () => nameEntry(null, 'text')],
@@ -4435,7 +4485,10 @@ function openQuickLook() {
     } else {
       const data = virtualPreview(quickLookItem);
       detail.textContent = data.description;
-      if (data.url) {
+      if (data.pdf) {
+        detail.textContent += ' · Seleziona Apri per visualizzare il PDF.';
+        content.innerHTML = fileIcon('text');
+      } else if (data.url) {
         quickLookUrl = data.url;
         const image = document.createElement('img');
         image.alt = data.name;
@@ -4467,9 +4520,13 @@ function showPreview(data) {
 }
 
 function renderPreview(record) {
+  record.fileCommands = [['Apri un file da Windows…', () => byId('file-picker').click()]];
+  record.editCommands = [];
+  record.viewCommands = [];
+  record.viewMenuLabel = preview?.pdf ? 'PDF' : 'Vista';
   if (!preview) {
     record.content.innerHTML = '<div class="preview-view"><p class="app-hint">Scegli un file da Windows per visualizzarlo in sola lettura.</p></div>';
-    record.content.querySelector('.preview-view').append(button('Apri un file da Windows', 'primary-button', 'Scegli file…', () => byId('file-picker').click()));
+    record.content.querySelector('.preview-view').append(button('Apri un file da Windows', 'primary-button', 'Scegli file…', record.fileCommands[0][1]));
     return;
   }
   record.title.textContent = preview.name;
@@ -4489,7 +4546,7 @@ function renderPreview(record) {
     editor.addEventListener('input', () => { description.textContent = 'Modifiche da salvare.'; });
     const controls = document.createElement('div');
     controls.className = 'document-controls';
-    controls.append(button('Salva', 'primary-button', 'Salva', () => {
+    const save = () => {
       const text = editor.value;
       if (new TextEncoder().encode(text).byteLength > limitBytes) {
         description.textContent = 'Il documento supera 256 KiB.';
@@ -4505,8 +4562,14 @@ function renderPreview(record) {
         record.title.textContent = virtualEntries.get(id).name;
       }
       description.textContent = error || finderNotice || 'Documento salvato nel disco virtuale.';
-    }), button('Esporta copia', 'choice', 'Esporta', () => exportEntry(id)));
+    };
+    const exportCopy = () => exportEntry(id);
+    controls.append(button('Salva', 'primary-button', 'Salva', save), button('Esporta copia', 'choice', 'Esporta', exportCopy));
+    record.fileCommands.push(['Salva documento', save], ['Esporta copia…', exportCopy]);
+    record.editCommands = editorMenuCommands(editor);
     content.append(editor, controls);
+  } else if (preview.pdf) {
+    renderPreviewPdf(record, content, description);
   } else if (preview.url) {
     const image = document.createElement('img');
     image.alt = preview.name;
@@ -4521,7 +4584,39 @@ function renderPreview(record) {
     text.textContent = preview.text;
     content.append(text);
   }
+  if (id && !preview.pdf && virtualEntries.get(id)?.kind === 'import') {
+    record.fileCommands.push(['Esporta copia…', () => exportEntry(id)]);
+  }
   record.content.replaceChildren(content);
+  if (activeWindow === record) updateAppMenus(record);
+}
+
+function renderPreviewPdf(record, content, description) {
+  const { pdf, name } = preview;
+  preview.url ??= URL.createObjectURL(pdf);
+  const url = preview.url;
+  content.classList.toggle('pdf-view', true);
+  const frame = document.createElement('iframe');
+  frame.title = 'PDF · ' + name;
+  frame.src = url;
+  frame.referrerPolicy = 'no-referrer';
+  const controls = document.createElement('div');
+  controls.className = 'pdf-controls';
+  const external = document.createElement('a');
+  external.className = 'choice';
+  external.href = url;
+  external.target = '_blank';
+  external.rel = 'noopener noreferrer';
+  external.textContent = 'Apri in una scheda';
+  const download = () => downloadBlob(pdf, name);
+  controls.append(description, external, button('Scarica PDF', 'choice', 'Scarica', download));
+  content.replaceChildren(controls);
+  if (window.navigator?.pdfViewerEnabled !== false) content.append(frame);
+  record.fileCommands.push(['Apri PDF in una scheda', () => external.click()], ['Scarica PDF…', download]);
+  record.viewCommands = () => [
+    [description.hidden ? 'Mostra informazioni sul PDF' : 'Nascondi informazioni sul PDF', () => { description.hidden = !description.hidden; }],
+    [record.maximized || record.split ? 'Ripristina dimensioni della finestra' : 'Ingrandisci finestra PDF', () => toggleMaximize(record)]
+  ];
 }
 
 async function openLocalFile(event) {
@@ -4531,7 +4626,14 @@ async function openLocalFile(event) {
   const selection = ++fileSelection;
   const size = new Intl.NumberFormat('it-IT').format(file.size);
   const data = { name: file.name, description: 'File locale · Sola lettura · ' + size + ' byte' };
-  if (rasterType.test(file.type) && file.size <= 12 * 1024 * 1024) {
+  if (isPdfFile(file)) {
+    try {
+      if (await file.slice(0, 5).text() === '%PDF-') data.pdf = file.slice(0, undefined, pdfType);
+      else data.description += ' · PDF illeggibile';
+    } catch {
+      data.description += ' · PDF illeggibile';
+    }
+  } else if (rasterType.test(file.type) && file.size <= 12 * 1024 * 1024) {
     data.url = URL.createObjectURL(file);
   } else if (file.type.startsWith('text/') || textExtension.test(file.name)) {
     const limit = limitBytes;
@@ -4563,6 +4665,7 @@ function renderNotes(record) {
       : 'Appunti disponibili fino alla chiusura della pagina.';
   });
   content.append(field, status);
+  record.editCommands = editorMenuCommands(field);
   record.content.append(content);
 }
 
@@ -4830,7 +4933,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.4</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p>Nel Finder usa <kbd>Ctrl+C</kbd>, <kbd>Ctrl+V</kbd> e <kbd>Ctrl+Z</kbd> per copiare, incollare o annullare. <kbd>Ctrl+F</kbd> apre la ricerca.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.5</h2><p>I menu in alto seguono l’app attiva. Da Finder usa <strong>File → Apri un file da Windows…</strong> per visualizzare un PDF in Anteprima.</p><p>Nel Finder usa <kbd>Ctrl+C</kbd>, <kbd>Ctrl+V</kbd> e <kbd>Ctrl+Z</kbd> per copiare, incollare o annullare. <kbd>Ctrl+F</kbd> apre la ricerca.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -5055,10 +5158,28 @@ function windowLayoutMenu(record) {
   ];
 }
 
+function appMenuContext(id, record) {
+  if (id === 'finder') return {
+    file: [...finderActions({ includeEditing: false }),
+      ...(currentFolder() === 'local' ? [] : [['Apri un file da Windows…', () => byId('file-picker').click()]])],
+    edit: finderEditCommands(),
+    view: finderViewCommands,
+    label: 'Vista'
+  };
+  const view = record?.viewCommands;
+  return {
+    file: record?.fileCommands ?? [],
+    edit: record?.editCommands ?? [],
+    view: typeof view === 'function' ? view() : view ?? [],
+    label: record?.viewMenuLabel ?? 'Vista'
+  };
+}
+
 function updateAppMenus(record) {
-  const id = activeApp;
-  byId('file-menu').hidden = id !== 'finder' && !record?.fileCommands?.length;
-  byId('view-menu').textContent = id === 'photos' ? 'Foto' : 'Vista';
+  const context = appMenuContext(activeApp, record);
+  byId('file-menu').hidden = !context.file.length;
+  byId('edit-menu').hidden = !context.edit.length;
+  byId('view-menu').textContent = context.label;
 }
 
 function menuItems(name) {
@@ -5066,22 +5187,20 @@ function menuItems(name) {
   const record = windows.get('finder');
   const id = activeApp;
   const running = runningApps.has(id);
-  const fileCommands = id === 'finder'
-    ? [...finderActions(), ['Apri un file da Windows…', () => byId('file-picker').click()]]
-    : current?.fileCommands ?? [];
-  const viewCommands = id === 'finder' ? finderViewCommands : current?.viewCommands ?? [];
+  const context = appMenuContext(id, current);
   const items = {
     Sistema: [['Informazioni su Laguna', () => openWindow('info')], ['Impostazioni…', () => openWindow('settings')], ['Modifica widget…', openWidgetGallery], ['Disponi widget', () => arrangeWidgets(), !widgetEntries.length], ['Applicazioni', openLaunchpad], ['Blocca schermo', openLockScreen]],
     App: [
-      ...(id === 'finder' ? [['Apri Finder', () => openWindow('finder')]] : fileCommands),
+      ...(id === 'finder' ? [['Apri Finder', () => openWindow('finder')]] : context.file),
       ...(!current && running && id !== 'finder' ? [['Riapri finestra', () => openWindow(id)]] : []),
       ['Apri Launchpad', openLaunchpad],
       ['Chiudi finestra attiva', () => closeWindow(current), !current],
       ...(running ? [['Esci da ' + appName(id), () => quitApp(id)]] : [])
     ],
-    File: fileCommands,
+    File: context.file,
+    Modifica: context.edit,
     Vista: [
-      ...viewCommands,
+      ...context.view,
       [peekActive ? 'Ripristina finestre' : 'Mostra scrivania', toggleDesktopPeek],
       [document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero', toggleFullScreen]
     ],
@@ -5543,6 +5662,7 @@ for (const [key, preference] of Object.entries(preferences)) {
 updateClock();
 setInterval(updateClock, 1000);
 restoreWorkspace();
+updateAppMenus(activeWindow);
 restoringWorkspace = false;
 syncWallpaper();
 refreshDock();
