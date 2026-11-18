@@ -1,8 +1,8 @@
-LAGUNA 3.0.4
+LAGUNA 3.0.5
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.4 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.5 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -84,7 +84,11 @@ Blocca schermo a ciascun angolo. Gli angoli partono disattivati.
 Tieni il puntatore nell'angolo per circa mezzo secondo. Per rivedere le
 finestre, esci e rientra nell'angolo o usa Vista > Ripristina finestre.
 
-I menu seguono la finestra attiva. Finder mostra le azioni sui file,
+I menu File, Modifica e Vista seguono l'app attiva. Dal Finder scegli
+File > Apri un file da Windows per aprire un PDF in Anteprima con il
+lettore in sola lettura del browser. Usa il menu PDF per ingrandire
+la finestra. Usa il menu File per scaricare una copia o aprire il
+documento in una scheda. Finder mostra le azioni sui file,
 JARVIS permette di cambiare indirizzo e ricaricare la pagina, Foto
 mostra i comandi per aprire le immagini e sfogliarle.
 
