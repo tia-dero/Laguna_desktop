@@ -1,8 +1,8 @@
-LAGUNA 3.0
+LAGUNA 3.0.1
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.1 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -10,7 +10,7 @@ AVVIO
 4. Premi F11 o usa Schermo intero nella barra di Laguna. Chiudi la scheda
    o la finestra del browser per tornare a Windows.
 
-ACCESSO RAPIDO
+UNIVERSITÀ, FOTO E PROGETTI
 - Università. Apri Orario e appunti, scegli un giorno e scrivi le lezioni.
   Apri JARVIS University OS per vedere il sito in una finestra di Laguna.
   Se serve, usa Cambia indirizzo e inserisci un indirizzo HTTP o HTTPS.
@@ -23,11 +23,8 @@ ACCESSO RAPIDO
   selettore per vedere le informazioni di un file. Nella sezione Codice
   salva il tuo collegamento al repository e tieni traccia delle idee.
 
-Università, Foto e Progetti convivono sulla stessa scrivania. Il comando
-Accesso rapido nella barra in alto porta il riquadro in primo piano.
-Spostalo dal titolo o dalla maniglia a puntini e chiudilo con la ×.
-Con la maniglia selezionata, usa le frecce per spostarlo o Home per
-ripristinarne la posizione. Finestre apre Mission Control.
+Apri le app dalla barra in alto con Applicazioni. Il pulsante Finestre
+apre Mission Control.
 Fai clic su una zona vuota dello sfondo per vedere la scrivania.
 Un altro clic ripristina le finestre.
 
