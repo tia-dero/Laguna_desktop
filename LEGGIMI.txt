@@ -1,8 +1,8 @@
-LAGUNA 3.0.1
+LAGUNA 3.0.2
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.1 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.2 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -23,8 +23,7 @@ UNIVERSITÀ, FOTO E PROGETTI
   selettore per vedere le informazioni di un file. Nella sezione Codice
   salva il tuo collegamento al repository e tieni traccia delle idee.
 
-Apri le app dalla barra in alto con Applicazioni. Il pulsante Finestre
-apre Mission Control.
+Apri le app dalla barra in alto con Applicazioni.
 Fai clic su una zona vuota dello sfondo per vedere la scrivania.
 Un altro clic ripristina le finestre.
 
@@ -72,8 +71,8 @@ Nel Finder, tieni un file virtuale sopra una cartella per aprirla senza
 rilasciare il file. Ripeti sulle sottocartelle e rilascia a destinazione.
 Il trascinamento sposta solo gli elementi virtuali di Laguna.
 
-In Impostazioni > Angoli attivi puoi assegnare a ciascun angolo Mission
-Control, Mostra scrivania o Blocca schermo. Gli angoli partono disattivati.
+In Impostazioni > Angoli attivi puoi assegnare Mostra scrivania o
+Blocca schermo a ciascun angolo. Gli angoli partono disattivati.
 Tieni il puntatore nell'angolo per circa mezzo secondo. Per rivedere le
 finestre, esci e rientra nell'angolo o usa Vista > Ripristina finestre.
 
@@ -95,10 +94,8 @@ usa le frecce. Il clic destro offre i formati predefiniti. Le misure
 vengono ricordate. Se i widget si sovrappongono, prova Disponi widget
 dal menu di sistema.
 
-Finder, Dock, Spotlight (Ctrl + Spazio), widget, Mission Control e blocco
-simulato restano disponibili. Per il blocco usa il menu di sistema e
-premi Invio per tornare alla scrivania. Finder > File locali apre file
-di Windows in sola lettura.
+Per il blocco simulato usa il menu di sistema e premi Invio per tornare
+alla scrivania. Finder > File locali apre file di Windows in sola lettura.
 
 Per avviare Cura, Esplora file o VS Code usa le icone di Windows. Laguna
 apre i collegamenti web salvati nel browser. Le funzioni offline usano
