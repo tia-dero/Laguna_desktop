@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Zy8im+sQX8rDk9MirxXsHMm0YCGgbIrIX2ZhpqpG5sI='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-MI/KKbz5kaq8XgvJsWjq6+Kyp9f+J/7BnJeDFCPtjME='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.5 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.6 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -118,6 +118,17 @@ button, h1, h2, p { margin: 0; }
 .window.genie-flight[hidden] { display: flex !important; }
 .window.is-active { box-shadow: 0 24px 70px #041e365e, 0 4px 14px #031d3545; }
 .window.is-maximized { border-radius: 8px; }
+.window.is-maximized:where(.is-active, .genie-flight) {
+  position: fixed;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.window.is-maximized.is-active .titlebar { flex-basis: 46px; }
+body:has(#windows .window.is-maximized.is-active:not([hidden])) #menubar { visibility: hidden; }
 .titlebar { flex: 0 0 58px; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 15px; background: var(--surface); border-bottom: 1px solid var(--line); user-select: none; touch-action: none; cursor: grab; }
 .titlebar:active { cursor: grabbing; }
 .traffic { display: flex; gap: 8px; flex: none; }
@@ -2821,6 +2832,98 @@ function toggleDesktopPeek() {
 
 'use strict';
 
+const maxFinderImportBytes = 50 * 1024 * 1024;
+const finderCatalogueKey = 'finder.v2';
+const temporaryFinderBlobs = new Map();
+let finderDatabase = null;
+
+function openFinderDatabase() {
+  if (!finderDatabase) {
+    finderDatabase = new Promise((resolve, reject) => {
+      const request = indexedDB.open('laguna.finder.files', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('files');
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const database = request.result;
+        database.onclose = () => { finderDatabase = null; };
+        database.onversionchange = () => {
+          database.close();
+          finderDatabase = null;
+        };
+        resolve(database);
+      };
+    }).catch((error) => {
+      finderDatabase = null;
+      throw error;
+    });
+  }
+  return finderDatabase;
+}
+
+async function finderBlobTransaction(mode, operation) {
+  const database = await openFinderDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction('files', mode);
+    const request = operation(transaction.objectStore('files'));
+    transaction.oncomplete = () => resolve(request.result);
+    transaction.onabort = () => reject(transaction.error ?? request.error ?? new Error('Transazione interrotta'));
+  });
+}
+
+async function storeFinderBlob(file) {
+  const blobId = [...crypto.getRandomValues(new Uint32Array(4))].map((part) => part.toString(16).padStart(8, '0')).join('');
+  try {
+    await finderBlobTransaction('readwrite', (store) => store.add(file, blobId));
+  } catch {
+    temporaryFinderBlobs.set(blobId, file);
+  }
+  return blobId;
+}
+
+function readFinderBlob(blobId) {
+  return temporaryFinderBlobs.get(blobId)
+    ?? finderBlobTransaction('readonly', (store) => store.get(blobId));
+}
+
+async function discardFinderBlob(blobId) {
+  if (temporaryFinderBlobs.delete(blobId)) return;
+  try {
+    await finderBlobTransaction('readwrite', (store) => store.delete(blobId));
+  } catch {}
+}
+
+function releaseUnusedFinderBlobs(candidates) {
+  const kept = new Set();
+  const keep = (entry) => { if (entry.blobId) kept.add(entry.blobId); };
+  for (const map of [virtualEntries, ...finderUndo]) {
+    for (const entry of map.values()) keep(entry);
+  }
+  for (const entry of copiedFinderEntries(finderClipboard)) keep(entry);
+  // Use the committed catalogue too, including changes made in another tab.
+  try {
+    const saved = JSON.parse(localStorage.getItem('laguna.' + finderCatalogueKey) ?? '[]');
+    for (const [, entry] of saved) keep(entry);
+  } catch {
+    for (const id of candidates) if (!kept.has(id)) temporaryFinderBlobs.delete(id);
+    return;
+  }
+  for (const id of candidates) if (!kept.has(id)) void discardFinderBlob(id);
+}
+
+function* copiedFinderEntries(nodes) {
+  for (const { entry, children } of nodes) {
+    yield entry;
+    yield* copiedFinderEntries(children);
+  }
+}
+
+function finderBlobIds(entries) {
+  return new Set([...entries].map((entry) => entry.blobId).filter(Boolean));
+}
+
+
+'use strict';
+
 let finderClipboard = [];
 const finderUndo = [];
 const textSearches = new WeakMap();
@@ -2839,7 +2942,9 @@ function copyFinderSelection() {
     const entry = virtualEntries.get(id);
     return { id, entry, children: entry.kind === 'folder' ? folderItems(id).map(snapshot) : [] };
   }
+  const discarded = finderBlobIds(copiedFinderEntries(finderClipboard));
   finderClipboard = ids.map(snapshot);
+  if (discarded.size) releaseUnusedFinderBlobs(discarded);
   showFinderMessage(ids.length === 1 ? 'Elemento copiato.' : ids.length + ' elementi copiati.');
 }
 
@@ -2888,9 +2993,11 @@ function undoFinderChange() {
     return;
   }
   const before = virtualEntries.get(preview?.id);
+  const discarded = finderBlobIds(virtualEntries.values());
   const error = persistEntries(previous, 'skip');
   if (!error) {
     finderUndo.pop();
+    releaseUnusedFinderBlobs(discarded);
     syncPreviewAfterUndo(before);
   }
   showFinderMessage(error || 'Ultima operazione annullata.');
@@ -2906,6 +3013,13 @@ function syncPreviewAfterUndo(before) {
   }
   const restored = virtualEntries.get(id);
   if (before === restored) return;
+  if (restored.kind === 'import') {
+    preview.name = restored.name;
+    record.title.textContent = restored.name;
+    const frame = record.content.querySelector('iframe');
+    if (frame) frame.title = 'PDF · ' + restored.name;
+    return;
+  }
   const editor = record.content.querySelector('textarea');
   if (editor && editor.value !== before?.text) {
     preview.text = restored.text;
@@ -2914,7 +3028,7 @@ function syncPreviewAfterUndo(before) {
     return;
   }
   clearPreview();
-  preview = virtualPreview(id);
+  preview = virtualTextPreview(id);
   renderPreview(record);
 }
 
@@ -3434,7 +3548,7 @@ function setWindowLayout(record, { maximized = false, split = null } = {}) {
   record.maximized = maximized;
   record.split = split;
   record.element.classList.toggle('is-maximized', record.maximized);
-  const label = record.maximized || record.split ? 'Ripristina dimensioni' : 'Ingrandisci finestra';
+  const label = record.maximized ? 'Esci da tutto schermo' : record.split ? 'Ripristina dimensioni' : 'Tutto schermo';
   record.maxButton.setAttribute('aria-label', label);
   record.maxButton.title = label;
   position(record);
@@ -3567,7 +3681,7 @@ function openWindow(id, focus = true) {
     const controls = [
       ['Chiudi finestra', '#ff655d', '×', () => closeWindow(record)],
       ['Riduci a icona', '#f6bf46', '−', () => minimize(record)],
-      ['Ingrandisci finestra', '#36c766', '+', () => toggleMaximize(record)]
+      ['Tutto schermo', '#36c766', '+', () => toggleMaximize(record)]
     ];
     for (const [label, color, symbol, action] of controls) {
       const control = button(label, '', '<span aria-hidden="true">' + symbol + '</span>', action);
@@ -3664,7 +3778,7 @@ let nextEntry = 0;
 let virtualEntries = loadVirtualEntries();
 
 function loadVirtualEntries() {
-  const saved = readValue('finder.v1', '');
+  const saved = readValue(finderCatalogueKey, readValue('finder.v1', ''));
   if (saved) {
     try {
       const entries = JSON.parse(saved);
@@ -3672,7 +3786,8 @@ function loadVirtualEntries() {
         typeof id === 'string' && !fixedFolders.includes(id) && entry && typeof entry.name === 'string'
         && typeof entry.parent === 'string' && ['folder', 'text', 'import'].includes(entry.kind)
         && (entry.kind !== 'text' || typeof entry.text === 'string')
-        && (entry.kind !== 'import' || typeof entry.type === 'string' && typeof entry.base64 === 'string'))) {
+        && (entry.kind !== 'import' || typeof entry.type === 'string'
+          && (typeof entry.base64 === 'string' || /^[a-f0-9]{32}$/.test(entry.blobId) && Number.isSafeInteger(entry.size) && entry.size >= 0)))) {
         return new Map(entries);
       }
     } catch {}
@@ -3754,15 +3869,20 @@ function sortFinder(sort) {
 }
 
 function persistEntries(entries, history = 'record') {
-  const serialized = JSON.stringify([...entries]);
+  const durable = [...entries].filter(([, entry]) => !temporaryFinderBlobs.has(entry.blobId));
+  const serialized = JSON.stringify(durable);
   if (entries.size > limitEntries || serialized.length > limitStorage) return 'Il disco virtuale è pieno. Esporta o elimina alcuni elementi.';
-  if (history === 'clear') finderUndo.length = 0;
+  let discarded = [];
+  if (history === 'clear') discarded = [virtualEntries, ...finderUndo.splice(0)];
   else if (history === 'record') {
     finderUndo.push(virtualEntries);
-    if (finderUndo.length > 12) finderUndo.shift();
+    if (finderUndo.length > 12) discarded = [finderUndo.shift()];
   }
   virtualEntries = entries;
-  finderNotice = writeValue('finder.v1', serialized) ? '' : 'Modifiche disponibili fino alla chiusura della pagina';
+  const saved = writeValue(finderCatalogueKey, serialized);
+  finderNotice = !saved ? 'Modifiche disponibili fino alla chiusura della pagina'
+    : durable.length < entries.size ? 'Alcuni file sono disponibili solo in questa sessione' : '';
+  if (discarded.length) releaseUnusedFinderBlobs(finderBlobIds(discarded.flatMap((map) => [...map.values()])));
   const record = windows.get('finder');
   if (record) {
     if (!isVisibleEntry(currentFolder())) goToFolder('documents');
@@ -3910,29 +4030,51 @@ function setFinderView(view) {
 function openItem(id) {
   const item = virtualEntries.get(id);
   if (!isVisibleEntry(id)) return;
+  const request = ++fileSelection;
   if (fixedFolders.includes(id) || item?.kind === 'folder') {
     showFolder(id);
     return;
   }
-  fileSelection += 1;
-  showPreview(virtualPreview(id));
+  if (item.kind === 'text') {
+    showPreview(virtualTextPreview(id));
+    return;
+  }
+  return virtualFilePreview(id).then((data) => {
+    if (request === fileSelection && isVisibleEntry(id)) showPreview(data);
+  });
 }
 
-function virtualPreview(id) {
+function virtualTextPreview(id) {
+  const { name, text } = virtualEntries.get(id);
+  return { id, name, text, description: 'Documento virtuale · Finder' };
+}
+
+async function virtualFilePreview(id) {
   const item = virtualEntries.get(id);
   const data = { id, name: item.name, description: 'Documento virtuale · Finder' };
-  if (item.kind === 'text') {
-    data.text = item.text;
-  } else if (isPdfFile(item) && atob(item.base64.slice(0, 8)).startsWith('%PDF-')) {
-    data.pdf = entryBlob(item).slice(0, undefined, pdfType);
-  } else if (rasterType.test(item.type)) {
-    data.url = URL.createObjectURL(entryBlob(item));
-  } else if (item.type.startsWith('text/') || textExtension.test(item.name)) {
-    data.text = new TextDecoder().decode(decodeBytes(item.base64));
-  } else {
-    data.description += ' · Usa Esporta per scaricare una copia';
-  }
+  try {
+    const blob = await entryBlob(item);
+    if (blob) {
+      await describeFilePreview(data, blob, item.type);
+      return data;
+    }
+  } catch {}
+  data.description += ' · Il contenuto del file non è disponibile';
   return data;
+}
+
+async function describeFilePreview(data, blob, type) {
+  if (isPdfFile({ name: data.name, type })) {
+    if (await blob.slice(0, 5).text() === '%PDF-') data.pdf = blob.slice(0, undefined, pdfType);
+    else data.description += ' · PDF illeggibile';
+  } else if (rasterType.test(type) && blob.size <= maxFinderImportBytes) {
+    data.image = blob;
+  } else if (type.startsWith('text/') || textExtension.test(data.name)) {
+    data.text = await blob.slice(0, limitBytes).text();
+    if (blob.size > limitBytes) data.description += ' · Anteprima dei primi 256 KiB';
+  } else {
+    data.description += ' · Solo informazioni sul file';
+  }
 }
 
 function isPdfFile(file) {
@@ -3944,15 +4086,22 @@ function decodeBytes(base64) {
 }
 
 function entryBlob(entry) {
-  return entry.kind === 'text'
-    ? new Blob([entry.text], { type: 'text/plain;charset=utf-8' })
-    : new Blob([decodeBytes(entry.base64)], { type: entry.type });
+  if (entry.kind === 'text') return new Blob([entry.text], { type: 'text/plain;charset=utf-8' });
+  if (entry.blobId) return readFinderBlob(entry.blobId);
+  return new Blob([decodeBytes(entry.base64)], { type: entry.type });
 }
 
-function exportEntry(id) {
+async function exportEntry(id) {
   const entry = virtualEntries.get(id);
   if (!entry || entry.kind === 'folder') return;
-  downloadBlob(entryBlob(entry), entry.name);
+  try {
+    const blob = await entryBlob(entry);
+    if (blob) {
+      downloadBlob(blob, entry.name);
+      return;
+    }
+  } catch {}
+  showFinderMessage('Il contenuto del file non è disponibile per l’esportazione.');
 }
 
 function downloadBlob(blob, name) {
@@ -3972,20 +4121,34 @@ async function importVirtualFile(event) {
   event.target.value = '';
   importDestination = null;
   if (!file) return;
+  if (file.size > maxFinderImportBytes) {
+    showFinderMessage('Il limite è 50 MB per file.');
+    return;
+  }
+  if (!canWriteFolder(parent)) {
+    showFinderMessage('Scegli una cartella del Finder in cui importare il file.');
+    return;
+  }
+  const invalidName = nameError(file.name, parent);
+  if (invalidName || virtualEntries.size >= limitEntries) {
+    showFinderMessage(invalidName || 'Il disco virtuale è pieno. Esporta o elimina alcuni elementi.');
+    return;
+  }
+  showFinderMessage('Importazione di ' + file.name + '…');
+  let blobId;
   try {
-    if (file.size > limitBytes) {
-      showFinderMessage('Il limite per ogni file importato è 256 KiB.');
+    blobId = await storeFinderBlob(file);
+    const error = addEntry({ name: file.name, parent, kind: 'import', type: file.type, size: file.size, blobId });
+    if (error) {
+      void discardFinderBlob(blobId);
+      showFinderMessage(error);
       return;
     }
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    let binary = '';
-    for (let offset = 0; offset < bytes.length; offset += 8192) {
-      binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
-    }
-    const error = addEntry({ name: file.name, parent, kind: 'import', type: file.type, base64: btoa(binary) });
-    showFinderMessage(error || 'Copia importata in ' + folderInfo(parent).name + '.');
+    const temporary = temporaryFinderBlobs.has(blobId) || finderNotice.startsWith('Modifiche disponibili');
+    showFinderMessage('Copia importata in ' + folderInfo(parent).name + (temporary ? ' · Solo per questa sessione.' : '.'));
   } catch {
-    showFinderMessage('Impossibile leggere il file scelto.');
+    if (blobId) releaseUnusedFinderBlobs([blobId]);
+    showFinderMessage('Impossibile importare il file scelto.');
   }
 }
 
@@ -4447,15 +4610,18 @@ function clearPreview() {
 const quickLook = byId('quicklook');
 let quickLookUrl = null;
 let quickLookItem = null;
+let quickLookRequest = 0;
 
 function releaseQuickLook() {
   if (quickLookUrl) URL.revokeObjectURL(quickLookUrl);
   quickLookUrl = null;
 }
 
-function openQuickLook() {
+async function openQuickLook() {
   const ids = [...finder.selection].filter(isVisibleEntry);
   if (!ids.length) return;
+  const request = ++quickLookRequest;
+  let pending = null;
   closeMenu();
   releaseQuickLook();
   const title = byId('quicklook-title');
@@ -4482,33 +4648,41 @@ function openQuickLook() {
       const names = folderItems(quickLookItem);
       detail.textContent = 'Cartella · ' + names.length + (names.length === 1 ? ' elemento' : ' elementi');
       content.innerHTML = fileIcon('folder');
+    } else if (item.kind === 'text') {
+      renderQuickLookFile(virtualTextPreview(quickLookItem), content, detail);
     } else {
-      const data = virtualPreview(quickLookItem);
-      detail.textContent = data.description;
-      if (data.pdf) {
-        detail.textContent += ' · Seleziona Apri per visualizzare il PDF.';
-        content.innerHTML = fileIcon('text');
-      } else if (data.url) {
-        quickLookUrl = data.url;
-        const image = document.createElement('img');
-        image.alt = data.name;
-        image.src = data.url;
-        image.addEventListener('error', () => {
-          image.remove();
-          detail.textContent = 'Immagine illeggibile.';
-        });
-        content.append(image);
-      } else if (data.text !== undefined) {
-        const body = document.createElement('pre');
-        body.textContent = data.text || 'Documento vuoto';
-        content.append(body);
-      } else {
-        content.innerHTML = fileIcon('text');
-      }
+      detail.textContent = 'Apertura del file…';
+      pending = virtualFilePreview(quickLookItem);
     }
   }
   quickLook.showModal();
   byId('quicklook-close').focus();
+  if (pending) {
+    const data = await pending;
+    if (quickLook.open && request === quickLookRequest) renderQuickLookFile(data, content, detail);
+  }
+}
+
+function renderQuickLookFile(data, content, detail) {
+  detail.textContent = data.description;
+  if (data.pdf) detail.textContent += ' · Seleziona Apri per visualizzare il PDF.';
+  if (data.image) {
+    quickLookUrl = URL.createObjectURL(data.image);
+    const image = document.createElement('img');
+    image.alt = data.name;
+    image.src = quickLookUrl;
+    image.addEventListener('error', () => {
+      image.remove();
+      detail.textContent = 'Immagine illeggibile.';
+    });
+    content.append(image);
+  } else if (data.text !== undefined) {
+    const body = document.createElement('pre');
+    body.textContent = data.text || 'Documento vuoto';
+    content.append(body);
+  } else {
+    content.innerHTML = fileIcon('text');
+  }
 }
 
 function showPreview(data) {
@@ -4570,8 +4744,9 @@ function renderPreview(record) {
     content.append(editor, controls);
   } else if (preview.pdf) {
     renderPreviewPdf(record, content, description);
-  } else if (preview.url) {
+  } else if (preview.image) {
     const image = document.createElement('img');
+    preview.url ??= URL.createObjectURL(preview.image);
     image.alt = preview.name;
     image.addEventListener('error', () => {
       image.remove();
@@ -4626,25 +4801,10 @@ async function openLocalFile(event) {
   const selection = ++fileSelection;
   const size = new Intl.NumberFormat('it-IT').format(file.size);
   const data = { name: file.name, description: 'File locale · Sola lettura · ' + size + ' byte' };
-  if (isPdfFile(file)) {
-    try {
-      if (await file.slice(0, 5).text() === '%PDF-') data.pdf = file.slice(0, undefined, pdfType);
-      else data.description += ' · PDF illeggibile';
-    } catch {
-      data.description += ' · PDF illeggibile';
-    }
-  } else if (rasterType.test(file.type) && file.size <= 12 * 1024 * 1024) {
-    data.url = URL.createObjectURL(file);
-  } else if (file.type.startsWith('text/') || textExtension.test(file.name)) {
-    const limit = limitBytes;
-    try {
-      data.text = await file.slice(0, limit).text();
-      if (file.size > limit) data.description += ' · Primi 256 KiB';
-    } catch {
-      data.description += ' · Lettura non riuscita';
-    }
-  } else {
-    data.description += ' · Solo informazioni sul file';
+  try {
+    await describeFilePreview(data, file, file.type);
+  } catch {
+    data.description += ' · Lettura non riuscita';
   }
   if (selection === fileSelection) showPreview(data);
 }
@@ -4933,7 +5093,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.5</h2><p>I menu in alto seguono l’app attiva. Da Finder usa <strong>File → Apri un file da Windows…</strong> per visualizzare un PDF in Anteprima.</p><p>Nel Finder usa <kbd>Ctrl+C</kbd>, <kbd>Ctrl+V</kbd> e <kbd>Ctrl+Z</kbd> per copiare, incollare o annullare. <kbd>Ctrl+F</kbd> apre la ricerca.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.6</h2><p>Nel Finder usa <strong>File → Importa copia da Windows…</strong> per salvare file fino a 50 MB nel browser.</p><p>Il pulsante verde porta la finestra a tutto schermo, dietro al Dock. Premi di nuovo il verde o <kbd>Esc</kbd> per ripristinarla.</p><p><kbd>Ctrl+F</kbd> apre la ricerca. <kbd>F11</kbd> usa lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -5447,7 +5607,7 @@ function setupEvents() {
   byId('quicklook-open').addEventListener('click', () => {
     const item = quickLookItem;
     quickLook.close();
-    openItem(item);
+    return openItem(item);
   });
   quickLook.addEventListener('close', () => {
     if (!quickLook.open) releaseQuickLook();
@@ -5522,6 +5682,11 @@ function setupEvents() {
       if (!event.repeat) toggleSpotlight();
     }
     if (event.key === 'Escape' && menuAnchor) closeMenu(true);
+    else if (event.key === 'Escape' && activeWindow?.maximized && !activeWindow.element.hidden
+      && !event.defaultPrevented && ![...document.querySelectorAll('dialog')].some((dialog) => dialog.open)) {
+      event.preventDefault();
+      if (!event.repeat) toggleMaximize(activeWindow);
+    }
     else if (event.key === 'Escape' && dockPrefs.autoHide && event.target.closest('#dock')) {
       dockRevealed = false;
       setDockVisibility();
