@@ -1,8 +1,8 @@
-LAGUNA 3.0.6
+LAGUNA 3.0.7
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.6 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.7 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -56,6 +56,12 @@ Laguna salva le copie nel browser. Se la memoria del browser non è
 disponibile, Finder indica che la copia vale solo per la sessione.
 L'anteprima del testo mostra al massimo 256 KiB. Usa Esporta copia
 per scaricare il file completo.
+
+Fai doppio clic sui file importati per aprirli in Anteprima.
+Immagini, testo e codice si vedono nella finestra. Audio e video
+hanno un lettore integrato, con i formati supportati dal browser.
+DOCX mostra il testo. XLSX mostra i valori del primo foglio fino
+a 100 righe e 20 colonne. Per altri formati usa Scarica copia.
 
 Il pulsante verde porta la finestra a tutto schermo, sopra la barra
 dei menu e dietro al Dock. Premi di nuovo il verde o Esc per uscire.
