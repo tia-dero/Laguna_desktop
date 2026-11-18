@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tGP0GTSveycN8Bi/BqpksGnX82JSNOifmyji50A2ySY='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-a1gugpFCrRAVxflNzgBf/TB7xilsxhH7LAaIoTdiuf0='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.2 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.3 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -3038,7 +3038,7 @@ function refreshDock() {
   setDockVisibility();
   for (const entry of byId('dock').querySelectorAll('[data-app]')) {
     const id = entry.dataset.app;
-    entry.classList.toggle('is-open', runningApps.has(id));
+    entry.classList.toggle('is-open', windows.has(id));
     if (Object.hasOwn(apps, id)) entry.setAttribute('aria-label', appName(id) + (runningApps.has(id) ? ' · In esecuzione' : ''));
     if (entry.dataset.app === 'trash') entry.classList.toggle('has-items', folderItems('trash').length > 0);
   }
@@ -4549,7 +4549,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.2</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.3</h2><p>Apri <strong>Applicazioni</strong> dalla barra in alto per trovare JARVIS, Orario e appunti, Foto e Banco progetti.</p><p><kbd>Ctrl</kbd> + <kbd>Spazio</kbd> apre Spotlight. <kbd>F11</kbd> attiva o disattiva lo schermo intero del browser.</p></div>';
 }
 
 const launchpad = byId('launchpad');
