@@ -1,8 +1,8 @@
-LAGUNA 3.0.9
+LAGUNA 3.0.10
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.9 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.0.10 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -51,7 +51,9 @@ Fai clic su Applicazioni nella barra in alto oppure usa Spotlight.
   Usa Scarica copia per ottenere un file separato. L'originale resta intatto.
 
 ALTRE FUNZIONI
-Le nuove finestre si aprono con una breve comparsa. L'animazione è
+Le nuove finestre emergono dal Dock con l'Effetto Genio e un breve
+rimbalzo dell'icona. Anche il ripristino e la minimizzazione usano
+lo stesso effetto. L'animazione è
 disattivata con Impostazioni > Animazioni > Ridotte.
 
 Impostazioni > Sfondo mostra una prova sul desktop prima di salvare.
