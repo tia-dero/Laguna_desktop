@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-e+z9I5Qo+HAApojg81RUUAQazhb2IA3wEM5LPuKDOFc='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-0HG95QK8sUzluM5JTmyCyQjbE/S3OL+qoVtWzFAgDAg='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.9 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.10 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -114,7 +114,7 @@ button, h1, h2, p { margin: 0; }
 #split-preview { position: absolute; z-index: 23; pointer-events: none; border: 2px solid #addaffc9; border-radius: 12px; background: #80baff24; box-shadow: inset 0 0 0 1px #163c70a1; }
 .window.is-split .resize-handle { display: none; }
 .window { position: absolute; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; pointer-events: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 17px 52px #031f3c45, 0 3px 9px #021e322d; }
-.window.genie-flight { z-index: 24 !important; pointer-events: none; transform-origin: top left; }
+.window.genie-flight { z-index: 24 !important; pointer-events: none; transform-origin: top left; will-change: transform, clip-path; }
 .window.genie-flight[hidden] { display: flex !important; }
 .window.is-active { box-shadow: 0 24px 70px #041e365e, 0 4px 14px #031d3545; }
 .window.is-maximized { border-radius: 8px; }
@@ -220,6 +220,13 @@ body:has(#windows .window.is-maximized.is-active:not([hidden])) #menubar { visib
 .dock-item[data-dock-drop]::before { content: ""; position: absolute; inset: 4px auto 4px -5px; width: 2px; border-radius: 2px; background: #bcf2ff; pointer-events: none; }
 .dock-item[data-dock-drop="after"]::before { inset-inline: auto -5px; }
 .dock-item .app-icon { transition: transform .18s cubic-bezier(.2,.8,.3,1.35); transform-origin: center bottom; }
+.dock-item.is-launching .app-icon { animation: dock-launch .62s cubic-bezier(.2,.6,.35,1); }
+@keyframes dock-launch {
+  0%, 100% { transform: translateY(0) scale(1); }
+  28% { transform: translateY(-17px) scale(1.12); }
+  58% { transform: translateY(-5px) scale(1.05); }
+  78% { transform: translateY(-10px) scale(1.08); }
+}
 .dock-item:hover .app-icon, .dock-item:focus-visible .app-icon { transform: translateY(-9px) scale(1.29); }
 .dock-item:has(+ .dock-item:hover) .app-icon, .dock-item:hover + .dock-item .app-icon { transform: translateY(-4px) scale(1.1); }
 .dock-item.is-open::after { content: ""; position: absolute; bottom: -7px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 50%; background: #f6fdff; }
@@ -469,7 +476,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 .control-option .glyph { font-size: 15px; color: var(--accent); }
 .control-option:hover { background: var(--hover); }
 .control-option[aria-pressed="true"] { background: var(--selected); border-color: var(--accent); }
-:root[data-motion="reduced"] .dock-item .app-icon { transition: none; }
+:root[data-motion="reduced"] .dock-item .app-icon { transition: none; animation: none; }
 :root[data-motion="reduced"] #dock-area #dock { transition: none; }
 :root[data-motion="reduced"] .dock-item:not(.is-drop-target) .app-icon { transform: none; }
 
@@ -601,7 +608,7 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dock-item .app-icon { transition: none; }
+  .dock-item .app-icon { transition: none; animation: none; }
   #dock-area[data-autohide="true"] #dock { transition: none; }
 }
 
@@ -2965,20 +2972,20 @@ let genieFlight = null;
 
 function cancelWindowOpening(record) {
   if (!record.openingAnimation) return;
-  record.openingAnimation.cancel();
+  if (genieFlight?.animation === record.openingAnimation) cancelGenie();
+  else record.openingAnimation.cancel();
   record.openingAnimation = null;
 }
 
 function animateWindowOpening(record) {
   if (!canAnimateGenie(record) || record.element.hidden) return;
-  const animation = record.element.animate([
-    { opacity: 0, transform: 'translateY(9px) scale(.97)' },
-    { opacity: 1, transform: 'translateY(0) scale(1)' }
-  ], { duration: 190, easing: 'cubic-bezier(.2, .75, .25, 1)' });
-  record.openingAnimation = animation;
-  animation.onfinish = () => {
-    if (record.openingAnimation === animation) record.openingAnimation = null;
-  };
+  const origin = measureOpeningDock(record.id);
+  if (origin) animateGenie(record, record.element.getBoundingClientRect(), origin, true, true);
+}
+
+function measureOpeningDock(id) {
+  const icon = byId('dock').querySelector('[data-app="' + id + '"]');
+  return measureDockButton(icon);
 }
 
 function minimizedButton(id) {
@@ -3013,7 +3020,10 @@ function canAnimateGenie(record) {
 }
 
 function measureMinimizedWindow(id) {
-  const button = minimizedButton(id);
+  return measureDockButton(minimizedButton(id));
+}
+
+function measureDockButton(button) {
   if (!button) return null;
   const area = byId('dock-area');
   area.classList.toggle('genie-active', true);
@@ -3025,8 +3035,10 @@ function measureMinimizedWindow(id) {
 
 function cancelGenie() {
   if (!genieFlight) return;
-  const { record, animation } = genieFlight;
+  const { record, animation, dockButton } = genieFlight;
   genieFlight = null;
+  if (record.openingAnimation === animation) record.openingAnimation = null;
+  dockButton?.classList.toggle('is-launching', false);
   record.element.classList.toggle('genie-flight', false);
   record.element.inert = false;
   byId('dock-area').classList.toggle('genie-active', false);
@@ -3067,19 +3079,22 @@ function genieFrames(from, to) {
   return frames;
 }
 
-function animateGenie(record, from, to, restoring = false) {
+function animateGenie(record, from, to, restoring = false, opening = false) {
   if (!from?.width || !from.height || !to?.width || !to.height) return;
   const element = record.element;
   element.classList.toggle('genie-flight', true);
   element.inert = !restoring;
   byId('dock-area').classList.toggle('genie-active', true);
   const animation = element.animate(genieFrames(from, to), {
-    duration: restoring ? 360 : 430,
+    duration: opening ? 620 : 500,
     direction: restoring ? 'reverse' : 'normal',
-    easing: 'cubic-bezier(.26, .04, .3, 1)',
+    easing: restoring ? 'cubic-bezier(.2, .55, .28, 1)' : 'cubic-bezier(.26, .04, .3, 1)',
     fill: 'both'
   });
-  genieFlight = { record, animation };
+  const dockButton = opening ? byId('dock').querySelector('[data-app="' + record.id + '"]') : null;
+  if (opening) record.openingAnimation = animation;
+  dockButton?.classList.toggle('is-launching', true);
+  genieFlight = { record, animation, dockButton };
   animation.onfinish = () => {
     if (genieFlight?.animation === animation) cancelGenie();
   };
@@ -6016,7 +6031,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.9</h2><p>In <strong>Impostazioni → Sfondo</strong> puoi provare un’immagine e scegliere Conferma o Annulla. Premi <kbd>Esc</kbd> per tornare allo sfondo precedente.</p><p>In <strong>Impostazioni → Dock</strong> regoli la dimensione delle icone.</p><p>Finestre e widget seguono l’aspetto chiaro o scuro. Le nuove finestre compaiono con un’animazione breve, controllata dalla preferenza Animazioni.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.10</h2><p>In <strong>Impostazioni → Sfondo</strong> puoi provare un’immagine e scegliere Conferma o Annulla. Premi <kbd>Esc</kbd> per tornare allo sfondo precedente.</p><p>In <strong>Impostazioni → Dock</strong> regoli la dimensione delle icone.</p><p>Finestre e widget seguono l’aspetto chiaro o scuro. Le nuove finestre emergono dall’icona nel Dock con l’Effetto Genio e un breve rimbalzo. L’effetto segue la preferenza Animazioni.</p></div>';
 }
 
 const launchpad = byId('launchpad');
