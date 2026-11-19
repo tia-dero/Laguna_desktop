@@ -1,14 +1,33 @@
-LAGUNA 3.0.10
+LAGUNA 3.1.0
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.0.10 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.1.0 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
    Lascia Avvia.cmd accanto a Laguna.html.
 4. Premi F11 o usa Schermo intero nella barra di Laguna. Chiudi la scheda
    o la finestra del browser per tornare a Windows.
+
+
+NOVITÀ 3.1.0
+- Dock fluido: l'ingrandimento segue il puntatore e lascia spazio alle icone.
+  Rispetta Animazioni ridotte e le dimensioni del display.
+- Anteprime: tieni il puntatore su un'app aperta nel Dock per mezzo secondo,
+  poi fai clic sull'anteprima per portare avanti la finestra. Video, audio
+  e siti incorporati sono rappresentati da un riquadro statico.
+- Finestre di dialogo: crea, rinomina e sposta elementi con un pannello
+  agganciato alla barra del Finder. Esc o Annulla chiudono il pannello.
+- Cartelle: seleziona una cartella e apri Azioni Finder > Personalizza
+  cartella. Scegli colore, simbolo e anteprime; Salva aspetto conferma.
+  Per una cartella virtuale Ctrl+Z annulla anche la personalizzazione.
+  Le cartelle di Windows restano in sola lettura.
+- Notifiche: la campanella in alto apre la cronologia degli ultimi 30
+  avvisi di Laguna. Chiudere un banner conserva l'avviso in cronologia.
+- Suoni: in Impostazioni > Notifiche e suoni puoi attivare i suoni,
+  regolare il volume e provare un suono o una notifica. I suoni partono
+  disattivati. Il volume riguarda soltanto gli effetti di Laguna.
 
 UNIVERSITÀ, FOTO E PROGETTI
 - Università. Apri Orario e appunti, scegli un giorno e scrivi le lezioni.
