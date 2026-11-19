@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-fz7nGT56rGsTU+KWQgkfV13G+QXjTmpAU/IkuAda3j0='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-e+z9I5Qo+HAApojg81RUUAQazhb2IA3wEM5LPuKDOFc='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.0.8 · Desktop per EliteBook</title>
+  <title>Laguna 3.0.9 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -669,6 +669,9 @@ body:has(#lock-screen[open]) :is(#menubar, #desktop, #dock-area, #menu-popover) 
   .activity-grid { grid-template-columns: 1fr; }
 }
 :root {
+  --dock-icon-size: 48px;
+  --dock-effective-size: var(--dock-icon-size);
+  --dock-height: calc(var(--dock-effective-size) + 40px);
   --accent-hue: 205;
   --accent-saturation: 58%;
   --accent: hsl(var(--accent-hue) var(--accent-saturation) 33%);
@@ -727,9 +730,9 @@ input, textarea, select { accent-color: var(--accent-strong); }
 #app-menu { letter-spacing: -.015em; }
 
 #dock {
-  height: 72px;
+  height: calc(var(--dock-effective-size) + 24px);
   padding: 8px 11px 10px;
-  gap: 9px;
+  gap: clamp(5px, calc(var(--dock-effective-size) * .1875), 12px);
   border-radius: 21px;
   border-color: #ffffff5e;
   background: linear-gradient(160deg, #f4f8ff59, #dae7f933);
@@ -741,9 +744,10 @@ input, textarea, select { accent-color: var(--accent-strong); }
   border-color: #ffffff30;
   box-shadow: 0 12px 38px #0006, inset 0 1px 0 #ffffff30;
 }
-.dock-item { width: 48px; height: 48px; }
+.dock-item { width: var(--dock-effective-size); height: var(--dock-effective-size); }
 .dock-item.is-open::after { width: 4px; height: 4px; background: #fff; box-shadow: 0 0 1px #0008; }
-.dock-divider { background: #ffffff4d; }
+.dock-divider { height: calc(var(--dock-effective-size) * .75); background: #ffffff4d; }
+.dock-thumbnail { width: calc(var(--dock-effective-size) * .94); height: calc(var(--dock-effective-size) * .73); }
 .dock-tooltip { backdrop-filter: blur(14px); }
 
 .window {
@@ -882,7 +886,7 @@ input, textarea, select { accent-color: var(--accent-strong); }
 .app-icon.calendar { background: linear-gradient(#ff595d 0 28%, #f9fafc 28%); color: #283341; }
 .calendar-icon-month { position: absolute; top: 3%; height: 23%; color: white; font-size: .52em; font-weight: 700; text-transform: uppercase; line-height: 1.4; }
 .calendar-icon-day { position: absolute; top: 30%; height: 66%; font-size: 1.3em; font-weight: 450; line-height: 1.04; letter-spacing: -.075em; transform: translateX(-.02em); }
-.dock-item .app-icon { font-size: 24px; }
+.dock-item .app-icon { font-size: calc(var(--dock-effective-size) * .5); }
 .launch-item .app-icon { font-size: 31px; }
 .app-switcher-item .app-icon { font-size: 27px; }
 .spotlight-item .app-icon { font-size: 15px; }
@@ -931,10 +935,79 @@ input, textarea, select { accent-color: var(--accent-strong); }
 .spotlight-item .file-paper, .download-stack-item .file-paper { transform: scale(.55); }
 .spotlight-item .file-artwork { display: grid; }
 
+.dock-size-setting { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; margin: 3px 0 14px; font-size: 13px; }
+.dock-size-setting output { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.dock-size-setting input { grid-column: 1 / -1; width: 100%; margin: 1px 0; accent-color: var(--accent-strong); cursor: pointer; }
+
+#wallpaper-preview-bar {
+  position: fixed;
+  z-index: 32;
+  left: 50%;
+  bottom: calc(var(--dock-height) + 10px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 20px);
+  padding: 11px 13px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  color: var(--ink);
+  background: var(--glass);
+  box-shadow: 0 8px 34px #06142a40, inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+#wallpaper-preview-bar > div { display: grid; flex: 1; gap: 2px; min-width: 115px; margin-right: 9px; }
+#wallpaper-preview-bar strong { font-size: 13px; }
+
+.widget-surface[data-widget-kind],
+:root[data-theme="dark"] .widget-surface[data-widget-kind] {
+  --widget-base: color-mix(in srgb, var(--glass) 96%, transparent);
+  --widget-ink: var(--ink);
+  --widget-secondary: var(--muted);
+  --widget-accent: var(--accent);
+  --widget-rule: var(--line);
+  --widget-second: var(--accent);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  background: var(--widget-base);
+  color: var(--widget-ink);
+  box-shadow: 0 8px 26px #07142b2b, inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter: blur(18px) saturate(125%);
+}
+.widget-surface[data-widget-kind="sticky"] {
+  --widget-base: color-mix(in srgb, #fff1c5 22%, var(--glass));
+}
+:root[data-theme="dark"] .widget-surface[data-widget-kind="sticky"] {
+  --widget-base: color-mix(in srgb, #80653a 13%, var(--glass));
+}
+#widgets[data-style="mono"] .widget-surface,
+#widgets[data-style="auto"][data-inactive="true"] .widget-surface {
+  --widget-base: #283445b5;
+  --widget-ink: #fff;
+  --widget-secondary: #e0e6ee;
+  --widget-accent: #fff;
+  --widget-rule: #ffffff26;
+  --widget-second: #fff;
+  border-color: #ffffff36;
+  backdrop-filter: blur(18px) saturate(.85);
+}
+.widget-clock-face { background: color-mix(in srgb, var(--panel) 93%, transparent); color: var(--ink); border-color: var(--line); }
+.widget-surface .widget-utility-controls input,
+.widget-surface[data-widget-kind="converter"] input,
+.widget-surface .widget-utility-controls select { background: transparent; }
+.widget-surface .widget-sticky-text { background: transparent; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .widget-surface[data-widget-kind],
+  :root[data-theme="dark"] .widget-surface[data-widget-kind] { --widget-base: var(--panel); backdrop-filter: none; }
+}
+
 @media (max-width: 600px) {
-  #dock { height: 60px; gap: 5px; padding-inline: 7px; border-radius: 18px; }
-  .dock-item { width: clamp(30px, 9vw, 41px); height: clamp(30px, 9vw, 41px); }
-  .dock-item .app-icon { font-size: clamp(17px, 4vw, 21px); }
+  :root { --dock-effective-size: min(var(--dock-icon-size), clamp(30px, 9vw, 44px)); }
+  #dock { gap: 5px; padding-inline: 7px; border-radius: 18px; }
   .files { padding: 15px 9px; gap: 8px; }
   .file-artwork { width: 56px; height: 54px; }
   .file-name { font-size: 12px; }
@@ -980,6 +1053,11 @@ input, textarea, select { accent-color: var(--accent-strong); }
     </div>
   </header>
   <div id="menu-popover" hidden></div>
+  <section id="wallpaper-preview-bar" aria-label="Anteprima dello sfondo" hidden>
+    <div><span class="app-hint">Anteprima sfondo</span><strong id="wallpaper-preview-name"></strong></div>
+    <button id="wallpaper-preview-cancel" class="choice" type="button">Annulla</button>
+    <button id="wallpaper-preview-confirm" class="primary-button" type="button">Conferma sfondo</button>
+  </section>
   <main id="desktop" aria-label="Scrivania del simulatore">
     <div id="widgets" aria-label="Widget della scrivania"></div>
     <div id="desktop-icons"></div>
@@ -2885,6 +2963,24 @@ function setupDockExtras() {
 
 let genieFlight = null;
 
+function cancelWindowOpening(record) {
+  if (!record.openingAnimation) return;
+  record.openingAnimation.cancel();
+  record.openingAnimation = null;
+}
+
+function animateWindowOpening(record) {
+  if (!canAnimateGenie(record) || record.element.hidden) return;
+  const animation = record.element.animate([
+    { opacity: 0, transform: 'translateY(9px) scale(.97)' },
+    { opacity: 1, transform: 'translateY(0) scale(1)' }
+  ], { duration: 190, easing: 'cubic-bezier(.2, .75, .25, 1)' });
+  record.openingAnimation = animation;
+  animation.onfinish = () => {
+    if (record.openingAnimation === animation) record.openingAnimation = null;
+  };
+}
+
 function minimizedButton(id) {
   return byId('dock-minimized')?.querySelector('[data-minimized-window="' + id + '"]');
 }
@@ -3878,6 +3974,64 @@ function appendMenuItem(label, action, disabled, previousLabel) {
 
 'use strict';
 
+let wallpaperPreview = null;
+
+function startWallpaperPreview(key, image = null) {
+  if (!Object.hasOwn(preferences.wallpaper.choices, key)) return;
+  if (wallpaperPreview) finishWallpaperPreview(false, false);
+  if (key === 'personal' && !image && !readPersonalWallpaper()) return;
+  closeMenu();
+  if (controlCenter.open) controlCenter.close();
+  const settings = windows.get('settings');
+  wallpaperPreview = { key, image, previous: document.documentElement.dataset.wallpaper, settings };
+  applyPreference('wallpaper', key);
+  byId('wallpaper-preview-name').textContent = preferences.wallpaper.choices[key];
+  byId('wallpaper-preview-bar').hidden = false;
+  if (settings && !settings.minimized) {
+    settings.previewHidden = true;
+    syncWindowVisibility();
+    focusNext('settings');
+  }
+  byId('wallpaper-preview-confirm').focus({ preventScroll: true });
+}
+
+function finishWallpaperPreview(confirm, restoreFocus = true) {
+  const draft = wallpaperPreview;
+  if (!draft) return;
+  wallpaperPreview = null;
+  wallpaperSelection += 1;
+  let saved = true;
+  if (confirm) {
+    if (draft.image) saved = writeValue('wallpaper.image.desktop', draft.image);
+    saved = saveWallpaper(draft.key) && saved;
+  } else applyPreference('wallpaper', draft.previous);
+  byId('wallpaper-preview-bar').hidden = true;
+  const settings = windows.get('settings');
+  if (settings) {
+    settings.previewHidden = false;
+    renderSettings(settings);
+    settings.content.querySelector('.wallpaper-status').textContent = confirm
+      ? saved ? 'Sfondo salvato in questo browser.' : 'Sfondo applicato a questa sessione.'
+      : 'Sfondo precedente ripristinato.';
+  }
+  syncWindowVisibility();
+  if (restoreFocus) {
+    if (settings === draft.settings && settings && !settings.element.hidden) {
+      activate(settings);
+      const chosen = settings.content.querySelector('[data-wallpaper-key="' + document.documentElement.dataset.wallpaper + '"]');
+      (chosen ?? settings.element).focus({ preventScroll: true });
+    } else focusNext('settings');
+  }
+}
+
+function setupWallpaperPreview() {
+  byId('wallpaper-preview-confirm').addEventListener('click', () => finishWallpaperPreview(true));
+  byId('wallpaper-preview-cancel').addEventListener('click', () => finishWallpaperPreview(false));
+}
+
+
+'use strict';
+
 const byId = (id) => document.getElementById(id);
 const desktop = byId('desktop');
 const windows = new Map();
@@ -4020,9 +4174,10 @@ function readDockPrefs() {
     const saved = JSON.parse(readValue('dock.v1', '{}'));
     const order = Array.isArray(saved.order) ? saved.order.filter((id) => configurableDockApps.includes(id)) : [];
     const unpinned = Array.isArray(saved.unpinned) ? saved.unpinned.filter((id) => configurableDockApps.includes(id)) : [];
-    return { order: [...new Set([...order, ...configurableDockApps])], unpinned: [...new Set(unpinned)], autoHide: saved.autoHide === true };
+    const size = Number.isInteger(saved.size) && saved.size >= 32 && saved.size <= 72 && saved.size % 4 === 0 ? saved.size : 48;
+    return { order: [...new Set([...order, ...configurableDockApps])], unpinned: [...new Set(unpinned)], autoHide: saved.autoHide === true, size };
   } catch {
-    return { order: [...configurableDockApps], unpinned: [], autoHide: false };
+    return { order: [...configurableDockApps], unpinned: [], autoHide: false, size: 48 };
   }
 }
 
@@ -4056,12 +4211,23 @@ function moveDockApp(id, target, after = false, focusSetting = false) {
 }
 
 function setDockVisibility() {
+  applyDockSize();
   const area = byId('dock-area');
   area.dataset.autohide = String(dockPrefs.autoHide);
   area.dataset.revealed = String(dockRevealed);
   const reveal = byId('dock-reveal');
   reveal.hidden = !dockPrefs.autoHide;
   reveal.setAttribute('aria-expanded', dockRevealed);
+}
+
+function applyDockSize() {
+  const root = document.documentElement;
+  if (root.dataset.dockSize === String(dockPrefs.size)) return;
+  cancelGenie();
+  root.dataset.dockSize = String(dockPrefs.size);
+  root.style.setProperty('--dock-icon-size', dockPrefs.size + 'px');
+  for (const record of windows.values()) position(record);
+  positionWidgets();
 }
 
 function appName(id) {
@@ -4183,11 +4349,13 @@ function focusNext(fallbackId, fallbackApp = 'finder') {
 
 function syncWindowVisibility() {
   for (const record of windows.values()) {
-    record.element.hidden = Boolean(peekActive || record.minimized);
+    record.element.hidden = Boolean(peekActive || record.minimized || record.previewHidden);
   }
 }
 
 function removeWindow(record) {
+  cancelWindowOpening(record);
+  if (record.id === 'settings' && wallpaperPreview) finishWallpaperPreview(false, false);
   if (genieFlight?.record === record) cancelGenie();
   if (record.id === 'finder') {
     if (finderDrag.length) endFinderDrag();
@@ -4229,6 +4397,7 @@ function quitApp(id) {
 
 function minimize(record) {
   if (!record || record.minimized || record.element.hidden) return;
+  cancelWindowOpening(record);
   cancelGenie();
   const from = canAnimateGenie(record) ? record.element.getBoundingClientRect() : null;
   record.minimized = true;
@@ -4240,6 +4409,7 @@ function minimize(record) {
 }
 
 function setWindowLayout(record, { maximized = false, split = null } = {}) {
+  cancelWindowOpening(record);
   record.maximized = maximized;
   record.split = split;
   record.element.classList.toggle('is-maximized', record.maximized);
@@ -4343,9 +4513,11 @@ function beginGeometry(event, record, handle, edge) {
 }
 
 function openWindow(id, focus = true) {
+  if (id === 'settings' && wallpaperPreview) finishWallpaperPreview(false, false);
   clearDesktopPeek();
   cancelGenie();
   let record = windows.get(id);
+  const created = !record;
   const wasMinimized = record?.minimized;
   const dockRect = wasMinimized && canAnimateGenie(record) ? measureMinimizedWindow(id) : null;
   runningApps.add(id);
@@ -4397,6 +4569,7 @@ function openWindow(id, focus = true) {
       toggleMenu(record.maxButton, true, windowLayoutMenu(record), { left: rect.left, top: rect.bottom + 6 });
     });
     element.addEventListener('pointerdown', () => {
+      cancelWindowOpening(record);
       if (activeWindow !== record) activate(record);
     });
     element.addEventListener('focusin', () => {
@@ -4423,6 +4596,7 @@ function openWindow(id, focus = true) {
   activate(record);
   refreshDock();
   if (dockRect) animateGenie(record, record.element.getBoundingClientRect(), dockRect, true);
+  else if (created) animateWindowOpening(record);
   if (focus) record.element.focus({ preventScroll: true });
   return record;
 }
@@ -5658,12 +5832,14 @@ const wallpaperFormat = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/;
 let wallpaperSelection = 0;
 
 function readPersonalWallpaper() {
+  if (wallpaperPreview?.image) return wallpaperPreview.image;
   const legacy = readValue('wallpaper.image.' + legacySpace, readValue('wallpaper.personal', ''));
   const image = readValue('wallpaper.image.desktop', legacy);
   return image.length <= personalWallpaperLimit && wallpaperFormat.test(image) ? image : '';
 }
 
 function desktopWallpaper() {
+  if (wallpaperPreview) return wallpaperPreview.key;
   const fallback = studioWallpapers[legacySpace - 1] ?? 'laguna';
   const selected = readValue('wallpaper.desktop', '');
   const value = selected || readValue('wallpaper.space.' + legacySpace, readValue('wallpaper', fallback));
@@ -5700,17 +5876,15 @@ function applyPreference(key, value) {
   }
   document.documentElement.dataset[key] = value;
   if (key === 'wallpaper') void syncWallpaperAccent();
-  if (key === 'motion' && value === 'reduced') cancelGenie();
+  if (key === 'motion' && value === 'reduced') {
+    cancelGenie();
+    for (const record of windows.values()) cancelWindowOpening(record);
+  }
 }
 
-function chooseWallpaper(key, status, group) {
+function chooseWallpaper(key) {
   wallpaperSelection += 1;
-  status.textContent = saveWallpaper(key)
-    ? 'Sfondo salvato in questo browser.'
-    : 'Sfondo applicato a questa sessione.';
-  for (const choice of group.querySelectorAll('[data-wallpaper-key]')) {
-    choice.setAttribute('aria-pressed', choice.dataset.wallpaperKey === key);
-  }
+  startWallpaperPreview(key);
 }
 
 function renderWallpaperSettings(status) {
@@ -5730,7 +5904,7 @@ function renderWallpaperSettings(status) {
     gallery.className = 'wallpaper-gallery';
     for (const key of keys) {
       const name = preferences.wallpaper.choices[key];
-      const option = button(name, 'wallpaper-option', '<span class="wallpaper-sample" aria-hidden="true"></span><span class="wallpaper-name"></span>', () => chooseWallpaper(key, status, group));
+      const option = button(name, 'wallpaper-option', '<span class="wallpaper-sample" aria-hidden="true"></span><span class="wallpaper-name"></span>', () => chooseWallpaper(key));
       option.dataset.wallpaperKey = key;
       const sample = option.querySelector('.wallpaper-sample');
       sample.dataset.art = key;
@@ -5790,9 +5964,7 @@ async function importWallpaper(event) {
       reportWallpaper('L’immagine è troppo dettagliata per essere salvata. Prova una copia più piccola.');
       return;
     }
-    const stored = writeValue('wallpaper.image.desktop', image);
-    const selected = saveWallpaper('personal');
-    reportWallpaper(stored && selected ? 'Sfondo personale salvato.' : 'Sfondo personale disponibile in questa sessione.');
+    startWallpaperPreview('personal', image);
   } catch {
     if (selection === wallpaperSelection) reportWallpaper('Impossibile aprire questa immagine.');
   }
@@ -5844,7 +6016,7 @@ function renderSettings(record) {
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.8</h2><p>I colori dei controlli seguono lo sfondo. Puoi scegliere l’aspetto chiaro o scuro da <strong>Impostazioni</strong>.</p><p>Nel Finder le immagini importate hanno una miniatura e le icone distinguono i tipi di file. Passa il mouse su un nome per leggerlo per intero.</p><p>Il verde porta la finestra a tutto schermo. Premi di nuovo il verde o <kbd>Esc</kbd> per ripristinarla.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.0.9</h2><p>In <strong>Impostazioni → Sfondo</strong> puoi provare un’immagine e scegliere Conferma o Annulla. Premi <kbd>Esc</kbd> per tornare allo sfondo precedente.</p><p>In <strong>Impostazioni → Dock</strong> regoli la dimensione delle icone.</p><p>Finestre e widget seguono l’aspetto chiaro o scuro. Le nuove finestre compaiono con un’animazione breve, controllata dalla preferenza Animazioni.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -6009,7 +6181,8 @@ function renderControlCenter(focus = null) {
 function setControlPreference(key, value) {
   if (key === 'wallpaper') {
     wallpaperSelection += 1;
-    saveWallpaper(value);
+    startWallpaperPreview(value);
+    return;
   } else {
     applyPreference(key, value);
     writeValue(key, value);
@@ -6281,12 +6454,39 @@ function renderDockSettings() {
   const group = document.createElement('fieldset');
   const title = document.createElement('legend');
   title.textContent = 'Dock';
+  const size = document.createElement('label');
+  size.className = 'dock-size-setting';
+  const caption = document.createElement('span');
+  caption.textContent = 'Dimensione icone';
+  const value = document.createElement('output');
+  value.textContent = dockPrefs.size + ' px';
+  const range = document.createElement('input');
+  range.type = 'range';
+  range.min = '32';
+  range.max = '72';
+  range.step = '4';
+  range.value = String(dockPrefs.size);
+  range.dataset.dockSize = '';
+  range.setAttribute('aria-label', 'Dimensione icone del Dock');
+  range.addEventListener('input', () => {
+    const requested = Number(range.value);
+    if (!Number.isInteger(requested) || requested < 32 || requested > 72 || requested % 4) return;
+    dockPrefs = { ...dockPrefs, size: requested };
+    value.textContent = requested + ' px';
+    applyDockSize();
+    syncDownloadStackButton();
+  });
+  range.addEventListener('change', () => {
+    const saved = writeValue('dock.v1', JSON.stringify(dockPrefs));
+    byId('announcement').textContent = saved ? 'Dimensione del Dock salvata.' : 'Dimensione applicata a questa sessione.';
+  });
+  size.append(caption, value, range);
   const hide = button('Nascondi automaticamente il Dock', 'choice', 'Nascondi automaticamente il Dock', () => {
     updateDockPrefs({ ...dockPrefs, autoHide: !dockPrefs.autoHide }, null, '[data-dock-autohide]');
   });
   hide.dataset.dockAutohide = '';
   hide.setAttribute('aria-pressed', dockPrefs.autoHide);
-  group.append(title, hide);
+  group.append(title, size, hide);
   const list = document.createElement('div');
   list.className = 'dock-settings-list';
   for (const [index, id] of dockPrefs.order.entries()) {
@@ -6316,6 +6516,7 @@ function setupEvents() {
   setupDockExtras();
   setupHotCorners();
   setupMusic();
+  setupWallpaperPreview();
   byId('fullscreen-button').addEventListener('click', toggleFullScreen);
   document.addEventListener('fullscreenchange', () => {
     const label = document.fullscreenElement ? 'Esci da schermo intero' : 'Schermo intero';
@@ -6423,6 +6624,11 @@ function setupEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.isComposing || lockScreen.open || byId('app-switcher').open) return;
+    if (event.key === 'Escape' && wallpaperPreview && ![...document.querySelectorAll('dialog')].some((dialog) => dialog.open)) {
+      event.preventDefault();
+      if (!event.repeat) finishWallpaperPreview(false);
+      return;
+    }
     handleKeyboardShortcuts(event);
     if (event.code === 'Space' && event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey) {
       event.preventDefault();
@@ -6454,7 +6660,10 @@ function setupEvents() {
     closeMenu();
     syncDownloadStackButton();
     showSplitPreview(null);
-    for (const record of windows.values()) position(record);
+    for (const record of windows.values()) {
+      cancelWindowOpening(record);
+      position(record);
+    }
     positionWidgets();
   });
   window.addEventListener('pagehide', (event) => {
