@@ -1,8 +1,8 @@
-LAGUNA 3.2.0
+LAGUNA 3.3.0
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.2.0 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.3.0 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -10,6 +10,28 @@ AVVIO
 4. Premi F11 o usa Schermo intero nella barra di Laguna. Chiudi la scheda
    o la finestra del browser per tornare a Windows.
 
+
+NOVITÀ 3.3.0
+- Spotlight ha categorie Tutto, App, File, Azioni e Recenti. Puoi cercare
+  anche con alias: università, timer, stampa 3D, immagini, editor.
+- Filtri: tipo:pdf, /pdf, tipo:immagini nikon, /cartelle progetti.
+  La ricerca trova anche parole nei documenti di testo virtuali e in Note.
+  Cerca i file già importati nel disco virtuale di Laguna.
+- Mostra nel Finder o Ctrl+Invio individuano il file nella sua cartella.
+  Tab dopo una ricerca passa ai comandi dell'anteprima. Freccia su nel
+  campo vuoto richiama l'ultima ricerca eseguita.
+- Azioni: tema scuro, tema chiaro, mostra scrivania, blocca schermo,
+  apri notifiche, sfondo dinamico, timer 10 min, nota: testo da ricordare.
+  Le azioni partono solo con Invio o Esegui azione. Il blocco riguarda
+  Laguna; le note vengono aggiunte in fondo senza sostituire il testo.
+- Calcoli: √144, sqrt(81), abs(-7), log(100), sin(pi/2), 1e3+2.
+  Le funzioni trigonometriche usano radianti. Puoi convertire anche
+  scrivendo una sola misura, per esempio 32F o 2,5 kg.
+- Date e orari: oggi, domani, tra 10 giorni, ora a Tokyo, ora a New York.
+  I risultati di orario si aggiornano mentre sono selezionati.
+- I risultati usati da Spotlight restano in Recenti e aiutano a ordinare
+  le ricerche successive. Impostazioni > Spotlight > Cancella recenti
+  rimuove questa cronologia, conservando i tuoi file e appunti.
 
 NOVITÀ 3.2.0
 - Spotlight: premi Ctrl+Spazio. Scrivi (25+15)*2, 15% di 240, 12 cm in mm
