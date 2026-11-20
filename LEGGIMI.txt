@@ -1,8 +1,8 @@
-LAGUNA 3.1.0
+LAGUNA 3.2.0
 Scrivania in stile macOS per HP EliteBook 840 G5 e Windows 11
 
 AVVIO
-1. Estrai lo ZIP di Laguna 3.1.0 e metti i file in una cartella stabile.
+1. Estrai lo ZIP di Laguna 3.2.0 e metti i file in una cartella stabile.
 2. Apri Laguna.html in Edge o Chrome. Il file funziona da solo, anche offline.
 3. Per un'icona sul desktop di Windows, fai clic destro su Avvia.cmd,
    scegli Mostra altre opzioni > Invia a > Desktop (crea collegamento).
@@ -10,6 +10,23 @@ AVVIO
 4. Premi F11 o usa Schermo intero nella barra di Laguna. Chiudi la scheda
    o la finestra del browser per tornare a Windows.
 
+
+NOVITÀ 3.2.0
+- Spotlight: premi Ctrl+Spazio. Scrivi (25+15)*2, 15% di 240, 12 cm in mm
+  oppure 25 °C in °F. Usa virgola o punto per i decimali. Invio o Copia
+  risultato copiano la risposta; puoi continuare a cercare senza chiudere.
+- Conversioni: lunghezza, massa, volume, tempo, temperatura, superficie,
+  velocità e memoria. MB/GB sono decimali, MiB/GiB binari; B sono byte,
+  b sono bit. Esempi: 2,5 kg in g, 90 km/h in m/s, 1 GiB in MiB.
+- L'anteprima laterale mostra app, contenuto delle cartelle, testo e
+  miniature delle immagini importate. Apri elemento visualizza il file
+  completo, compresi PDF, video e documenti degli altri formati.
+- Sfondo: Impostazioni > Sfondo > Laguna dinamica. Durante la prova
+  scegli Mattino, Giorno, Tramonto o Notte per vedere i quattro paesaggi.
+  Conferma sfondo salva la modalità automatica; Annulla o Esc ripristinano
+  lo sfondo precedente. La scelta viene ricordata nel browser.
+- Lo sfondo segue l'orologio locale: Mattino 06-09, Giorno 09-17,
+  Tramonto 17-20, Notte 20-06. I paesaggi sono inclusi, anche offline.
 
 NOVITÀ 3.1.0
 - Dock fluido: l'ingrandimento segue il puntatore e lascia spazio alle icone.
