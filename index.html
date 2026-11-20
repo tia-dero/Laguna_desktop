@@ -1147,8 +1147,8 @@ input, textarea, select { accent-color: var(--accent-strong); }
 #dynamic-wallpaper { position: absolute; inset: 0; overflow: hidden; }
 .dynamic-scene { position: absolute; inset: 0; background-position: center; background-size: cover; opacity: 0; transition: opacity 1.6s ease; }
 .dynamic-scene.is-current { opacity: 1; }
-#wallpaper-preview-bar:has(#wallpaper-preview-phases:not([hidden])) { flex-wrap: wrap; max-width: min(570px,calc(100vw - 20px)); }
-#wallpaper-preview-phases { display: flex; flex-basis: 100%; justify-content: center; flex-wrap: wrap; gap: 5px; padding-top: 8px; border-top: 1px solid var(--line); }
+#wallpaper-preview-bar:has(#wallpaper-preview-phases:not([hidden])) { flex-wrap: wrap; width: min(570px,calc(100vw - 20px)); }
+#wallpaper-preview-bar #wallpaper-preview-phases { display: flex; flex: 0 0 100%; min-width: 0; margin-right: 0; justify-content: center; flex-wrap: wrap; gap: 5px; padding-top: 8px; border-top: 1px solid var(--line); }
 #wallpaper-preview-phases button { padding: 5px 8px; font-size: 11px; }
 #wallpaper-preview-phases button[aria-pressed="true"] { background: var(--selected); border-color: var(--accent); }
 :root[data-motion="reduced"] .dynamic-scene { transition: none; }
