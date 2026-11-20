@@ -14,6 +14,7 @@ AVVIO
 NOVITÀ 3.3.0
 - Spotlight ha categorie Tutto, App, File, Azioni e Recenti. Puoi cercare
   anche con alias: università, timer, stampa 3D, immagini, editor.
+- I nomi delle app tollerano piccoli errori, per esempio calcolatrce.
 - Filtri: tipo:pdf, /pdf, tipo:immagini nikon, /cartelle progetti.
   La ricerca trova anche parole nei documenti di testo virtuali e in Note.
   Cerca i file già importati nel disco virtuale di Laguna.
