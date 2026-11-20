@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VS5mvOrYzBNqf95LoAlVRPOAH+yMw4COmj/9++9Xk6A='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-jNqJ6W8x9CogJ9JsUegCTYL22JojkLYj27TEb+/Zbaw='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
   <title>Laguna 3.3.0 · Desktop per EliteBook</title>
   <style>
@@ -4933,13 +4933,29 @@ function spotlightEntryText(result) {
   return value;
 }
 
+function spotlightTypoDistance(first, second) {
+  if (Math.abs(first.length - second.length) > 2) return 3;
+  const rows = Array.from({ length: first.length + 1 }, (_, row) => Array.from({ length: second.length + 1 }, (_, column) => row === 0 ? column : column === 0 ? row : 0));
+  for (let row = 1; row <= first.length; row++) for (let column = 1; column <= second.length; column++) {
+    rows[row][column] = Math.min(rows[row - 1][column] + 1, rows[row][column - 1] + 1, rows[row - 1][column - 1] + Number(first[row - 1] !== second[column - 1]));
+    if (row > 1 && column > 1 && first[row - 1] === second[column - 2] && first[row - 2] === second[column - 1]) rows[row][column] = Math.min(rows[row][column], rows[row - 2][column - 2] + 1);
+  }
+  return rows[first.length][second.length];
+}
+
 function rankSpotlightResult(result, query) {
   const name = normalize(result.name);
   const aliases = result.aliases || spotlightAppAliases[result.appId] || '';
   const metadata = normalize(result.name + ' ' + result.detail + ' ' + aliases);
   const tokens = query.split(/\s+/).filter(Boolean);
   const text = query.length >= 2 ? spotlightEntryText(result) : { original: '', normalized: '' };
-  if (tokens.some((token) => !metadata.includes(token) && !text.normalized.includes(token))) return null;
+  if (tokens.some((token) => !metadata.includes(token) && !text.normalized.includes(token))) {
+    if (result.category === 'apps' && tokens.length === 1 && query.length >= 4 && query.length <= 28) {
+      const tolerance = query.length >= 10 ? 2 : 1;
+      if (normalize(result.name + ' ' + aliases).split(/\s+/).some((word) => spotlightTypoDistance(query, word) <= tolerance)) return { ...result, score: 120, detail: result.detail + ' · Nome simile' };
+    }
+    return null;
+  }
   const inContent = tokens.length > 0 && tokens.some((token) => !metadata.includes(token));
   let score = !query ? 0 : name === query ? 1000 : name.startsWith(query) ? 700 : name.includes(query) ? 500 : inContent ? 80 : 250;
   const use = spotlightHistory.uses[result.key];
@@ -5037,7 +5053,7 @@ function buildSpotlightResults(source) {
   scored.sort((a, b) => !parsed.query && parsed.category === 'recent' ? spotlightHistory.uses[b.key].last - spotlightHistory.uses[a.key].last : b.score - a.score);
   let results = scored.slice(0, 12);
   if (parsed.category === 'all' || parsed.category === 'actions') {
-    const parameter = parameterSpotlightAction(source.replace(/^\/azioni\s+/i, ''));
+    const parameter = parameterSpotlightAction(source.replace(/^(?:\/azioni|tipo:azioni)\b\s*/i, ''));
     if (parameter) results = [parameter, ...results.filter((result) => result.key !== parameter.key)].slice(0, 12);
   }
   if (parsed.category === 'all') {
