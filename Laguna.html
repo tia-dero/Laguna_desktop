@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-skSfkeOVHLXr9Dg1BYkBslTc675yEyq8gi3Ea4zIcmY='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-VS5mvOrYzBNqf95LoAlVRPOAH+yMw4COmj/9++9Xk6A='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
-  <title>Laguna 3.2.0 · Desktop per EliteBook</title>
+  <title>Laguna 3.3.0 · Desktop per EliteBook</title>
   <style>
 :root {
   color-scheme: light;
@@ -1121,6 +1121,10 @@ input, textarea, select { accent-color: var(--accent-strong); }
   #notification-center, #notification-banners .notification-card, #dock-preview, #finder-dialog[data-sheet-owner] { background: var(--panel); backdrop-filter: none; }
 }
 #spotlight { width: min(790px, calc(100% - 24px)); overflow: hidden; }
+#spotlight-categories { display: flex; gap: 6px; padding: 10px 14px 3px; overflow-x: auto; scrollbar-width: thin; }
+.spotlight-category { padding: 6px 13px; border: 1px solid transparent; border-radius: 99px; background: transparent; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.spotlight-category[aria-pressed="true"] { color: var(--ink); border-color: var(--line); background: var(--selected); }
+.spotlight-category:hover { background: var(--hover); }
 .spotlight-body { display: grid; grid-template-columns: minmax(230px,.9fr) minmax(0,1.1fr); min-height: 260px; max-height: min(400px,50vh); }
 #spotlight-results { overflow-y: auto; min-height: 0; scrollbar-width: thin; }
 #spotlight-preview { min-width: 0; padding: 22px; overflow-y: auto; border-left: 1px solid var(--line); background: color-mix(in srgb,var(--panel) 76%,transparent); scrollbar-width: thin; }
@@ -1131,6 +1135,9 @@ input, textarea, select { accent-color: var(--accent-strong); }
 .spotlight-preview-art > .custom-folder { width: 65px; height: 53px; }
 .spotlight-preview-art > .file-artwork { width: 50px; height: 56px; }
 #spotlight-preview .primary-button { margin: 2px 0 9px; }
+.spotlight-reveal { margin: 0 0 9px 7px; }
+#spotlight-preview .spotlight-match-excerpt { border-left: 2px solid var(--accent); padding: 7px 10px; background: var(--hover); border-radius: 0 7px 7px 0; color: var(--ink); }
+.spotlight-footer { flex-wrap: wrap; row-gap: 5px; }
 #spotlight-answer { display: block; width: 100%; padding: 9px 0 14px; margin-bottom: 10px; border: 0; background: none; color: var(--ink); font: 600 clamp(22px,3vw,32px)/1.3 "Segoe UI",sans-serif; letter-spacing: -.03em; }
 #spotlight-preview .spotlight-error { color: var(--ink); padding: 11px; border-radius: 9px; background: var(--hover); }
 .spotlight-examples { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
@@ -1253,10 +1260,11 @@ input, textarea, select { accent-color: var(--accent-strong); }
     <div id="launch-grid"></div>
   </dialog>
   <dialog id="spotlight" aria-label="Spotlight">
-    <label class="search-field"><span data-icon="search"></span><input id="spotlight-search" type="search" aria-label="Cerca con Spotlight" placeholder="Cerca con Spotlight" autocomplete="off"></label>
+    <label class="search-field"><span data-icon="search"></span><input id="spotlight-search" type="search" aria-label="Cerca con Spotlight" placeholder="Cerca app, file o un’azione…" autocomplete="off" maxlength="180"></label>
+    <nav id="spotlight-categories" aria-label="Categorie Spotlight"></nav>
     <div class="spotlight-caption" id="spotlight-caption">App e file del simulatore</div>
     <div class="spotlight-body"><div id="spotlight-results" aria-label="Risultati di ricerca"></div><aside id="spotlight-preview" aria-label="Anteprima risultato"></aside></div>
-    <footer class="spotlight-footer"><span>↑ ↓ per scegliere</span><span id="spotlight-enter-hint">Invio per aprire</span><span>Esc per chiudere</span></footer>
+    <footer class="spotlight-footer"><span>↑ ↓ per scegliere</span><span id="spotlight-enter-hint">Invio per aprire</span><span id="spotlight-reveal-hint" hidden>Ctrl+Invio nel Finder</span><span>Esc per chiudere</span></footer>
   </dialog>
   <dialog id="finder-dialog" aria-labelledby="finder-dialog-title">
     <form id="finder-form">
@@ -4668,9 +4676,11 @@ function spotlightNumber(value) {
 }
 
 function calculateSpotlight(source) {
-  const input = source.trim().replace(/[×x]/g, '*').replace(/[÷:]/g, '/').replace(/−/g, '-').replace(/,/g, '.');
-  if (!input || input.length > 180 || !/^[\d\s.+\-*/^()%]+$/.test(input) || !/\d/.test(input)) return null;
-  const tokens = input.match(/(?:\d+(?:\.\d*)?|\.\d+)|[^\s]/g) || [];
+  const input = source.trim().replace(/[×x]/g, '*').replace(/[÷:]/g, '/').replace(/−/g, '-').replace(/,/g, '.').replace(/√/g, 'sqrt ').replace(/π/g, 'pi');
+  if (!input || input.length > 180 || !/^[\da-zA-Z\s.+\-*/^()%]+$/.test(input) || !/\d|\bpi\b/.test(input)) return null;
+  const tokens = input.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-z]+|[^\s]/gi) || [];
+  const functions = { sqrt: Math.sqrt, abs: Math.abs, round: Math.round, floor: Math.floor, ceil: Math.ceil, sin: Math.sin, cos: Math.cos, tan: Math.tan, log: Math.log10, ln: Math.log };
+  if (tokens.some((token) => /^[a-z]+$/i.test(token) && !['pi', 'e'].includes(token.toLowerCase()) && !Object.hasOwn(functions, token.toLowerCase()))) return null;
   if (tokens.length > 100) return { error: 'Il calcolo è troppo lungo.' };
   let position = 0;
   const peek = () => tokens[position];
@@ -4681,8 +4691,13 @@ function calculateSpotlight(source) {
     if (takeIf('(')) { value = sum(); if (!takeIf(')')) throw Error('Chiudi la parentesi.'); }
     else {
       const token = take();
-      if (!token || !/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)) throw Error('Completa il calcolo con numeri e operatori.');
-      value = checked(Number(token));
+      if (token?.toLowerCase() === 'pi') value = Math.PI;
+      else if (token?.toLowerCase() === 'e') value = Math.E;
+      else if (token && Object.hasOwn(functions, token.toLowerCase())) value = checked(functions[token.toLowerCase()](unary()));
+      else {
+        if (!token || !/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(token)) throw Error('Completa il calcolo con numeri e operatori.');
+        value = checked(Number(token));
+      }
     }
     while (takeIf('%')) value /= 100;
     return value;
@@ -4738,7 +4753,7 @@ function convertSpotlight(source) {
 
 function spotlightAnswer(source) {
   if (source.length > 180) return null;
-  let result = convertSpotlight(source);
+  let result = convertSpotlight(source) ?? defaultSpotlightConversion(source);
   let detail = 'Conversione';
   const percent = source.trim().match(/^([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*%\s+(?:di|of)\s+([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))$/i);
   if (!result && percent) result = { value: Number(percent[1].replace(',', '.')) / 100 * Number(percent[2].replace(',', '.')) };
@@ -4777,7 +4792,7 @@ function releaseSpotlightPreview() {
 function spotlightExamples(container) {
   const examples = document.createElement('div'); examples.className = 'spotlight-examples';
   for (const query of ['(25+15)*2', '12 cm in mm', '25 °C in °F']) {
-    const example = button(query, 'choice', '', () => { spotlightSearch.value = query; renderSpotlight(); spotlightSearch.focus(); });
+    const example = button(query, 'choice', '', () => { spotlightCategory = 'all'; spotlightSearch.value = query; renderSpotlight(); spotlightSearch.focus(); });
     example.textContent = query; examples.append(example);
   }
   container.append(examples);
@@ -4796,6 +4811,11 @@ async function renderSpotlightPreview(result) {
   const title = document.createElement('h2'); title.textContent = result.name;
   const detail = document.createElement('p'); detail.className = 'spotlight-preview-detail'; detail.textContent = result.detail;
   panel.append(art, title, detail);
+  if (result.matchExcerpt) { const excerpt = document.createElement('p'); excerpt.className = 'spotlight-match-excerpt'; excerpt.textContent = result.matchExcerpt; panel.append(excerpt); }
+  if (result.kind === 'action') {
+    const description = document.createElement('p'); description.textContent = result.description;
+    panel.append(description, button('Esegui azione', 'primary-button', 'Esegui azione', () => runResult(selectedResult))); return;
+  }
   if (result.kind === 'answer') {
     if (!result.error) title.textContent = 'Risultato';
     detail.textContent = result.formula;
@@ -4808,6 +4828,7 @@ async function renderSpotlightPreview(result) {
   }
   const open = button(result.entryId ? 'Apri elemento' : 'Apri app', 'primary-button', result.entryId ? 'Apri elemento' : 'Apri app', () => runResult(selectedResult));
   panel.append(open);
+  if (result.entryId) panel.append(button('Mostra nel Finder', 'choice spotlight-reveal', 'Mostra nel Finder', () => revealSpotlightResult(result)));
   if (!result.entryId) {
     const note = document.createElement('p'); note.textContent = 'Apri ' + result.name + ' in una finestra della scrivania.'; panel.append(note); return;
   }
@@ -4849,6 +4870,235 @@ async function renderSpotlightPreview(result) {
       const text = document.createElement('pre'); text.textContent = sample.slice(0, 1800); content.append(text);
     }
   } catch { note.textContent += ' · Apri il file per visualizzarlo.'; }
+}
+
+
+'use strict';
+
+let spotlightCategory = 'all';
+let spotlightHistory = { uses: {}, queries: [] };
+const spotlightTextIndex = new Map();
+const spotlightCategories = { all: 'Tutto', apps: 'App', files: 'File', actions: 'Azioni', recent: 'Recenti' };
+const spotlightAppAliases = {
+  finder: 'cartelle file esplora', notes: 'appunti note', calculator: 'calcoli calculator', settings: 'preferenze impostazioni sistema',
+  jarvis: 'universita jarvis', studio: 'universita lezioni orario appunti', projects: 'stampa 3d cura codice progetti', photos: 'nikon immagini foto fotografie',
+  'clock-app': 'timer cronometro orologio', calendar: 'calendario agenda appuntamenti', textedit: 'testo editor documenti', music: 'audio musica', reminders: 'attivita promemoria'
+};
+
+function rememberSpotlightResult(result) {
+  const now = Date.now();
+  if (result.key && !result.error) {
+    const previous = spotlightHistory.uses[result.key];
+    spotlightHistory.uses[result.key] = { last: now, count: Math.min(100, (previous?.count || 0) + 1) };
+    const ordered = Object.entries(spotlightHistory.uses).sort((a, b) => b[1].last - a[1].last).slice(0, 50);
+    spotlightHistory.uses = Object.fromEntries(ordered);
+  }
+  const query = spotlightSearch.value.trim();
+  if (query && query.length <= 180 && !result.error) spotlightHistory.queries = [query, ...spotlightHistory.queries.filter((item) => item !== query)].slice(0, 10);
+  writeValue('spotlight.history.v1', JSON.stringify(spotlightHistory));
+}
+
+function parseSpotlightQuery(source) {
+  let query = normalize(source);
+  let category = spotlightCategory;
+  let kind = null;
+  const aliases = { pdf: 'pdf', immagini: 'image', foto: 'image', cartelle: 'folder', testo: 'text', documenti: 'document', audio: 'audio', video: 'video', app: 'apps', file: 'files', azioni: 'actions' };
+  const prefix = query.match(/^(?:tipo:|\/)(pdf|immagini|foto|cartelle|testo|documenti|audio|video|app|file|azioni)\b\s*(.*)$/);
+  const natural = !prefix && query.match(/^(?:file\s+)?(pdf|immagini|cartelle|audio|video)\b\s*(.*)$/);
+  const match = prefix || natural;
+  if (match) {
+    const value = aliases[match[1]];
+    category = ['apps', 'files', 'actions'].includes(value) ? value : 'files';
+    kind = category === 'files' && value !== 'files' ? value : null;
+    query = match[2];
+  }
+  return { query: query.replace(/^(?:apri|cerca|trova)\s+/, ''), category, kind, forced: Boolean(match) };
+}
+
+function spotlightEntryKind(result) {
+  if (!result.entryId) return null;
+  const entry = folderInfo(result.entryId);
+  return fixedFolders.includes(result.entryId) || entry?.kind === 'folder' ? 'folder' : fileAppearance(entry).type;
+}
+
+function spotlightEntryText(result) {
+  const entry = result.entryId && virtualEntries.get(result.entryId);
+  const source = entry?.kind === 'text' ? entry.text : result.appId === 'notes' ? readValue('notes', '') : '';
+  if (!source) return { original: '', normalized: '' };
+  const cached = spotlightTextIndex.get(result.key);
+  if (cached?.source === source) return cached;
+  const value = { source, original: source.slice(0, 24000), normalized: normalize(source.slice(0, 24000)) };
+  if (spotlightTextIndex.size >= 200) spotlightTextIndex.clear();
+  spotlightTextIndex.set(result.key, value);
+  return value;
+}
+
+function rankSpotlightResult(result, query) {
+  const name = normalize(result.name);
+  const aliases = result.aliases || spotlightAppAliases[result.appId] || '';
+  const metadata = normalize(result.name + ' ' + result.detail + ' ' + aliases);
+  const tokens = query.split(/\s+/).filter(Boolean);
+  const text = query.length >= 2 ? spotlightEntryText(result) : { original: '', normalized: '' };
+  if (tokens.some((token) => !metadata.includes(token) && !text.normalized.includes(token))) return null;
+  const inContent = tokens.length > 0 && tokens.some((token) => !metadata.includes(token));
+  let score = !query ? 0 : name === query ? 1000 : name.startsWith(query) ? 700 : name.includes(query) ? 500 : inContent ? 80 : 250;
+  const use = spotlightHistory.uses[result.key];
+  if (use) score += Math.min(30, use.count * 2) + Math.max(0, Math.min(20, 20 - (Date.now() - use.last) / 86400000));
+  if (!inContent) return { ...result, score };
+  const position = Math.max(0, text.normalized.indexOf(tokens.find((token) => !metadata.includes(token))) - 40);
+  return { ...result, score, detail: result.detail + ' · Nel contenuto', matchExcerpt: '…' + text.original.slice(position, position + 160) + '…' };
+}
+
+function spotlightAction(key, name, aliases, description, open, app = 'settings') {
+  return { key: 'action:' + key, name, aliases, description, detail: 'Azione rapida', category: 'actions', kind: 'action', art: appIcon(app), open };
+}
+
+function spotlightQuickActions(query = '') {
+  const actions = [
+    spotlightAction('dark', 'Attiva modalità scura', 'tema scuro dark', 'Applica e salva il tema scuro di Laguna.', () => setControlPreference('theme', 'dark')),
+    spotlightAction('light', 'Attiva modalità chiara', 'tema chiaro light', 'Applica e salva il tema chiaro di Laguna.', () => setControlPreference('theme', 'light')),
+    spotlightAction('desktop', peekActive ? 'Ripristina finestre' : 'Mostra scrivania', 'desktop nascondi finestre', 'Mostra la scrivania o riporta avanti le finestre.', toggleDesktopPeek, 'finder'),
+    spotlightAction('lock', 'Blocca schermo', 'blocco lock', 'Apre la schermata di blocco di Laguna. Invio torna alla scrivania.', openLockScreen, 'info'),
+    spotlightAction('notifications', 'Apri notifiche', 'centro notifiche avvisi', 'Mostra gli ultimi avvisi della scrivania.', openNotificationCenter, 'info'),
+    spotlightAction('dynamic', 'Sfondo dinamico', 'sfondo automatico mattino notte tramonto', 'Prova i paesaggi dinamici; Conferma sfondo salva la scelta.', () => startWallpaperPreview('dynamic'), 'photos'),
+    spotlightAction('notes', 'Scrivi una nota', 'nuova nota appunti', 'Porta avanti Note e posiziona il cursore nel testo.', () => openWindow('notes').content.querySelector('textarea').focus(), 'notes'),
+    spotlightAction('timer', 'Imposta un timer', 'avvia timer orologio', 'Prova a scrivere “timer 10 min” per avviare una durata precisa.', () => openWindow('clock-app').content.querySelector('input').focus(), 'clock-app')
+  ];
+  return actions;
+}
+
+function parameterSpotlightAction(source) {
+  const timer = normalize(source).match(/^(?:avvia\s+)?timer\s+(\d+)\s*(min(?:uto|uti)?|m|h|or[ae])?$/);
+  if (timer) {
+    const minutes = Number(timer[1]) * (/^(?:h|or)/.test(timer[2] || '') ? 60 : 1);
+    if (minutes < 1 || minutes > 120) return { name: 'Controlla la durata', detail: 'Timer', formula: source, kind: 'answer', error: 'Scegli una durata da 1 a 120 minuti.', art: appIcon('clock-app'), keepOpen: true, open() {} };
+    return spotlightAction('timer-start', (clockTimer.deadline ? 'Sostituisci timer' : 'Avvia timer') + ' · ' + minutes + ' min', '',
+      clockTimer.deadline ? 'Il timer attivo verrà sostituito quando premi Invio.' : 'Avvia un timer di ' + minutes + ' minuti in Orologio.', () => {
+        Object.assign(clockTimer, { minutes, remaining: minutes * 60000, deadline: Date.now() + minutes * 60000 });
+        const record = openWindow('clock-app'); renderClockApp(record); updateClockApp(Date.now());
+      }, 'clock-app');
+  }
+  const note = source.trim().match(/^(?:nuova nota\s+|aggiungi nota\s+|nota:\s*)(.{1,150})$/i);
+  if (note) {
+    const text = note[1].trim();
+    if (!text) return null;
+    return spotlightAction('append-note', 'Aggiungi alle Note', '', 'Aggiunge in fondo agli appunti: “' + text + '”', () => {
+      const before = readValue('notes', '');
+      const combined = before + (before ? '\n\n' : '') + text;
+      const saved = writeValue('notes', combined);
+      const record = openWindow('notes'); const field = record.content.querySelector('textarea'); field.value = combined; field.focus();
+      record.content.querySelector('.app-hint').textContent = saved ? 'Nota aggiunta e salvata.' : 'Nota aggiunta per questa sessione.';
+    }, 'notes');
+  }
+  return null;
+}
+
+const spotlightCities = {
+  roma: ['Roma', 'Europe/Rome'], milano: ['Milano', 'Europe/Rome'], italia: ['Italia', 'Europe/Rome'], parigi: ['Parigi', 'Europe/Paris'], londra: ['Londra', 'Europe/London'], berlino: ['Berlino', 'Europe/Berlin'],
+  'new york': ['New York', 'America/New_York'], 'los angeles': ['Los Angeles', 'America/Los_Angeles'], tokyo: ['Tokyo', 'Asia/Tokyo'], giappone: ['Giappone', 'Asia/Tokyo'], dubai: ['Dubai', 'Asia/Dubai'], sydney: ['Sydney', 'Australia/Sydney']
+};
+
+function spotlightTimeAnswer(source, now = new Date()) {
+  const query = normalize(source);
+  const cityMatch = query.match(/^(?:che ore sono|ora|orario)(?:\s+(?:a|in))?\s+(.+)$/);
+  let name, detail, description;
+  if (cityMatch && Object.hasOwn(spotlightCities, cityMatch[1])) {
+    const [city, zone] = spotlightCities[cityMatch[1]];
+    name = new Intl.DateTimeFormat('it-IT', { timeZone: zone, hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
+    detail = 'Ora a ' + city;
+    description = new Intl.DateTimeFormat('it-IT', { timeZone: zone, weekday: 'long', day: 'numeric', month: 'long' }).format(now) + ' · ' + zone;
+  } else {
+    const relative = query.match(/^(?:tra|fra)\s+(\d{1,3})\s+giorni?$/);
+    const past = query.match(/^(\d{1,3})\s+giorni?\s+fa$/);
+    if (!['oggi', 'domani', 'ieri', 'data di oggi'].includes(query) && !relative && !past) return null;
+    const offset = relative ? Number(relative[1]) : past ? -Number(past[1]) : query === 'domani' ? 1 : query === 'ieri' ? -1 : 0;
+    const date = new Date(now); date.setHours(12, 0, 0, 0); date.setDate(date.getDate() + offset);
+    name = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+    detail = 'Calendario'; description = new Intl.DateTimeFormat('it-IT', { weekday: 'long' }).format(date) + ' · Calendario locale';
+  }
+  return { name, copy: name, formula: detail, detail, description, kind: 'answer', liveTime: true, art: appIcon('clock-app'), keepOpen: true, open: () => copySpotlightAnswer(name) };
+}
+
+function defaultSpotlightConversion(source) {
+  const match = source.trim().match(/^([+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*([a-zA-Z°²³/]+)$/);
+  if (!match) return null;
+  const unit = spotlightUnit(match[2]); if (!unit) return null;
+  const target = { length: unit[1] === 'm' ? 'cm' : unit[1] === 'km' ? 'mi' : 'm', mass: unit[1] === 'kg' ? 'g' : 'kg', volume: unit[1] === 'L' ? 'mL' : 'L', time: unit[1] === 'h' ? 'min' : unit[1] === 'min' ? 'h' : 'min', temperature: unit[1] === '°C' ? '°F' : '°C', area: 'm²', speed: unit[1] === 'km/h' ? 'm/s' : 'km/h', data: unit[1] === 'GB' ? 'MB' : 'B' }[unit[0]];
+  return target ? convertSpotlight(source + ' in ' + target) : null;
+}
+
+function buildSpotlightResults(source) {
+  const parsed = parseSpotlightQuery(source);
+  const pool = [...searchableEntries(), ...spotlightQuickActions(parsed.query)];
+  let candidates = pool.filter((result) => parsed.category === 'all' || parsed.category === 'recent' && spotlightHistory.uses[result.key]
+    || result.category === parsed.category);
+  if (parsed.kind) candidates = candidates.filter((result) => parsed.kind === 'document' ? !['folder', 'image', 'audio', 'video'].includes(spotlightEntryKind(result)) : spotlightEntryKind(result) === parsed.kind);
+  const scored = candidates.map((result) => rankSpotlightResult(result, parsed.query)).filter(Boolean);
+  scored.sort((a, b) => !parsed.query && parsed.category === 'recent' ? spotlightHistory.uses[b.key].last - spotlightHistory.uses[a.key].last : b.score - a.score);
+  let results = scored.slice(0, 12);
+  if (parsed.category === 'all' || parsed.category === 'actions') {
+    const parameter = parameterSpotlightAction(source.replace(/^\/azioni\s+/i, ''));
+    if (parameter) results = [parameter, ...results.filter((result) => result.key !== parameter.key)].slice(0, 12);
+  }
+  if (parsed.category === 'all') {
+    const answer = spotlightAnswer(source) ?? spotlightTimeAnswer(source);
+    if (answer) results = [answer, ...results].slice(0, 12);
+  }
+  renderSpotlightCategories(parsed.category);
+  return { results, parsed };
+}
+
+function renderSpotlightCategories(selected = spotlightCategory) {
+  const bar = byId('spotlight-categories'); bar.replaceChildren();
+  for (const [key, label] of Object.entries(spotlightCategories)) {
+    const control = button('Categoria Spotlight · ' + label, 'spotlight-category', label, () => {
+      const parsed = parseSpotlightQuery(spotlightSearch.value);
+      if (parsed.forced && parsed.category !== key) spotlightSearch.value = parsed.query;
+      spotlightCategory = key; renderSpotlight(); spotlightSearch.focus();
+    });
+    control.setAttribute('aria-pressed', selected === key); bar.append(control);
+  }
+}
+
+function revealSpotlightResult(result = searchResults[selectedResult]) {
+  const id = result?.entryId;
+  if (!id || !isVisibleEntry(id)) return;
+  rememberSpotlightResult(result); spotlight.close();
+  if (fixedFolders.includes(id)) showFolder(id);
+  else {
+    showFolder(folderParent(id));
+    const grid = windows.get('finder').content.querySelector('.files'); selectFinderItem(id, grid);
+    grid.querySelector('[data-item="' + id + '"]')?.focus();
+  }
+}
+
+function refreshSpotlightLive(date) {
+  if (!spotlight.open || !searchResults[selectedResult]?.liveTime) return;
+  const minute = Math.floor(date.getTime() / 60000);
+  if (byId('spotlight').dataset.liveMinute === String(minute)) return;
+  byId('spotlight').dataset.liveMinute = String(minute); renderSpotlight();
+}
+
+function renderSpotlightSettings() {
+  const group = document.createElement('fieldset');
+  const legend = document.createElement('legend'); legend.textContent = 'Spotlight';
+  const note = document.createElement('p'); note.className = 'app-hint'; note.textContent = 'Ctrl+Spazio apre app, file e azioni. Prova tipo:pdf, timer 10 min oppure ora a Tokyo. I recenti restano in questo browser.';
+  const status = document.createElement('p'); status.className = 'app-hint'; status.setAttribute('role', 'status');
+  const clear = button('Cancella recenti di Spotlight', 'choice', 'Cancella recenti', () => {
+    spotlightHistory = { uses: {}, queries: [] }; spotlightTextIndex.clear();
+    status.textContent = writeValue('spotlight.history.v1', JSON.stringify(spotlightHistory)) ? 'Recenti cancellati.' : 'Recenti cancellati per questa sessione.';
+  });
+  group.append(legend, note, clear, status); return group;
+}
+
+function setupSpotlightIntelligence() {
+  try {
+    const saved = JSON.parse(readValue('spotlight.history.v1', '{}'));
+    if (Array.isArray(saved.queries)) spotlightHistory.queries = saved.queries.filter((query) => typeof query === 'string' && query.length > 0 && query.length <= 180).slice(0, 10);
+    if (saved.uses && typeof saved.uses === 'object') for (const [key, value] of Object.entries(saved.uses).slice(0, 50)) {
+      if (/^(?:app|file|action):[a-zA-Z0-9_.-]{1,100}$/.test(key) && value && Number.isFinite(value.last) && Number.isInteger(value.count) && value.count > 0) spotlightHistory.uses[key] = { last: value.last, count: Math.min(100, value.count) };
+    }
+  } catch {}
 }
 
 
@@ -6919,12 +7169,13 @@ function renderSettings(record) {
   }
   content.append(renderDockSettings());
   content.append(renderNotificationSettings());
+  content.append(renderSpotlightSettings());
   content.append(renderHotCornerSettings(status));
   record.content.replaceChildren(content);
 }
 
 function renderInfo(record) {
-  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.2.0</h2><p>Con <strong>Ctrl+Spazio</strong> apri Spotlight: calcoli, conversioni e anteprime di app e file. Prova <strong>12 cm in mm</strong> oppure <strong>(25+15)*2</strong>. Invio copia il risultato.</p><p>In <strong>Impostazioni → Sfondo → Laguna dinamica</strong> trovi quattro paesaggi che seguono l’orologio: Mattino dalle 06, Giorno dalle 09, Tramonto dalle 17 e Notte dalle 20. Puoi provarli prima di confermare.</p><p>Il Dock segue il puntatore. Tienilo sopra un’app aperta per vedere l’anteprima e fai clic per portarla avanti.</p><p>Nel Finder scegli <strong>Azioni → Personalizza cartella</strong> per colori, simboli e anteprime del contenuto. Crea, rinomina e sposta con pannelli agganciati alla finestra.</p><p>La <strong>campanella</strong> apre gli ultimi avvisi di Laguna. In <strong>Impostazioni → Notifiche e suoni</strong> regoli banner, effetti sonori e volume. I suoni sono inizialmente disattivati.</p><p>In <strong>Impostazioni → Sfondo</strong> provi un’immagine prima di confermarla. In <strong>Dock</strong> regoli le dimensioni delle icone. L’Effetto Genio e il Dock seguono la preferenza Animazioni.</p></div>';
+  record.content.innerHTML = '<div class="info-view"><h2>Laguna 3.3.0</h2><p>Spotlight ora ha <strong>App, File, Azioni e Recenti</strong>. Prova <strong>tipo:pdf</strong>, <strong>timer 10 min</strong>, <strong>nota: testo</strong>, <strong>ora a Tokyo</strong> o <strong>√144</strong>. Cerca anche dentro i testi di Laguna e usa <strong>Ctrl+Invio</strong> per individuare un file nel Finder.</p><p>Con <strong>Ctrl+Spazio</strong> apri Spotlight: calcoli, conversioni e anteprime di app e file. Prova <strong>12 cm in mm</strong> oppure <strong>(25+15)*2</strong>. Invio copia il risultato.</p><p>In <strong>Impostazioni → Sfondo → Laguna dinamica</strong> trovi quattro paesaggi che seguono l’orologio: Mattino dalle 06, Giorno dalle 09, Tramonto dalle 17 e Notte dalle 20. Puoi provarli prima di confermare.</p><p>Il Dock segue il puntatore. Tienilo sopra un’app aperta per vedere l’anteprima e fai clic per portarla avanti.</p><p>Nel Finder scegli <strong>Azioni → Personalizza cartella</strong> per colori, simboli e anteprime del contenuto. Crea, rinomina e sposta con pannelli agganciati alla finestra.</p><p>La <strong>campanella</strong> apre gli ultimi avvisi di Laguna. In <strong>Impostazioni → Notifiche e suoni</strong> regoli banner, effetti sonori e volume. I suoni sono inizialmente disattivati.</p><p>In <strong>Impostazioni → Sfondo</strong> provi un’immagine prima di confermarla. In <strong>Dock</strong> regoli le dimensioni delle icone. L’Effetto Genio e il Dock seguono la preferenza Animazioni.</p></div>';
 }
 
 const launchpad = byId('launchpad');
@@ -6971,17 +7222,18 @@ function noResults(message) {
 }
 
 const appSearch = [...launchApps, 'launchpad'].map((id) => ({
-    name: appName(id), detail: 'App', art: appIcon(id), open: () => launch(id)
+    key: 'app:' + id, appId: id, category: 'apps', name: appName(id), detail: 'App', art: appIcon(id), open: () => launch(id)
 }));
 
 function searchableEntries() {
   return [
     ...appSearch,
     ...fixedFolders.filter((id) => id !== 'local').map((id) => ({
-      name: folders[id].name, detail: 'Cartella virtuale', entryId: id, art: folderArtwork(id), open: () => showFolder(id)
+      key: 'file:' + id, category: 'files', name: folders[id].name, detail: 'Cartella virtuale', entryId: id, art: folderArtwork(id), open: () => showFolder(id)
     })),
     ...[...virtualEntries].filter(([id]) => isVisibleEntry(id)).map(([id, entry]) => ({
       name: entry.name,
+      key: 'file:' + id, category: 'files',
       entryId: id,
       detail: (entry.kind === 'folder' ? 'Cartella' : 'Documento') + ' · ' + folderInfo(entry.parent).name,
       art: entry.kind === 'folder' ? folderArtwork(id) : fileArtwork(entry),
@@ -6995,6 +7247,7 @@ function chooseResult(index, scroll = false) {
   if (!items.length) {
     spotlightSearch.removeAttribute('aria-activedescendant');
     byId('spotlight-enter-hint').textContent = 'Scrivi una ricerca';
+    byId('spotlight-reveal-hint').hidden = true;
     void renderSpotlightPreview(null);
     return;
   }
@@ -7006,7 +7259,8 @@ function chooseResult(index, scroll = false) {
   });
   const item = items[selectedResult];
   spotlightSearch.setAttribute('aria-activedescendant', item.id);
-  byId('spotlight-enter-hint').textContent = searchResults[selectedResult]?.error ? 'Correggi la richiesta' : searchResults[selectedResult]?.kind === 'answer' ? 'Invio per copiare' : 'Invio per aprire';
+  byId('spotlight-enter-hint').textContent = searchResults[selectedResult]?.error ? 'Correggi la richiesta' : searchResults[selectedResult]?.kind === 'answer' ? 'Invio per copiare' : searchResults[selectedResult]?.kind === 'action' ? 'Invio per eseguire' : 'Invio per aprire';
+  byId('spotlight-reveal-hint').hidden = !searchResults[selectedResult]?.entryId;
   void renderSpotlightPreview(searchResults[selectedResult]);
   if (scroll) item.scrollIntoView({ block: 'nearest' });
 }
@@ -7014,20 +7268,15 @@ function chooseResult(index, scroll = false) {
 function runResult(index) {
   const result = searchResults[index];
   if (!result) return;
+  if (!result.error) rememberSpotlightResult(result);
   if (result.keepOpen) { result.open(); return; }
   spotlight.close();
   result.open();
 }
 
 function renderSpotlight() {
-  const answer = spotlightAnswer(spotlightSearch.value);
-  const query = normalize(spotlightSearch.value);
-  const exactMatch = (entry) => Number(normalize(entry.name) === query);
-  const matches = query
-    ? searchableEntries().filter((entry) => normalize(entry.name + ' ' + entry.detail).includes(query))
-      .sort((first, second) => exactMatch(second) - exactMatch(first)).slice(0, 9)
-    : appSearch.slice(0, 5);
-  searchResults = answer ? [answer, ...matches].slice(0, 9) : matches;
+  const { results, parsed } = buildSpotlightResults(spotlightSearch.value);
+  searchResults = results;
   const list = byId('spotlight-results');
   list.replaceChildren();
   searchResults.forEach((result, index) => {
@@ -7043,7 +7292,7 @@ function renderSpotlight() {
     item.setAttribute('role', 'option');
     list.append(item);
   });
-  byId('spotlight-caption').textContent = answer ? answer.detail : searchResults.length ? 'App e file di Laguna · Calcoli e conversioni' : 'Nessun risultato';
+  byId('spotlight-caption').textContent = searchResults[0]?.kind === 'answer' ? searchResults[0].detail : parsed.category === 'recent' ? 'Aperti di recente con Spotlight' : searchResults.length ? parsed.query ? 'Migliori corrispondenze · App e file di Laguna' : 'Recenti e suggerimenti' : 'Nessun risultato';
   list.hidden = !searchResults.length;
   chooseResult(0);
 }
@@ -7060,6 +7309,7 @@ function toggleSpotlight() {
   if (controlCenter.open) controlCenter.close();
   if (byId('finder-dialog').open) return;
   spotlightSearch.value = '';
+  spotlightCategory = 'all';
   renderSpotlight();
   spotlight.showModal();
   spotlightSearch.focus();
@@ -7510,11 +7760,22 @@ function setupEvents() {
   spotlight.addEventListener('close', releaseSpotlightPreview);
   spotlightSearch.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
+    if (event.key === 'ArrowUp' && !spotlightSearch.value && spotlightHistory.queries.length) {
+      event.preventDefault(); spotlightCategory = 'all'; spotlightSearch.value = spotlightHistory.queries[0]; renderSpotlight(); return;
+    }
+    if (event.key === 'Tab' && !event.shiftKey && spotlightSearch.value) {
+      const action = byId('spotlight-preview').querySelector('button');
+      if (action) { event.preventDefault(); action.focus(); return; }
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       chooseResult(selectedResult + (event.key === 'ArrowDown' ? 1 : -1), true);
     }
-    if (event.key === 'Enter') runResult(selectedResult);
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if ((event.ctrlKey || event.metaKey) && searchResults[selectedResult]?.entryId) revealSpotlightResult();
+      else runResult(selectedResult);
+    }
   });
   for (const dialog of [launchpad, spotlight, quickLook, controlCenter]) {
     dialog.addEventListener('keydown', (event) => {
@@ -7633,6 +7894,7 @@ function updateClock() {
   updateWidgetTime(now);
   updateClockApp(now.getTime());
   updateDynamicWallpaper(now);
+  refreshSpotlightLive(now);
   if (byId('lock-screen').open) updateLockClock(now);
 }
 
@@ -7700,6 +7962,7 @@ function restoreWorkspace() {
 setupDesktopDetails();
 setupDockPolish();
 setupDynamicWallpaper();
+setupSpotlightIntelligence();
 buildDesktop();
 setupEvents();
 for (const [key, preference] of Object.entries(preferences)) {
