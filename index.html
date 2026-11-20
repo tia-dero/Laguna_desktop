@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-WjA8upK7z9awYKyZEtchqSdr7xOtzsQNnlQz2tk5rp8='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-cXsUOlfGiEVt0ixQHPfYFm4igKWSvsQmOuY2ZkNKCSg='; style-src 'unsafe-inline'; img-src blob: data:; media-src blob:; frame-src https: http: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="theme-color" content="#163d42">
   <title>Laguna 3.1.0 · Desktop per EliteBook</title>
   <style>
@@ -1041,10 +1041,11 @@ input, textarea, select { accent-color: var(--accent-strong); }
 }
 #dock-area.preview-active #dock { transform: translateX(-50%); opacity: 1; pointer-events: auto; }
 #dock-preview { position: fixed; z-index: 32; width: max-content; max-width: calc(100vw - 16px); padding: 8px; border: 1px solid var(--glass-border); border-radius: 17px; background: var(--glass); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 12px 38px #041b3150; }
-#dock-preview-open { display: grid; justify-items: center; gap: 7px; padding: 0; border: 0; background: transparent; }
+#dock-preview-open { display: block; width: 100%; padding: 7px 0 0; border: 0; background: transparent; text-align: center; }
+#dock-preview-open::after { content: ''; position: absolute; inset: 0; border-radius: 17px; }
 #dock-preview-image { position: relative; overflow: hidden; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); pointer-events: none; }
 #dock-preview-image .dock-preview-window { box-shadow: none; border: 0; border-radius: 0; }
-#dock-preview-title { display: block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 650; }
+#dock-preview-title { display: block; max-width: 220px; margin: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 650; }
 .dock-preview-placeholder { display: grid; place-items: center; min-height: 180px; background: var(--panel); color: var(--muted); font-size: 24px; }
 
 #finder-dialog[data-sheet-owner]:not([data-sheet-owner=""]) { position: fixed; inset: auto; margin: 0; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); border: 1px solid var(--glass-border); border-radius: 0 0 18px 18px; background: var(--glass); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 18px 45px #071c3545; }
@@ -1153,7 +1154,7 @@ input, textarea, select { accent-color: var(--accent-strong); }
     <div id="notification-list"></div><p id="notification-empty">Nessuna notifica. Qui trovi gli avvisi di Laguna.</p>
   </section>
   <div id="notification-banners" aria-label="Avvisi di Laguna"></div>
-  <section id="dock-preview" aria-label="Anteprima finestra dal Dock" hidden><button type="button" id="dock-preview-open"><span id="dock-preview-image"></span><span id="dock-preview-title"></span></button></section>
+  <section id="dock-preview" aria-label="Anteprima finestra dal Dock" hidden><div id="dock-preview-image" aria-hidden="true" inert></div><button type="button" id="dock-preview-open"><span id="dock-preview-title"></span></button></section>
   <section id="wallpaper-preview-bar" aria-label="Anteprima dello sfondo" hidden>
     <div><span class="app-hint">Anteprima sfondo</span><strong id="wallpaper-preview-name"></strong></div>
     <button id="wallpaper-preview-cancel" class="choice" type="button">Annulla</button>
@@ -4454,7 +4455,7 @@ function renderNotificationBadge() {
   const badge = byId('notification-badge');
   badge.textContent = count > 9 ? '9+' : String(count);
   badge.hidden = !count;
-  byId('notifications-button').setAttribute('aria-label', 'Centro notifiche' + (count ? ' · ' + count + ' non lette' : ''));
+  byId('notifications-button').setAttribute('aria-label', 'Centro notifiche' + (count ? ' · ' + count + (count === 1 ? ' non letta' : ' non lette') : ''));
 }
 
 function notificationCard(entry, banner = false) {
@@ -4565,8 +4566,8 @@ function renderNotificationSettings() {
     control.setAttribute('aria-pressed', notificationSettings[key]); options.append(control);
   }
   const label = document.createElement('label'); label.className = 'sound-volume'; label.textContent = 'Volume dei suoni';
-  const range = document.createElement('input'); range.type = 'range'; range.min = '0'; range.max = '60'; range.step = '5'; range.value = String(notificationSettings.volume);
-  range.step = '1'; range.setAttribute('aria-label', 'Volume dei suoni');
+  const range = document.createElement('input'); range.type = 'range'; range.min = '0'; range.max = '60'; range.step = '1'; range.value = String(notificationSettings.volume);
+  range.setAttribute('aria-label', 'Volume dei suoni');
   const output = document.createElement('output'); output.textContent = notificationSettings.volume + '%';
   range.addEventListener('input', () => { notificationSettings.volume = Math.max(0, Math.min(60, Number(range.value) || 0)); output.textContent = notificationSettings.volume + '%'; });
   range.addEventListener('change', () => writeValue('notification-settings.v1', JSON.stringify(notificationSettings)));
@@ -4591,7 +4592,7 @@ function setupDesktopDetails() {
     const saved = JSON.parse(readValue('notifications.v1', '[]'));
     if (Array.isArray(saved)) notificationHistory = saved.filter((item) => item && typeof item.id === 'string' && /^[a-z0-9-]{1,60}$/.test(item.id)
       && typeof item.title === 'string' && item.title.length <= 100 && typeof item.message === 'string' && item.message.length <= 300
-      && Object.hasOwn(apps, item.app) && Number.isFinite(item.created) && item.created > 0 && item.created < 8640000000000000).slice(0, 30);
+      && Object.hasOwn(apps, item.app) && Number.isFinite(item.created) && item.created > 0 && item.created < 8640000000000000).slice(0, 30).map((item) => ({ ...item, read: item.read === true }));
   } catch {}
   renderNotificationCenter();
   byId('notifications-button').addEventListener('click', () => byId('notification-center').hidden ? openNotificationCenter() : closeNotificationCenter());
@@ -6085,7 +6086,7 @@ function finderActions({ includeEditing = true } = {}) {
       byId('import-picker').click();
     }],
     ['Rinomina…', () => nameEntry(id), !entry],
-    ['Personalizza cartella…', () => customizeFolder(canWriteFolder(id) ? id : folder), !canWriteFolder(id) && !canWriteFolder(folder)],
+    [canWriteFolder(id) ? 'Personalizza cartella…' : 'Personalizza questa cartella…', () => customizeFolder(canWriteFolder(id) ? id : folder), !canWriteFolder(id) && !canWriteFolder(folder)],
     ['Sposta in…', () => chooseDestination(selected), !selected.length],
     ['Esporta copia…', () => exportEntry(id), !entry || entry.kind === 'folder'],
     ['Sposta nel Cestino', () => sendToTrash(selected), !selected.length]
